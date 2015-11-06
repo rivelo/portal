@@ -1,0 +1,33 @@
+
+<div id="menu">
+<ul>
+	{% ifequal sel_menu "main" %}			
+				<li class="current_page_item"><a href="/">Головна</a></li>
+	{% else %}
+				<li><a href="/">Головна</a></li>
+	{% endifequal %}
+	
+	{% ifequal sel_menu "photo" %}
+				<li class="current_page_item"><a href="/photo/">Фото</a></li>
+	{% else %}
+				<li><a href="/photo/">Фото</a></li>
+	{% endifequal %}
+								
+				<li><a href="/forum/index.php">Форум</a></li>
+				
+	{% ifequal sel_menu "guest" %}				
+				<li class="current_page_item"><a href="/contact/">Гостьова книга</a></li>
+	{% else %}
+				<li><a href="/contact/">Гостьова книга</a></li>
+	{% endifequal %}					
+				
+	{% ifequal sel_menu "about" %}				
+				<li class="current_page_item"><a  href="/about/">Про нас</a></li>
+	{% else %}			
+				<li><a  href="/about/">Про нас</a></li>
+	{% endifequal %}
+	
+				<li><a href="/">Наші друзі {{test_var}}</a></li>
+				
+</ul>
+</div>

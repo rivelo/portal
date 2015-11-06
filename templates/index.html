@@ -1,0 +1,102 @@
+﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Design by Free CSS Templates
+http://www.freecsstemplates.org
+Released for free under a Creative Commons Attribution 2.5 License
+
+Name       : Commission
+Description: A two-column, fixed-width design for 1024x768 screen resolutions.
+Version    : 1.0
+Released   : 20090122
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Rivelo - Велопортал Рівного</title>
+<meta name="keywords" content="rivelo велосипед рівне вело рівне рівело" />
+<meta name="description" content="" />
+<link href="/media/style.css" rel="stylesheet" type="text/css" media="screen" />
+</head>
+<body>
+<div id="header-wrapper">
+	<div id="header">
+	
+		<!-- #menu -->
+		{% include "menu.html" %}
+		<!-- end #menu -->
+		
+
+		<div id="search">
+			<form method="get" action="">
+				<fieldset>
+				<input type="text" name="s" id="search-text" size="15" />
+				<input type="submit" id="search-submit" value="Search" />
+				</fieldset>
+			</form>
+		</div>
+		<!-- end #search -->
+	</div>
+	<!-- end #header -->
+</div>
+<!-- end #header-wrapper -->
+<div id="page">
+    <div id="logo">
+        <br><img src="/media/images/logo_autumn.jpg" alt="" title="">
+	<!--	<h1><a href="#">Commission</a></h1>
+    <p><em>{ by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> }</em></p> -->
+	</div>
+	<hr />
+	<!-- end #logo -->
+	<div id="content">
+
+	{% include weblink %}
+<!--			
+		
+		<div class="post">
+			<h2 class="title">Lorem ipsum sed aliquam</h2>
+			<p class="meta"><em>{ Posted by <a href="#">admin</a> on March 8, 2008 }</em></p>
+			<div class="entry">
+				<p>Sed lacus. Donec lectus. Nullam pretium nibh ut turpis. Nam bibendum. In nulla tortor, elementum vel, tempor at, varius non, purus. Mauris vitae nisl nec metus placerat consectetuer. Donec ipsum. Proin imperdiet est. Phasellus <a href="#">dapibus semper urna</a>. Pellentesque ornare, orci in consectetuer hendrerit, urna elit eleifend nunc, ut consectetuer nisl felis ac diam. Etiam non felis. Donec ut ante. In id eros. Suspendisse lacus turpis, cursus egestas at sem. Phasellus pellentesque. Mauris quam enim, molestie in, rhoncus ut, lobortis a, est.</p>
+				<p class="links"><a href="#" class="comments">Comments (64)</a> &nbsp;&nbsp;&nbsp; <a href="#" class="permalink">Full article</a></p>
+			</div>
+		</div>
+	-->		
+	</div>
+
+	<!-- end #content -->
+	<div id="sidebar">
+		<ul>
+			<li>
+				{% include "funnies.html" %}			
+<!--				<h2>Цікавинки:</h2>
+				<p>Mauris vitae nisl nec metus placerat perdiet est. Phasellus dapibus semper urna. Pellentesque ornare, orci in consectetuer hendrerit, volutpat.</p>
+-->			</li>
+
+			{% include "calendar_embeded.html" %}			
+			
+			<li>
+				<h2>Фото:</h2>
+				<ul class="list1">
+					<li><a href="#"><img src="images/img17.jpg" alt="" width="90" height="90" /></a></li>
+					<li class="alt"><a href="#"><img src="/media/images/img18.jpg" alt="" width="90" height="90" /></a></li>
+					<li></li>
+					<li class="alt"><a href="#"></a></li>
+				</ul>
+				<p style="clear: both; margin: 0; line-height: normal; text-align: right;"><a href="#">More photos &gt;</a></p>
+			</li>
+		</ul>
+	</div>
+	<!-- end #sidebar -->
+	<div style="clear: both;">&nbsp;</div>
+</div>
+<!-- end #page -->
+
+<div id="footer">
+	<p>Copyright (c) 2008 Sitename.com. All rights reserved. Design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a>.</p>
+</div>
+<!-- end #footer -->
+
+</body>
+</html>
