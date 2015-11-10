@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from rivelo_portal.funnies.models import Funnies
+from portal.funnies.models import Funnies
 
 
 class FunniesAdmin(admin.ModelAdmin):

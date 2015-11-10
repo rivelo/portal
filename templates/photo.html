@@ -1,13 +1,25 @@
-﻿{% block content %}
+﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+{% block content %}
 
 <div class="post">
 <!-- Create image list -->
 {% if album_name %}
 <h2 class="title"><i>Альбом { {{album_name}} }</i></h2>
 {% else %}
-<h2 class="title">Випадкові фото</h2>
+<h2 class="title">Список фотоальбомів:</h2>
 {% endif %}
 </div>
+
+{% for album in albums %}
+<h2 class="title"><a href="/photo/album/{{album.album_id}}"><i>Альбом { {{album.title}} } - {{album.numphotos}} фото</i></a></h2>
+{% endfor %}
+
+<div>
+{% for photo in photo_list %}
+<img src="{{photo.url}}"> </img>
+{% endfor %}
+</div>>
 
 
 	

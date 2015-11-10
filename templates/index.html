@@ -17,7 +17,65 @@ Released   : 20090122
 <title>Rivelo - Велопортал Рівного</title>
 <meta name="keywords" content="rivelo велосипед рівне вело рівне рівело" />
 <meta name="description" content="" />
-<link href="/media/style.css" rel="stylesheet" type="text/css" media="screen" />
+<link href="/media/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+<link rel="stylesheet" href="/media/css/jquery-ui.min.css">
+<script src="/media/jquery-1.11.3.min.js"></script>
+<script src="/media/jquery-ui.min.js"></script>
+
+<style type="text/css">
+  span:visited{ text-decoration:none; color:#ffffff; }
+  span:hover{ text-decoration:underline; color:#293d6b; }
+  span {color:#ffffff; cursor: pointer; }
+</style>
+
+<script>
+$(document).ready(function() {
+
+$("#d_login").dialog({ 
+	autoOpen: false,
+	position: { my: "left center", at: "left center", of: "#button_login"  } 
+	});
+
+
+$( "#d_photo" ).dialog({ 
+	autoOpen: false,
+	autoResize:true,
+	minHeight: 'auto',
+	width:'auto',
+	position: { my: "left center", at: "left center", of: ".photo_url"  },
+	open: function(){ $(this).dialog('option', 'width', $("#d_img").width()+20, 'height', $("#d_img").height()+20)
+					$(this).dialog('option', "width", document.getElementById("d_img").width);
+					console.log("THIS = ", document.getElementById("d_img").width);
+					console.log("THIS = ", $("#d_img").height());
+					},
+	create: function(){ $(this).dialog('option', 'width', $("#d_img").width()+20, 'height', $("#d_img").height()+20)
+					},					 
+	});
+
+//    $("#d_img").load(function() {
+//		alert('Загрузка завершена!');
+//	});
+
+
+$(".photo_url" ).click(function($this) {
+	$("#d_img").attr('src', $(this).attr('src'));
+//	$("#d_img").attr('width', '600px');
+
+    console.log("THIS click = ", $(this).children() );
+	$("#d_photo").dialog("open");
+    $("#d_photo").dialog('option', "width", 550);
+    $("#d_photo").dialog('option', "title", $(this).children().attr("title"));
+    $("#d_img").attr('title', $(this).children().attr("title"));
+});
+
+
+$( "#button_login" ).click(function() {
+  $( "#d_login" ).dialog("open");
+});
+
+});
+</script>
+  
 </head>
 <body>
 <div id="header-wrapper">
@@ -26,7 +84,10 @@ Released   : 20090122
 		<!-- #menu -->
 		{% include "menu.html" %}
 		<!-- end #menu -->
-		
+
+<div id="login_panel"> 		
+<span id="button_login">Login</span>
+</div>
 
 		<div id="search">
 			<form method="get" action="">
@@ -36,6 +97,39 @@ Released   : 20090122
 				</fieldset>
 			</form>
 		</div>
+
+{% load i18n %}
+		
+		<div id="d_login" title="Login form">
+{% if user.is_authenticated %}
+  <form method="post" action="/accounts/logout/">
+        {% csrf_token %}
+        <label>User name: {{user.username|upper}}</label>
+        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
+        <input type="hidden" name="next_page" value="{{ next|escape }}" />
+    </form>
+{% else %}
+  <form action="/accounts/login/" method="post" id="login_form">
+    <label for="username">User name:</label>
+    <input type="text" name="username" value="" id="username">
+    <label for="password">Password:</label>
+    <input type="password" name="password" value="" id="password">
+
+    <input type="submit" value="login" />
+    <input type="hidden" name="next" value="{{ next|escape }}" />
+  </form>
+  
+  <form method="post" action="/accounts/logout/" style="display:none;" id="logout_form">
+        {% csrf_token %}
+        <label id="user_label">User name: {{user.username|upper}}</label>
+        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
+        <input type="hidden" name="next_page" value="{{ next|escape }}" />
+    </form>
+  
+{% endif %}
+		
+		</div>
+		
 		<!-- end #search -->
 	</div>
 	<!-- end #header -->
@@ -77,14 +171,18 @@ Released   : 20090122
 			{% include "calendar_embeded.html" %}			
 			
 			<li>
+<div id="d_photo" title="Photo form" >
+<img id="d_img" src="{{photo1.url}}" alt="photo" title="TEST photo"/>
+</div>			
 				<h2>Фото:</h2>
 				<ul class="list1">
-					<li><a href="#"><img src="images/img17.jpg" alt="" width="90" height="90" /></a></li>
-					<li class="alt"><a href="#"><img src="/media/images/img18.jpg" alt="" width="90" height="90" /></a></li>
-					<li></li>
+					<li><span class="photo_url" src="{{photo1.url}}"><img src="{{photo1.image}}" alt="{{photo1.album.title}}" width="105" height="90" title="{{photo1.album}}"/></span></li>
+					<li class="alt"><span class="photo_url" src="{{photo2.url}}"><img src="{{photo2.image}}" alt="" width="105" height="90" title="{{photo2.album}}"/></span></li>
+<!-- 					<li></li>
 					<li class="alt"><a href="#"></a></li>
+					 -->
 				</ul>
-				<p style="clear: both; margin: 0; line-height: normal; text-align: right;"><a href="#">More photos &gt;</a></p>
+				<p style="clear: both; margin: 0; line-height: normal; text-align: right;"><a href="#">Більше фото &gt;</a></p>
 			</li>
 		</ul>
 	</div>

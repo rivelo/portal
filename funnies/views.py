@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
 
-from rivelo_portal.event_calendar.views import embeded_calendar
+from portal.event_calendar.views import embeded_calendar
 from models import Funnies
 
 
@@ -19,9 +19,15 @@ def custom_proc(request):
     }
 
 
-def get_funn(id):
-    try:
-        f = Funnies.objects.get(id = id)
-    except:
-        f = Funnies.objects.none()
+def get_funn(id=None):
+    if id == None:
+        try:
+            f = Funnies.objects.all().order_by('?')[:1].get()
+        except:
+            return ''
+    else:
+        try:
+            f = Funnies.objects.get(id = id)
+        except:
+            return ''
     return f.text

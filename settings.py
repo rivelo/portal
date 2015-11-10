@@ -1,6 +1,10 @@
-# Django settings for rivelo_portal project.
+# Django settings for portal project.
 import os
 dirname = os.path.dirname(globals()["__file__"])
+
+import sys 
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -109,7 +113,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'rivelo_portal.urls'
+ROOT_URLCONF = 'portal.urls'
 
 TEMPLATE_DIRS = (
     os.path.join(dirname, 'templates'),
@@ -131,11 +135,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'rivelo_portal.news',
-    'rivelo_portal.gallery',
-    'rivelo_portal.event_calendar',
-    'rivelo_portal.funnies',
-    'rivelo_portal',
+    'portal.news',
+    'portal.gallery',
+    'portal.event_calendar',
+    'portal.funnies',
+    'portal',
 )
 
 # A sample logging configuration. The only tangible logging

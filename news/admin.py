@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from rivelo_portal.news.models import News, Category, Comments 
+from portal.news.models import News, Category, Comments 
 
 
 class NewsAdmin(admin.ModelAdmin):

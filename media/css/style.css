@@ -92,7 +92,7 @@ hr { display: none; }
 
 #menu {
 	float: left;
-	width: 680px;
+	width: 640px;
 	height: 40px;
 }
 
@@ -122,6 +122,15 @@ hr { display: none; }
 
 #menu .current_page_item a {
 	background: #39561D;
+	color: #FFFFFF;
+}
+
+#login_panel {
+	float: right;
+	margin: 0;
+	padding: 13px 10px 0px 0px;
+	list-style: none;
+	line-height: normal;	
 	color: #FFFFFF;
 }
 
@@ -177,13 +186,13 @@ background-color: #CCFFCC;
 	width: 960px;
 	margin: 0 auto;
 	padding: 0 20px;
-	background: url(images/img01.jpg) repeat-x left top;
+	background: url(/media/images/img01.jpg) repeat-x left top;
 }
 
 #photoalbum {
 	margin: 0 auto;
 	padding: 0 20px;
-	background: url(images/img01.jpg) repeat-x left top;
+	background: url(/media/images/img01.jpg) repeat-x left top;
 }
 
 /** LOGO */

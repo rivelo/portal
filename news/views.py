@@ -6,10 +6,10 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
 
-from rivelo_portal.event_calendar.views import embeded_calendar
-from rivelo_portal.funnies.views import get_funn
+from portal.event_calendar.views import embeded_calendar
+from portal.funnies.views import get_funn
 from models import News
-
+from portal.gallery.models import Album, Photo
 
 def custom_proc(request):
 # "A context processor that provides 'app', 'user' and 'ip_address'."
@@ -27,21 +27,27 @@ def auth_group(user, group):
 
 def main_page(request):
     #return HttpResponse("Hello world")
-    vars = {'weblink': 'main.html', 'sel_menu': 'main', 'entry': get_funn(2)}
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'main.html', 'sel_menu': 'main', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
     calendar = embeded_calendar()
     vars.update(calendar)
     
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 def contact_page(request):
-    vars = {'weblink': 'contact.html', 'sel_menu': 'contact', 'entry': get_funn(2)}
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'contact.html', 'sel_menu': 'contact', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
     calendar = embeded_calendar()
     vars.update(calendar)
     
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 def about_page(request):
-    vars = {'weblink': 'about.html', 'sel_menu': 'about', 'entry': get_funn(2)}
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'about.html', 'sel_menu': 'about', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
     calendar = embeded_calendar()
     vars.update(calendar)
     
