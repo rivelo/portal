@@ -1,0 +1,35 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<script src="http://cloud.tinymce.com/4/tinymce.min.js?apiKey=<your_key>"></script>
+
+<script>
+tinymce.init({
+  selector: 'textarea',
+  height: 500,
+  menubar: false,
+  plugins: [
+    'advlist autolink lists link image charmap print preview anchor',
+    'searchreplace visualblocks code fullscreen',
+    'insertdatetime media table contextmenu paste code'
+  ],
+  toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+  content_css: '//www.tinymce.com/css/codepen.min.css'
+});
+</script>
+
+
+
+<h1>Додати/Редагувати новину</h1>
+ <form action="" method="POST" enctype="multipart/form-data">
+        <table>
+            {{ form.as_ul }}
+        </table>
+        <input type="submit" value="Save">
+</form>
+
+<!-- 
+<textarea>
+{{news.text}}
+</textarea>	
+
+ -->

@@ -15,3 +15,11 @@ def inday(value, arg):
     else:
         return None
 
+
+@register.filter(name='season')
+def season(value):
+    name = ('winter','spring','summer','autumn')
+    p = datetime.datetime.now().month % 12 / 3
+    str = value + "logo_" + name[p] + ".gif" 
+    return str
+

@@ -1,14 +1,103 @@
 ﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+/*------------------------------------*\
+	НАВИГАЦИЯ
+\*------------------------------------*/
+#nav{
+	float:left;
+	width:100%;
+	list-style:none;
+	font-weight:bold;
+	margin-bottom:10px;
+}
+#nav li{
+	float:left;
+	margin-right:10px;
+	position:relative;
+	display:block;
+}
+#nav li a{
+	display:block;
+	padding:5px;
+	color:#fff;
+	background:#333;
+	text-decoration:none;
+	
+	text-shadow:1px 1px 1px rgba(0,0,0,0.75); /* Тень текста, чтобы приподнять его на немного */
+	-moz-border-radius:2px;
+	-webkit-border-radius:2px;
+	border-radius:2px;
+}
+#nav li a:hover{
+	color:#fff;
+	background:#6b0c36;
+	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
+	text-decoration:underline;
+}
 
+/*--- ВЫПАДАЮЩИЕ ПУНКТЫ ---*/
+#nav ul{
+	list-style:none;
+	position:absolute;
+	left:-9999px; /* Скрываем за экраном, когда не нужно (данный метод лучше, чем display:none;) */
+	opacity:0; /* Устанавливаем начальное состояние прозрачности */
+	-webkit-transition:0.25s linear opacity; /* В Webkit выпадающие пункты будут проявляться */
+}
+#nav ul li{
+	padding-top:1px; /* Вводим отступ между li чтобы создать иллюзию разделенных пунктов меню */
+	float:none;
+	background:url(dot.gif);
+}
+#nav ul a{
+	white-space:nowrap; /* Останавливаем перенос текста и создаем многострочный выпадающий пункт */
+	display:block;
+}
+#nav li:hover ul{ /* Выводим выпадающий пункт при наведении курсора */
+	left:0; /* Приносим его обратно на экран, когда нужно */
+	opacity:1; /* Делаем непрозрачным */
+}
+#nav li:hover a{ /* Устанавливаем стили для верхнего уровня, когда выводится выпадающий список */
+	background:#6b0c36;
+	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
+	text-decoration:underline;
+}
+#nav li:hover ul a{ /* Изменяем некоторые стили верхнего уровня при выводе выпадающего пункта */
+	text-decoration:none;
+	-webkit-transition:-webkit-transform 0.075s linear;
+}
+#nav li:hover ul li a:hover{ /* Устанавливаем стили для выпадающих пунктов, когда курсор наводится на конкретный пункт */
+	background:#333;
+	background:rgba(51,51,51,0.75); /* Будет полупрозрачным */
+	text-decoration:underline;
+	-moz-transform:scale(1.05);
+	-webkit-transform:scale(1.05);
+}
+
+</style>
+
+{% for item in news %}
 		<div class="post">
-			<h2 class="title">Портал на реконструкції</h2>
-            <p class="meta"><em>{ Posted by <a href="#">rivelo</a> on October 1, 2015 }</em></p>
+		{% if user.is_authenticated %}
+		<ul id="nav">
+		<li>
+			<h2 class="title"><a href="#">{{item.title}}</a></h2>
+		<ul>
+			<li><a href="/news/{{item.pk}}/edit/">Редагувати</a></li>
+			<li><a href="/news/add/">Створити</a></li>
+			<li><a href="/news/{{item.pk}}/delete/">Видалити</a></li>
+		</ul>
+		</li>
+		</ul>
+		{% else %}
+			<h2 class="title">{{item.title}}</h2>		
+		{% endif %}
+            <p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.date}} }</em></p>
 			<div class="entry">
-				
-				<p>В зв'язку з проведенням оновлення <strong>порталу (www.rivelo.com.ua)</strong>, деякий функціонал може бути обмежений. </p>
-				<p>Просимо вибачення за тимчасові незручності. Зачекайте трішки і ми станемо кращі ;)</p>
-				<img src="http://www.proteamfit.com/wp-content/uploads/2015/01/Page-Under-Construction-e1422524616644.png">
-				<p class="links"><a href="#" class="comments">Comments (0)</a> &nbsp;&nbsp;&nbsp; <a href="#" class="permalink">Full article</a></p>
-				
+			{% autoescape off %}
+				{{item.text}}
+			{% endautoescape %}
+				<p class="links"><a href="#" class="comments">Comments (0)</a> &nbsp;&nbsp;&nbsp; <a href="{{item.link}}" class="permalink">Посилання на форум</a> &nbsp;&nbsp;&nbsp; Категорія:<a href="#" class="permalink">{{item.category}}</a></p>
 			</div>
 		</div>
+{% endfor %}
+

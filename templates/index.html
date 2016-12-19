@@ -86,7 +86,13 @@ $( "#button_login" ).click(function() {
 		<!-- end #menu -->
 
 <div id="login_panel"> 		
+
+{% if user.is_authenticated %}
+<span id="button_login">{{user.username|upper}}</span>
+{% else %}
 <span id="button_login">Login</span>
+{% endif %}
+
 </div>
 
 		<div id="search">
@@ -98,6 +104,7 @@ $( "#button_login" ).click(function() {
 			</form>
 		</div>
 
+{% load poll_extras %} 
 {% load i18n %}
 		
 		<div id="d_login" title="Login form">
@@ -137,7 +144,7 @@ $( "#button_login" ).click(function() {
 <!-- end #header-wrapper -->
 <div id="page">
     <div id="logo">
-        <br><img src="/media/images/logo_autumn.jpg" alt="" title="">
+        <br><img src="{{'/media/images/'|season }}" alt="" title="">
 	<!--	<h1><a href="#">Commission</a></h1>
     <p><em>{ by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> }</em></p> -->
 	</div>
@@ -182,7 +189,7 @@ $( "#button_login" ).click(function() {
 					<li class="alt"><a href="#"></a></li>
 					 -->
 				</ul>
-				<p style="clear: both; margin: 0; line-height: normal; text-align: right;"><a href="#">Більше фото &gt;</a></p>
+				<p style="clear: both; margin: 0; line-height: normal; text-align: right;"><a href="/photo/">Більше фото &gt;</a></p>
 			</li>
 		</ul>
 	</div>

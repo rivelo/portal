@@ -17,12 +17,13 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'rivelo_portal',                      # Or path to database file if using sqlite3.
-        'USER': 'rivelo',                      # Not used with sqlite3.
-        'PASSWORD': 'qwerty',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rivelo_portal',
+        'USER': 'rivelo_portal',
+        'PASSWORD': 'qwerty',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',        
+        
     }
 }
 
@@ -97,13 +98,21 @@ STATICFILES_FINDERS = (
 SECRET_KEY = '2k(1v$9uwuab9si23^+7y7s^jm6q)j5%8zdi3i-4!j^n8)ubo2'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
+if DEBUG:
+    TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-#    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-)
+    'django.template.loaders.app_directories.Loader',      
+    ]
+else:
+    TEMPLATE_LOADERS = [
+        ('django.template.loaders.cached.Loader',(
+            'django.template.loaders.filesystem.Loader',
+            'django.template.loaders.app_directories.Loader',
+            'forum.modules.template_loader.module_templates_loader',
+            'forum.skins.load_template_source',
+            )),
+    ]
+
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -140,6 +149,7 @@ INSTALLED_APPS = (
     'portal.event_calendar',
     'portal.funnies',
     'portal',
+    'tinymce',
 )
 
 # A sample logging configuration. The only tangible logging

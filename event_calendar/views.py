@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
 import datetime, calendar
 
-from mysql_portal import get_month_event, get_month_events, get_day_events
+from portal.mysql_portal import get_month_event, get_month_events, get_day_events
 
 
 def custom_proc(request):

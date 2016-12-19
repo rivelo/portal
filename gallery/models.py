@@ -20,11 +20,11 @@ class Album(models.Model):
         ordering = ('title',)
 
 class PhotoManager(models.Manager):
-    def get_query_set(self):
-        return super(PhotoManager, self).get_query_set().all()
+    def get_queryset(self):
+        return super(PhotoManager, self).get_queryset().all()
 
     def random(self):
-        return self.get_query_set().order_by('?')[:1][0]
+        return self.get_queryset().order_by('?')[:1][0]
 
 class Photo(models.Model):
     album = models.ForeignKey(Album)

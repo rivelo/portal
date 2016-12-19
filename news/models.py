@@ -34,10 +34,10 @@ class News(models.Model):
     title = models.CharField(max_length=255) 
     text = models.TextField()
     date = models.DateTimeField()
-    link = models.URLField(verify_exists=False)
+    link = models.URLField()
     author = models.CharField(max_length=50)
     category = models.ForeignKey(Category)
-    comments = models.ManyToManyField(Comments)
+    comments = models.ManyToManyField(Comments, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     
     def __unicode__(self):
