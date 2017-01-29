@@ -24,6 +24,13 @@ urlpatterns = patterns('',
     url(r'^photo/create/db/$', 'portal.gallery.views.create_db' ),
     url(r'^accounts/login/$',  'portal.news.views.login'),
     url(r'^accounts/logout/$', 'portal.news.views.logout'),
+    url(r'^calendar/year/(?P<year>\d+)/month/(?P<month>\d+)/$', 'portal.event_calendar.views.calendar_filter'),
+    url(r'^calendar/year/(?P<year>\d+)/$', 'portal.event_calendar.views.calendar_filter'),
+    url(r'^calendar/$', 'portal.event_calendar.views.calendar_page'),
+    url(r'^event/getdate/$', 'portal.event_calendar.views.get_event'),
+    url(r'^event/add/$', 'portal.event_calendar.views.add_event'),
+    url(r'^event/(?P<id>\d+)/edit/$', 'portal.event_calendar.views.edit_event'),
+    url(r'^location/$', 'portal.event_calendar.views.google_location'),
     url(r'^tinymce/', include('tinymce.urls')),
 
     

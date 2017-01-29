@@ -1,12 +1,157 @@
-﻿{% load poll_extras %} 
+﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+
+{% load poll_extras %} 
+
+<script>
+	availableDates = ['{{events_date|join:" ', '"}}', 'today'];
+
+  $( function() {
+    $( "#datepicker" ).datepicker({
+    range: 'multiple',
+    range_multiple_max: 10, // максимальное число выбранных дат в режиме "Несколько дат"
+//     multiSelect: 999,
+//     dayNamesMin: [ "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa" ],
+//     dayNamesShort: [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ],
+	 dayNames: [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" , "Sunday"],
+     monthNames: [ "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Лютий", "Грудень" ],
+     dateFormat: "dd-mm-yy",
+     firstDay: 1,
+     gotoCurrent: true,
+     navigationAsDateFormat: true,
+     selectOtherMonths: true,
+//     changeMonth: true,
+     autoSize: false,
+     yearRange: "2008:2020",
+//     defaultDate: "24-01-2017",
+     selectOtherMonths: true,
+     onSelect: function(dates, inst) { 
+     							console.log("DAtes = " + dates); 
+     							console.log("THIS = " + inst.id);
+     							$(this).addClass('');
+     							$("#"+inst.id).css('color','red');
+     							//css("visibility", "hidden");
+     							// availableDates.push("dates")
+     							// $(this).datepicker('setDate', availableDates);
+     							$(".ui-datepicker-month").html();
+     							console.log("YEAR = " + $(".ui-datepicker-year").html());
+     							
+            $.ajax({
+                type: "POST",
+                url: "/event/getdate/",
+                data: { dates: dates },
+                dataType: "json",
+                success:function(msg){
+                	$("#content").empty();
+                	$.each(msg,function(index,item){
+						$("#content").append('<div class="center">' + item['name'] + '[' + item['date'] + ']</div>');
+						$("#content").append('<div>' + item["text"] + '</div>');
+						$("#content").append('<img src="/media/' + item['photo'] + '" width="650px"> </img>');
+						$("#content").append('forum_url');
+						$("#content").append('<p class="meta"><em>{ Опубліковано <a href="#">' + item['user__username'] + ' </a>, ' + item['pub_date'] + '</em></p>'); 
+                    });
+                },
+                error:function(xhr, ajaxOptions, thrownError){
+                    alert( xhr.responseText );
+                }
+            });
+     							
+     							}
+/*	beforeShowDay: function(d) {
+	var dmy = (d.getMonth()+1); 
+        if(d.getMonth()<9) 
+            dmy="0"+dmy; 
+        dmy+= "-"; 
+        
+        if(d.getDate()<10) dmy+="0"; 
+            dmy+=d.getDate() + "-" + d.getFullYear(); 
+        
+      
+        if ($.inArray(dmy, availableDates) != -1) {
+//	if ( $.inArray(($.datepicker.formatDate('dd-mm-yy', date )), availableDates) != -1) {
+            return [true, "", "Available"]; 
+        } else{
+             return [false,"", "unAvailable"]; 
+        }    
+	}
+*/	      							
+     });
+{% if events_date %}
+  $('#datepicker').datepicker('setDate', availableDates); // ['+2d', '01-01-2017']
+{% endif %}
+  
+$("body").on("click", ".ui-datepicker-year", function(e){ 
+	console.log("VAL_YEAR_HTML = " + $(".ui-datepicker-year").html());
+     window.location = "/calendar/year/"+$(".ui-datepicker-year").html()+"/";    
+});    
+
+
+$("body").on("click", ".ui-datepicker-month", function(e){ 
+	console.log("VAL_MONTH_HTML = " + $(".ui-datepicker-month").html());
+	var month = 1;
+	switch ($(".ui-datepicker-month").html()) {
+    case 'Січень':
+        month = 1;
+//        window.location = "/calendar/year/" + $(".ui-datepicker-year").html()+"/month/" + month + "/";
+        break;
+    case 'Лютий':
+        month = 2;
+        console.log("MONTH = " + month);
+        break;
+    case 'Березень':
+        month = 3;
+        break;
+    case 'Квітень':
+        month = 4;
+        break;
+    case 'Травень':
+        month = 5;
+		break;
+    case 'Червень':
+        month = 6;
+		break;
+    case 'Липень':
+        month = 7;
+		break;
+    case 'Серпень':
+        month = 8;
+		break;        
+    case 'Вересень':
+        month = 9;
+		break;        
+    case 'Жовтень':
+        month = 10;
+		break;        
+    case 'Листопад':
+        month = 11;
+		break;        
+    case 'Грудень':
+        month = 12;
+		break;        
+	}
+    window.location = "/calendar/year/" + $(".ui-datepicker-year").html()+"/month/" + month + "/";		
+});    
+
+
+/*
+$("body").on("click", "td[data-handler='selectDay']", function(e){ 
+	console.log("VAL_HTML = " + $("td[data-handler='selectDay']").html());
+//    window.location = "/calendar/year/"+$(".ui-datepicker-year").html()+"/";    
+});
+*/
+
+
+  });
+</script>
+
+<!-- 
 	<li id="calendar">
 								
-				<h2>Календар заходів:</h2>
+				<h2><a href="/calendar/" >Календар заходів:</a></h2>
 				<div id="calendar_wrap">
 					<table summary="Calendar">
 					<caption>
-					<a href="/calendar/">
+					<a href="/calendar/year/{{year}}/month/{{month}}/">
 						{{ sel_date|date:"F j, Y" }}
 					</a>
 					</caption>
@@ -32,11 +177,10 @@
 						
 						{% for week in weeks %}
 							<tr>
-													
 							{% for day in week %}
 								{% ifequal day sel_day %}
- 							<td id="today">
- 							{{ day }}
+ 									<td id="today">
+ 									{{ day }}
  								{% else %}
  									{% if month_events|inday:day %}
  									<td id="selectday">
@@ -61,5 +205,16 @@
 				</div>
 	</li>
 
+<p>{{testdate}}</p>	
+ -->
+ 	
+<li>	
+
+
+<h2><a href="/calendar/" >Календар заходів:</a></h2>
+<div id="calendar_wrap">
+<div id="datepicker" class="ll-skin-cangas"></div>
+</div>
+</li>
 
 

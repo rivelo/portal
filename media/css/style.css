@@ -5,7 +5,7 @@ http://www.freecsstemplates.org
 Released for free under a Creative Commons Attribution 2.5 License
 */
 
-body {
+body.main-Page {
 	margin: 0;
 	padding: 0;
 	background: #FFFFFF;
@@ -362,6 +362,7 @@ background-color: #CCFFCC;
 	background: #FFFF00;
 }
 
+
 /* Footer */
 
 #footer {
@@ -382,3 +383,14 @@ background-color: #CCFFCC;
 #footer a {
 	color: #B5ADA5;
 }
+
+.center { 
+    text-align: center;
+	background: #eeeee5; 
+	border: 1px dashed #abab9a; 
+	padding: 5px; 
+	font: 14pt Tahoma;
+	color: #2c2c2c;    
+	font-weight: bold;
+}
+

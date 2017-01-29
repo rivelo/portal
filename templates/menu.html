@@ -1,3 +1,4 @@
+﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 <div id="menu">
 <ul>
@@ -14,19 +15,25 @@
 	{% endifequal %}
 								
 				<li><a href="/forum/index.php">Форум</a></li>
-				
+{% comment %}			
 	{% ifequal sel_menu "guest" %}				
 				<li class="current_page_item"><a href="/contact/">Гостьова книга</a></li>
 	{% else %}
 				<li><a href="/contact/">Гостьова книга</a></li>
-	{% endifequal %}					
+	{% endifequal %}
+{% endcomment %}					
 				
+	{% ifequal sel_menu "calendar" %}				
+				<li class="current_page_item"><a  href="/calendar/">Заходи {{year}}</a></li>
+	{% else %}			
+				<li><a  href="/calendar/">Заходи</a></li>
+	{% endifequal %}
+	
 	{% ifequal sel_menu "about" %}				
 				<li class="current_page_item"><a  href="/about/">Про нас</a></li>
 	{% else %}			
 				<li><a  href="/about/">Про нас</a></li>
 	{% endifequal %}
-	
 
 				
 </ul>

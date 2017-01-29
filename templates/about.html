@@ -1,4 +1,11 @@
-﻿
+﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<style>
+      #map {
+        height: 60%;
+      }
+</style>
+
 {% block content %}
 
 <div class="post">
@@ -14,7 +21,7 @@
 	Давайте, проїдемося разом!
 </p>			
 			
-	<br />		
+	
 	<p align="justify" style="font-size: 120%">
 	Якщо ви володієте цікавою інформацією чи новинами на велотематику, можете поділитись з нами і зробити наповнення цього сайту ще цікавішим.
 	<br /><br />
@@ -28,9 +35,10 @@
 	<br /> 
 	Адреса магазину-майстерні: м.Рівне, вул.Кавказька 6
 	<br /> 
-	Телефони: <br /> 
-	0503393325<br /> 
-	0968139440<br />  (0362)262747
+	<b> Телефони: </b>  
+	<li> 0503393325 </li> 
+	<li> 0968139440 </li>
+	<li>  (0362)262747 </li>
 	<br /> 
 	
 	<img src="https://lh4.googleusercontent.com/-Scf3lN1lIXE/UzYNLF1QG_I/AAAAAAAACP0/eak6f7OnnSQ/w762-h496-no/map.jpg" width="550px">
@@ -39,6 +47,29 @@
 	</div>
 </div>
 
+
+    <div id="map"></div>
+    <script>
+
+function initMap() {
+  var myLatLng = {lat: 50.627250, lng: 26.2509700};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 17,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Веломагазин-майстерня Рівело'
+  });
+}
+
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
+  
+ 
 
 {% endblock %}
 

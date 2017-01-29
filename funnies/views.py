@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
 
-from portal.event_calendar.views import embeded_calendar
+#from portal.event_calendar.views import embeded_calendar
 from models import Funnies
 
 

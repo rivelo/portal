@@ -1,4 +1,4 @@
-﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <style>
 /*------------------------------------*\
 	НАВИГАЦИЯ
@@ -75,62 +75,84 @@
 
 </style>
 
-{% for item in news.object_list %}
-		<div class="post">
-		{% if user.is_authenticated %}
+<script>
+$(document).ready(function(){
+    $("img.poster").hide();
+
+    $("button.poster").click(function(){
+    	var id = $(this).attr("ids")
+    	if ($(this).html() == "Показати афішу") {
+    		$(this).html("Приховати афішу");
+    	}
+    	else {
+    		$(this).html("Показати афішу")
+    	}
+        $("#pimg_"+id).toggle();
+    });
+  
+});
+
+</script>
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<div>
 		<ul id="nav">
 		<li>
-			<h2 class="title"><a href="#">{{item.title}}</a></h2>
+			<h1 class="title"><a href="#">Календар заходів на {{year}} рік</a></h2>
 		<ul>
-			<li><a href="/news/{{item.pk}}/edit/">Редагувати</a></li>
-			<li><a href="/news/add/">Створити</a></li>
-			<li><a href="/news/{{item.pk}}/delete/">Видалити</a></li>
+			<li><a href="/event/add/">Створити</a></li>
 		</ul>
 		</li>
 		</ul>
-		{% else %}
-			<h2 class="title">{{item.title}}</h2>		
-		{% endif %}
-            <p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.date}} }</em></p>
-			<div class="entry">
-			{% autoescape off %}
-				{{item.text}}
-			{% endautoescape %}
-				<p class="links"><a href="#" class="comments">Comments (0)</a> &nbsp;&nbsp;&nbsp; <a href="{{item.link}}" class="permalink">Посилання на форум</a> &nbsp;&nbsp;&nbsp; Категорія:<a href="#" class="permalink">{{item.category}}</a></p>
-			</div>
-		</div>
+</div>
+		<br>
+		<br>
+		<br>
+{% else %}
+			<h1 class="title"> Календар заходів на {{year}} рік</h1>
+{% endif %}
+
+
+{% for item in events %}
+<div class="center" style="text-align: left; ">
+{% if item.icon %}
+	<img src="/media/{{item.icon}}" align="top" style="margin: 0px 20px 0px 0px;"></img>
+{% endif %}
+{% if user.is_authenticated %} 
+	<a href="/event/{{item.pk}}/edit/">{{item.name}} [{{item.date|date:"d-m-Y"}}]</a>
+{% else %}
+	{{item.name}} [{{item.date|date:"d-m-Y"}}]
+{% endif %}
+</div>
+
+<div> 
+{% autoescape off %}
+{{item.text}}
+{% endautoescape %} 
+</div>
+{% if item.photo %}
+	<button class="poster" ids="{{item.id}}">Показати афішу</button>
+	<img src="/media/{{item.photo}}" width="660px" class="poster" id="pimg_{{item.id}}"> </img>
+{% endif %} 
+
+<br>
+<p>Посилання на форум:  
+<a href="">forum_url</a>
+</p>
+
+{% if item.reg_url %}
+<h4>Реєстрація:  
+<a href="{{item.reg_url}}">{{item.reg_url}}</a>
+</h4>
+{% endif %} 
+
+<p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.pub_date}} }</em></p>
 {% endfor %}
 
-<div class="pagination">
-  <ul>
-  	{% if news.has_previous %}
-        <li class="prev">
-            <a href="?page={{ news.previous_page_number }}">&larr; Previous</a>
-        </li>
-    {% else %}
-    <li class="prev disabled">
-            <a href="?page={{ news.number }}">&larr; Previous</a>
-    </li>
-    {% endif %}
-    
-<!--     <li class="disabled"><a href="">Page {{ news.number }} of {{ news.paginator.num_pages }}.</a></li>
- -->
-    {% for i in news.paginator.page_range %}
-    {% ifequal i  news.number%}
-    <li class="active"><a href="">{{ i }}.</a></li>
-    {% else %}
-    <li class="disabled"><a href="?page={{ i }}">{{ i }}.</a></li>
-    {% endifequal %}
-    {% endfor %}   
-    
-    {% if news.has_next %}
-        <li class="next">
-            <a href="?page={{ news.next_page_number }}">Next &rarr;</a>
-        </li>
-    {% else %}
-    <li class="next disabled">
-            <a href="?page={{ news.number }}">Next &rarr;</a>
-     </li>    
-    {% endif %}
-  </ul>
-</div>
+
+	
+{% endblock %}
+
+	

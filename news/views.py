@@ -13,6 +13,7 @@ from portal.news.forms import NewsForm
 
 from portal.gallery.models import Album, Photo
 import datetime
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def custom_proc(request):
 # "A context processor that provides 'app', 'user' and 'ip_address'."
@@ -31,10 +32,26 @@ def main_page(request):
     #return HttpResponse("Hello world")
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    news = News.objects.all().order_by('-pk')[0:5]
+    news = News.objects.all().order_by('-pk')
     vars = {'weblink': 'main.html', 'sel_menu': 'main', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'news': news}
     calendar = embeded_calendar()
     vars.update(calendar)
+    
+    paginator = Paginator(news, 3)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        news = paginator.page(page)
+#        vars.update(news)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        news = paginator.page(1)
+#        vars.update(news)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        news = paginator.page(paginator.num_pages)
+    vars.update({'news': news})
     
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
