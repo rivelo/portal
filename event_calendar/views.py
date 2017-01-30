@@ -57,7 +57,7 @@ def embeded_calendar(year=datetime.date.today().year, month = datetime.date.toda
     next_date = move_month(datetime.date(year, month, 1), 1)
     prev_date = move_month(datetime.date(year, month, 1), -1)
 
-    month_events = get_month_events(year, month)
+    #month_events = get_month_events(year, month)
     
     events = Events.objects.filter(date__year = year).order_by('date').values("name", "text", "type", "icon", "date")
     str = ""
@@ -68,7 +68,8 @@ def embeded_calendar(year=datetime.date.today().year, month = datetime.date.toda
 
     return {'weeks': month_calendar, 'events': get_month_event(year, month),
             'sel_day': today, 'sel_date': selected_date, 
-            'prev_month': prev_date, 'next_month': next_date, 'month_events': month_events , 'year': year, 'events_date': list} 
+            'prev_month': prev_date, 'next_month': next_date, 'year': year, 'events_date': list} 
+#            'prev_month': prev_date, 'next_month': next_date, 'month_events': month_events , 'year': year, 'events_date': list}
     
     
 def calendar_page(request):

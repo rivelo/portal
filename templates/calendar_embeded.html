@@ -144,69 +144,6 @@ $("body").on("click", "td[data-handler='selectDay']", function(e){
   });
 </script>
 
-<!-- 
-	<li id="calendar">
-								
-				<h2><a href="/calendar/" >Календар заходів:</a></h2>
-				<div id="calendar_wrap">
-					<table summary="Calendar">
-					<caption>
-					<a href="/calendar/year/{{year}}/month/{{month}}/">
-						{{ sel_date|date:"F j, Y" }}
-					</a>
-					</caption>
-						<thead>
-							<tr>
-								<th abbr="Понеділок" scope="col" title="Понеділок">П</th>
-								<th abbr="Вівторок" scope="col" title="Вівторок">В</th>
-								<th abbr="Середа" scope="col" title="Середа">С</th>
-								<th abbr="Четвер" scope="col" title="Четвер">Ч</th>
-								<th abbr="Пятниця" scope="col" title="Пятниця">П</th>
-								<th abbr="Субота" scope="col" title="Субота">С</th>
-								<th abbr="Неділя" scope="col" title="Неділя">Н</th>
-							</tr>
-						</thead>
-						<tfoot>
-							<tr>
-								<td abbr="Prev" colspan="3" id="prev"><a href="/calendar/year/{{prev_month|date:"Y"}}/month/{{prev_month|date:"n"}}/" title="">&laquo; {{prev_month|date:"F"}}</a></td>
-								<td class="pad">&nbsp;</td>
-								<td abbr="Next" colspan="3" id="next"><a href="/calendar/year/{{next_month|date:"Y"}}/month/{{next_month|date:"n"}}/" title="">{{next_month|date:"F"}} &raquo;</a></td>
-							</tr>
-						</tfoot>
-						<tbody>
-						
-						{% for week in weeks %}
-							<tr>
-							{% for day in week %}
-								{% ifequal day sel_day %}
- 									<td id="today">
- 									{{ day }}
- 								{% else %}
- 									{% if month_events|inday:day %}
- 									<td id="selectday">
- 									<a href="/calendar/year/{{sel_date|date:"Y"}}/month/{{sel_date|date:"n"}}/day/{{day}}">
-									{{ day }} 
- 									</a> 
- 									{% else %}
- 									<td>
- 										{% ifnotequal day  0 %}
-											{{ day }} 
-										{% endifnotequal %} 
- 									{% endif %}
- 								{% endifequal %}
-							
-							</td>
-							{% endfor %}
-							</tr>
-						{% endfor %}
-						
-						</tbody>
-					</table>
-				</div>
-	</li>
-
-<p>{{testdate}}</p>	
- -->
  	
 <li>	
 
