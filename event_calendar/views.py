@@ -66,8 +66,8 @@ def embeded_calendar(year=datetime.date.today().year, month = datetime.date.toda
         str = str +"'"+ i['date'].strftime('%d-%m-%Y')+"',"
         list.append(i['date'].strftime('%d-%m-%Y'))
 
-    return {'weeks': month_calendar, 'events': get_month_event(year, month),
-            'sel_day': today, 'sel_date': selected_date, 
+#    return {'weeks': month_calendar, 'events': get_month_event(year, month),
+    return {'weeks': month_calendar, 'sel_day': today, 'sel_date': selected_date, 
             'prev_month': prev_date, 'next_month': next_date, 'year': year, 'events_date': list} 
 #            'prev_month': prev_date, 'next_month': next_date, 'month_events': month_events , 'year': year, 'events_date': list}
     
