@@ -12,13 +12,13 @@ class EventsForm(forms.ModelForm):
     name = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': '100'}))
     text = forms.CharField(label='Положення/реклама', widget=forms.Textarea(attrs={'class':'editable'}), required=True)
     type = forms.ModelMultipleChoiceField(queryset = EventType.objects.all(), label='Категорії') 
-    url = forms.URLField(widget = widgets.URLInput(), required=False)
+    url = forms.URLField(widget = widgets.URLInput(attrs={'size': '80'}), required=False, label='Інтернет сторінка')
     reg_url = forms.CharField(max_length=255, required=False, label='Посилання на реєстрацію')
 #    reg_status = forms.BooleanField(label='Відкрита реєстрація')
     gps_track = forms.CharField(max_length=255, required=False, label='Посилання на GPS трек')
     photo = forms.ImageField(required=False, label='Фото афіши')
     icon = forms.ImageField(required=False, label='Логотип')
-    forum_url = forms.URLField(widget = widgets.URLInput(), required=False, label='Посилання на форум')
+    forum_url = forms.URLField(widget = widgets.URLInput(attrs={'size': '80'}), required=False, label='Посилання на форум')
     city = forms.CharField(max_length=100, required=False, label='Місто')
     lat = forms.DecimalField(max_digits=9, decimal_places=6, required=False, label='Широта')
     lng = forms.DecimalField(max_digits=9, decimal_places=6, required=False, label='Довгота')
@@ -33,4 +33,4 @@ class EventsForm(forms.ModelForm):
     class Meta:
         model = Events
         fields = '__all__'
-        exclude = ['user', 'pub_date', 'date']
+        exclude = ['user', 'pub_date', 'date', 'rules']

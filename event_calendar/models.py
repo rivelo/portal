@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User
@@ -11,7 +11,7 @@ class EventType(models.Model):
     description = models.CharField(max_length=255)
     
     def __unicode__(self):
-        return u'%s / %s' % (self.name, self.description)
+        return '%s / %s' % (self.name, self.description)
         #return u'%s - %s' % (self.name, self.name_ukr) 
  
     class Meta:
@@ -26,7 +26,7 @@ class Rules(models.Model):
     description = models.CharField(max_length=255)    
     
     def __unicode__(self):
-        return u'%s / %s' % (self.name, self.name_ukr)
+        return '%s / %s' % (self.name, self.name_ukr)
         #return u'%s - %s' % (self.name, self.name_ukr) 
 
     class Meta:
@@ -38,7 +38,7 @@ class GroupBikeType(models.Model):
     description = models.TextField(blank=True)
     
     def __unicode__(self):
-        return u'%s / %s' % (self.name, self.description)
+        return '%s / %s' % (self.name, self.description)
         #return u'%s - %s' % (self.name, self.name_ukr) 
 
     class Meta:
@@ -52,7 +52,7 @@ class BikeType(models.Model):
     status = models.BooleanField(default=True)
     
     def __unicode__(self):
-        return u'%s / %s' % (self.name, self.description)
+        return '%s / %s' % (self.name, self.description)
         #return u'%s - %s' % (self.name, self.name_ukr) 
 
     class Meta:
@@ -81,7 +81,7 @@ class Events (models.Model):
     rules = models.ManyToManyField(Rules, blank=True)
     
     def __unicode__(self):
-        return "[%s] - %s" % (self.date, self.text)
+        return "[%s] - %s" % (self.date, self.name)
 
     class Meta:
         ordering = ["date"]
@@ -104,7 +104,7 @@ class RegEvent (models.Model):
     descriptin = models.TextField(blank=True)
 
     def __unicode__(self):
-        return u"%s - [%s]" % (self.fname, self.lname)
+        return "%s - [%s]" % (self.fname, self.lname)
 
     class Meta:
         ordering = ["date"]    

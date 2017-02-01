@@ -1,5 +1,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <style>
+#map {
+     height: 60%;
+}
+
 /*------------------------------------*\
 	НАВИГАЦИЯ
 \*------------------------------------*/
@@ -75,22 +79,76 @@
 
 </style>
 
+
 <script>
 $(document).ready(function(){
-    $("img.poster").hide();
+//    $("img.poster").hide();
 
-    $("button.poster").click(function(){
+    $("div.poster").click(function(){
+    	var div_p = $(this)
     	var id = $(this).attr("ids")
-    	if ($(this).html() == "Показати афішу") {
-    		$(this).html("Приховати афішу");
+    	if ($(this).find("b").html() == "Показати афішу") {
+    		$(this).find("b").html("Приховати афішу");
+    		$(this).find("div.poster_content").html('<img src="'+ div_p.attr("img") + '" width="660px" class="img_poster" id="pimg_'+ id +'">')
     	}
     	else {
-    		$(this).html("Показати афішу")
+    		$(this).find("b").html("Показати афішу")
+    		$(this).find("div.poster_content").empty();
     	}
-        $("#pimg_"+id).toggle();
+        // $("#pimg_"+id).toggle();
     });
-  
+
+
+    $("div.gps").click(function(){
+    	var gps_c = $(this).find(".gps_content")
+    	if ($(this).find("b").html() == "Показати маршрут") {
+    		$(this).find("b").html("Приховати маршрут");    	
+            $.ajax({
+                type: "POST",
+                url: "/event/gps/get/",
+                data: { eid: $(this).attr("ids") },
+                dataType: "json",
+                success:function(msg){
+//                	$(this).find("div.gps_content").empty();
+                	$.each(msg,function(index,item){
+						gps_c.html(item['gps_track'])
+                    });
+                },
+                error:function(xhr, ajaxOptions, thrownError){
+                    alert( xhr.responseText );
+                }
+            });
+         }
+         else {
+         	$(this).find("b").html("Показати маршрут")
+    	 	gps_c.empty();
+         }
+    })
+
+	$("div.map").click(function(){
+		$(this).find("div.map_content").html($("#map"));
+	})
+
 });
+
+function initMap(x,y) {
+	if (x == null){
+		x = 50.627250;
+	} 
+  var myLatLng = {lat: x, lng: 26.2509700};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 17,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Веломагазин-майстерня Рівело'
+  });
+}
+
 
 </script>
 
@@ -121,9 +179,9 @@ $(document).ready(function(){
 	<img src="/media/{{item.icon}}" align="top" style="margin: 0px 20px 0px 0px;"></img>
 {% endif %}
 {% if user.is_authenticated %} 
-	<a href="/event/{{item.pk}}/edit/">{{item.name}} [{{item.date|date:"d-m-Y"}}]</a>
+	<a href="/event/{{item.pk}}/edit/">{{item.name}} [{{item.date|date:"d-m-Y"}}] ({{item.city}})</a>
 {% else %}
-	{{item.name}} [{{item.date|date:"d-m-Y"}}]
+	{{item.name}} [{{item.date|date:"d-m-Y"}}] ({{item.city}})
 {% endif %}
 </div>
 
@@ -132,26 +190,55 @@ $(document).ready(function(){
 {{item.text}}
 {% endautoescape %} 
 </div>
+
+{% if item.forum_url %}
+<br>
+<p style="font-weight:bold;">Посилання на форум:  
+<a href="{{item.forum_url}}">{{item.forum_url}}</a>
+</p>
+{% endif %}
+
 {% if item.photo %}
-	<button class="poster" ids="{{item.id}}">Показати афішу</button>
-	<img src="/media/{{item.photo}}" width="660px" class="poster" id="pimg_{{item.id}}"> </img>
+<div class="poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
+<!-- 	<button class="poster" ids="{{item.id}}">Показати афішу</button>  -->
+	<img src="/media/images/poster-icon.png" alt="" title="Показати афішу" width="48px" style="vertical-align:middle;" ></img>
+	<b> Показати афішу </b>
+	<div class="poster_content"></div>
+</div>
 {% endif %} 
 
+{% if item.gps_track %}
+<div class="gps" ids="{{item.pk}}">
+<img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img>
+<b> Показати маршрут </b>
 <br>
-<p>Посилання на форум:  
-<a href="">forum_url</a>
-</p>
+<div class="gps_content"> </div>
+</div>
+{% endif %}
+
+
 
 {% if item.reg_url %}
 <h4>Реєстрація:  
-<a href="{{item.reg_url}}">{{item.reg_url}}</a>
+<a href="{{item.reg_url}}">Перейти до реєстрації</a>
 </h4>
 {% endif %} 
+
+
+<div class="map" lat="{{item.lat}}" lng="{{item.lng}}">
+<img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
+<b> Показати місце старту </b>
+<br>
+<div class="map_content"> </div>
+</div>
 
 <p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.pub_date}} }</em></p>
 {% endfor %}
 
 
+<div id="map"></div>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
+  
 	
 {% endblock %}
 

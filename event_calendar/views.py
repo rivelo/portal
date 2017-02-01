@@ -132,7 +132,7 @@ def get_event(request):
     return HttpResponse(elist, content_type='application/json')        
 
 
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 
 def add_event(request):
     if request.user.is_authenticated()==False:
@@ -161,9 +161,13 @@ def add_event(request):
                 lat = 0 
             if lng == None:
                 lng = 0 
-                
-            evt = Events(name=name, text=text, url=url, reg_url=reg_url, reg_status=reg_status, photo=photo, icon=icon, forum_url=forum_url, lat=lat, lng=lng, description=description, date=date, user = user)
+               
+            evt = Events(name=name, text=text, url=url, reg_url=reg_url, reg_status=reg_status, photo=photo, icon=icon, forum_url=forum_url, lat=lat, lng=lng, description=description, date=date, city=city, user = user)
             evt.save()
+            if reg_status == True:
+                reg_url = "/event/"+ str(evt.pk) +"/registration/"
+            evt.reg_url = reg_url
+            
             for t in type: 
                 evt.type.add(t)
             evt.save()
@@ -227,10 +231,15 @@ def edit_event(request, id):
             a.forum_url=forum_url
             a.lat=lat
             a.lng=lng
-            a.description=description
-            a.date=date
+            a.description = description
+            a.date = date
+            a.city = city
             a.user = user
             a.save()
+
+            if reg_status == True:
+                reg_url = "/event/"+ str(a.pk) +"/registration/"
+            a.reg_url = reg_url
 
             for t in type: 
                 a.type.add(t)
@@ -248,4 +257,17 @@ def edit_event(request, id):
     evnt = {'events': events}
     vars.update(evnt)
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
+
+
+def get_event_gps(request):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('eid'):
+                eid = request.POST['eid']
+                elist = Events.objects.filter(pk = eid).values("name", "user__username", "gps_track")
+                json = list(elist)
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+    
+    return HttpResponse(elist, content_type='application/json')        
     

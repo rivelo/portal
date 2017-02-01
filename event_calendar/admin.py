@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 from django.contrib import admin
 from portal.event_calendar.models import Events, EventType, Rules, GroupBikeType, BikeType, RegEvent

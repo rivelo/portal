@@ -30,6 +30,8 @@ urlpatterns = patterns('',
     url(r'^event/getdate/$', 'portal.event_calendar.views.get_event'),
     url(r'^event/add/$', 'portal.event_calendar.views.add_event'),
     url(r'^event/(?P<id>\d+)/edit/$', 'portal.event_calendar.views.edit_event'),
+    url(r'^event/(?P<id>\d+)/registration/$', 'portal.event_calendar.views.add_reg'),
+    url(r'^event/gps/get/$', 'portal.event_calendar.views.get_event_gps'),
     url(r'^location/$', 'portal.event_calendar.views.google_location'),
     url(r'^tinymce/', include('tinymce.urls')),
 
