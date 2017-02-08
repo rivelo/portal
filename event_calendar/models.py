@@ -84,8 +84,8 @@ class Events (models.Model):
     rules = models.ManyToManyField(Rules, blank=True)
     
     def save(self, *args, **kwargs):
-        if self.reg_status == True:
-            self.reg_url = "/event/"+ str(self.pk) +"/registration/"
+#        if self.reg_status == True:
+#            self.reg_url = "/event/"+ str(self.pk) +"/registration/"
         super(Events, self).save(*args, **kwargs) # Call the "real" save() method.
     
     def __unicode__(self):

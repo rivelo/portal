@@ -7,14 +7,14 @@ from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.shortcuts import render
-import datetime, calendar
+import requests
+import datetime, calendar, time
 import hashlib
 import smtplib
 from django.core.mail import EmailMultiAlternatives
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
-
 
 from models import Events, RegEvent
 from forms import EventsForm, RegEventsForm, PayRegEventsForm
@@ -51,7 +51,7 @@ def portal_sendmail(to, subject, message):
         return ('error', 'Щось пішло не так')
 
 
-def send_reg_mail(rid, mto):
+def send_reg_mail(request, rid, mto):
     revent = RegEvent.objects.get(pk = rid)
     w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True})
     subject = 'Реєстрація'  
@@ -65,9 +65,9 @@ def send_reg_mail(rid, mto):
     return render_to_response("index.html", {'success_data': "Лист відправлено на пошту" + to}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def email_two(rid):
+def email_two(rid, mto):
     subject = "I am an HTML email"
-    to = ['rivelo@ymail.com']
+    to = [mto]
     from_email = 'rivno100@gmail.com'
     revent = RegEvent.objects.get(pk = rid)
     ctx = {
@@ -247,7 +247,7 @@ def add_event(request):
     vars.update(evnt)
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
     
-import time
+
 
 def edit_event(request, id):
     if request.user.is_authenticated()==False:
@@ -260,7 +260,7 @@ def edit_event(request, id):
             type = form.cleaned_data['type']
             text = form.cleaned_data['text']
             url = form.cleaned_data['url']
-            reg_url = form.cleaned_data['url']
+            reg_url = form.cleaned_data['reg_url']
             reg_status = form.cleaned_data['reg_status']
             photo = form.cleaned_data['photo']
             if photo == None:
@@ -325,6 +325,18 @@ def edit_event(request, id):
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
+def show_event(request, id):
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'event_show.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    event = Events.objects.get(pk = id)
+    evnt = {'event': event}
+    vars.update(evnt)
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
+    
+
 def get_event_gps(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -337,7 +349,6 @@ def get_event_gps(request):
     
     return HttpResponse(elist, content_type='application/json')        
 
-import requests
     
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -440,18 +451,19 @@ def event_reg_list(request, id):
     curyear = datetime.datetime.now().year
     cat1_b = curyear-18
     cat1_e = curyear-29
-    revent_cat1 = RegEvent.objects.filter(event = id, birthday__lt = datetime.date(cat1_b, 1, 1), birthday__gt = datetime.date(cat1_e, 1, 1)).order_by("date") #all rider list
+#    revent_cat1 = RegEvent.objects.filter(event = id, birthday__gt = datetime.date(cat1_b, 1, 1), birthday__lt = datetime.date(cat1_e, 1, 1)).order_by("date") #all rider list
+    revent_cat1 = RegEvent.objects.filter(event = id, birthday__range=[datetime.date(cat1_e, 1, 1), datetime.date(cat1_b, 12, 31)])
     cat2_b = curyear-30
     cat2_e = curyear-39
-    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lt = datetime.date(cat2_b, 1, 1), birthday__gt = datetime.date(cat2_e, 1, 1)).order_by("date") #all rider list
+    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat2_b, 12, 31), birthday__gte = datetime.date(cat2_e, 1, 1)).order_by("date") #all rider list
     cat3_b = curyear-40
     cat3_e = curyear-49
-    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lt = datetime.date(cat3_b, 1, 1), birthday__gt = datetime.date(cat3_e, 1, 1)).order_by("date") #all rider list
+    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat3_b, 12, 31), birthday__gte = datetime.date(cat3_e, 1, 1)).order_by("date") #all rider list
     cat4_b = curyear-50
     cat4_e = curyear-59
-    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lt = datetime.date(cat4_b, 1, 1), birthday__gt = datetime.date(cat4_e, 1, 1)).order_by("date") #all rider list
+    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat4_b, 12, 31), birthday__gte = datetime.date(cat4_e, 1, 1)).order_by("date") #all rider list
     cat5_b = curyear-60
-    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lt = datetime.date(cat4_b, 1, 1)).order_by("date") #all rider list
+    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat5_b, 1, 1)).order_by("date") #all rider list
     
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -486,8 +498,8 @@ def get_event_rider(request, id):
     vars.update(calendar)        
     regmail = request.session.get("reg_email")
     if (not regmail) and (regmail != True):
-        send_reg_mail(request)
-        res_data = "EMail SEND!"
+        send_reg_mail(request, revent.pk, revent.email)
+        res_data = "EMail надіслано"
         request.session['reg_email'] = True
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
@@ -521,9 +533,9 @@ def add_rider_pay(request, id, hash):
             revent.start_number=start_number
             revent.description=description
             reg_code = hashlib.sha256(str(revent.pk)+str(revent.pay)).hexdigest()
-            #revent.reg_code = reg_code 
+            revent.reg_code = reg_code 
             revent.save()
-            email_two(revent.pk)
+            email_two(revent.pk, revent.email)
             vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'success_data': 'Дякуємо за внесені дані, після перевірки адміністрацією Вас буде відмічено на протязі доби'}
             return render(request, 'index.html', vars)
             

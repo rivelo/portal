@@ -77,27 +77,15 @@
 	-webkit-transform:scale(1.05);
 }
 
-.column {
-    float: left;
-    padding: 1px;
-    box-sizing: border-box;
+.eventcenter {
+border: 1px solid;
+margin: 10px 0px;
+padding:15px 10px 15px 50px;
+background-repeat: no-repeat;
+background-position: 10px center;
+height: auto;
 }
-.clearfix {
-    content: "";
-    clear: both;
-    display: table;
-    background: #eeeee5; 
-	border: 1px dashed #abab9a; 
-	padding: 5px; 
-	width: 100%;
-	box-sizing: border-box;
-}
-.menu {
-    width: 18%;
-}
-.content {
-    width: 82%;
-}
+
 </style>
 
 
@@ -180,65 +168,72 @@ function initMap(x,y) {
 
 </script>
 
+<style>
+.column {
+    float: left;
+    padding: 1px;
+    box-sizing: border-box;
+}
+.clearfix {
+    content: "";
+    clear: both;
+    display: table;
+    background: #eeeee5; 
+	border: 1px dashed #abab9a; 
+	padding: 5px; 
+	width: 100%;
+	box-sizing: border-box;
+}
+.menu {
+    width: 18%;
+}
+.content {
+    width: 82%;
+}
+</style>
+
 {% block content %}
 
-{% if user.is_authenticated %}
-<div>
-		<ul id="nav">
-		<li>
-			<h1 class="title"><a href="#">Календар заходів на {{year}} рік</a></h2>
-		<ul>
-			<li><a href="/event/add/">Створити</a></li>
-		</ul>
-		</li>
-		</ul>
+
+<br>
+ 
+<div class="clearfix"> 
+{% if event.icon %}
+  <div class="column menu">	<img src="/media/{{event.icon}}" ></img> </div>
+{% endif %}
+{% if user.is_authenticated %} 
+<div class="column content">	<a href="/event/{{event.pk}}/edit/">{{event.name}} [{{event.date|date:"d.m.Y"}}] ({{event.city}})</a> </div>
+{% else %}
+<div class="column content">
+<h2><a href="{% url 'event-show' event.pk %}" >{{event.name}} [{{event.date|date:"d.m.Y"}}] ({{event.city}})</a></h2>
 </div>
-		<br>
-		<br>
-		<br>
-{% else %}
-			<h1 class="title"> Календар заходів на {{year}} рік</h1>
-{% endif %}
-
-
-{% for item in events %}
-<div class="clearfix">
-{% if item.icon %}
-  <div class="column menu">	<img src="/media/{{item.icon}}" ></img> </div>	
-{% endif %}
-{% if user.is_authenticated %}
-	<div class="column content"><h2><a href="/event/{{item.pk}}/edit/">{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2> </div> 
-{% else %}
-	<div class="column content">
-	<h2><a href="{% url 'event-show' item.pk %}" >{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2>
-	</div>
 {% endif %}
 </div>
 
-<div> 
+<div > 
 {% autoescape off %}
-{{item.text}}
+{{event.text}}
 {% endautoescape %} 
 </div>
 
-{% if item.forum_url %}
+{% if event.forum_url %}
 <br>
 <p style="font-weight:bold;">Посилання на форум:  
-<a href="{{item.forum_url}}">{{item.forum_url}}</a>
+<a href="{{event.forum_url}}">{{event.forum_url}}</a>
 </p>
 {% endif %}
 
-{% if item.photo %}
-<div class="poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
-<!-- 	<button class="poster" ids="{{item.id}}">Показати афішу</button>  -->
+{% if event.photo %}
+<div class="poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
+<!-- 	<button class="poster" ids="{{event.id}}">Показати афішу</button>  -->
 	<img src="/media/images/poster-icon.png" alt="" title="Показати афішу" width="48px" style="vertical-align:middle;" ></img>
 	<b> Показати афішу </b>
 	<div class="poster_content"></div>
 </div>
 {% endif %} 
 
-{% if item.gps_track %}
-<div class="gps" ids="{{item.pk}}">
+{% if event.gps_track %}
+<div class="gps" ids="{{event.pk}}">
 <img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img>
 <b> Показати маршрут </b>
 <br>
@@ -247,35 +242,37 @@ function initMap(x,y) {
 {% endif %}
 
 
-<h4> Дата та час: {{item.date|date:"d-m-Yр. H:i"}}</h4>
+<h4> Дата та час: {{event.date|date:"d-m-Yр. H:i"}}</h4>
 
 
-{% if item.reg_status == True %}
+{% if event.reg_status == True %}
 <h4>Реєстрація:  
-<a href="{% url 'event-registration' item.pk %}">Перейти до реєстрації</a>
+<a href="{% url 'event-registration' event.pk %}">Перейти до реєстрації</a>
 </h4>
 <h4>Учасники:  
-<a href="/event/{{item.pk}}/registration/list/">Список зареєстрованих учасників</a>
+<a href="/event/{{event.pk}}/registration/list/">Список зареєстрованих учасників</a>
 </h4>
 {% endif %}
 
-{% if item.reg_url != '' %}
+{% if event.reg_url != '' %}
 <h4>Реєстрація:  
-<a href="{{item.reg_url}}">Перейти до реєстрації</a>
+<a href="{{event.reg_url}}">Перейти до реєстрації</a>
 </h4>
 {% else %}
 {% endif %}
 
+ 
 
-<div class="map" lat="{{item.lat}}" lng="{{item.lng}}">
+
+<div class="map" lat="{{event.lat}}" lng="{{event.lng}}">
 <img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
 <b> Показати місце старту </b>
 <br>
 <div class="map_content"> </div>
 </div>
 
-<p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.pub_date}} }</em></p>
-{% endfor %}
+<p class="meta"><em>{ Опубліковано <a href="#"> {{event.user.username}} </a>, {{event.pub_date}} }</em></p>
+
 
 
 <div id="map"></div>
