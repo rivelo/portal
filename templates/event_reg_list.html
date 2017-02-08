@@ -1,0 +1,245 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
+<script src="/media/jquery.dataTables.min.js"></script>
+
+
+<style>
+</style>
+
+
+<script>
+$(document).ready(function(){
+//    $("img.poster").hide();
+    $('#rtable').DataTable({
+    	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]]
+    });
+    
+    $('#table_cat1').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat2').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat3').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat4').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat5').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+    
+});
+
+</script>
+
+{% block content %}
+
+{% if user.is_authenticated %}
+{% endif %}
+
+<br>
+<div style="width:560px; float:left;">
+<h2 class="title"> Список зареєстрованих учасників <br>{{event.name}} </h2>
+<a href="/event/{{event.pk}}/registration/">Зареєструватись >>></a>
+</div>
+<div style="float:right;">
+	{% if event.icon %}
+	<img src="/media/{{event.icon}}" />
+	{% endif %} 
+</div>
+
+
+<table id="rtable" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Ім'я / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">С</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік нар.</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in list %}
+<tr>
+<td>{{forloop.counter}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
+<td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+<br>
+<h2>Категорія 18-29 років</h2> 
+<table id="table_cat1" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Прізвище</th><th>Імя</th>
+<th>Нік</th>
+<th>Місто</th>
+<th>Клуб</th>
+<th>Рік народження</th>
+<th>Оплата</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat1 %}
+<tr>
+<td>{{forloop.counter}}</td>
+<td>{{rider.lname}}</td>
+<td>{{rider.fname}}</td>
+<td>{{rider.nickname}}</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td align="center">{{rider.status}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+
+<br>
+<h2>Категорія 30-39 років</h2> 
+<table id="table_cat2" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Прізвище</th><th>Імя</th>
+<th>Нік</th>
+<th>Місто</th>
+<th>Клуб</th>
+<th>Рік народження</th>
+<th>Оплата</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat2 %}
+<tr>
+<td>{{forloop.counter}}</td>
+<td>{{rider.lname}}</td>
+<td>{{rider.fname}}</td>
+<td>{{rider.nickname}}</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td align="center">{{rider.status}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+<br>
+<h2>Категорія 40-49 років</h2> 
+<table id="table_cat3" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Прізвище</th><th>Імя</th>
+<th>Нік</th>
+<th>Місто</th>
+<th>Клуб</th>
+<th>Рік народження</th>
+<th>Оплата</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat3 %}
+<tr>
+<td>{{forloop.counter}}</td>
+<td>{{rider.lname}}</td>
+<td>{{rider.fname}}</td>
+<td>{{rider.nickname}}</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td align="center">{{rider.status}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+<br>
+<h2>Категорія 50-59 років</h2> 
+<table id="table_cat4" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Прізвище</th><th>Імя</th>
+<th>Нік</th>
+<th>Місто</th>
+<th>Клуб</th>
+<th>Рік народження</th>
+<th>Оплата</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat4 %}
+<tr>
+<td>{{forloop.counter}}</td>
+<td>{{rider.lname}}</td>
+<td>{{rider.fname}}</td>
+<td>{{rider.nickname}}</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td align="center">{{rider.status}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+<br>
+<h2>Категорія 60+ років</h2> 
+<table id="table_cat5" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Прізвище</th><th>Імя</th>
+<th>Нік</th>
+<th>Місто</th>
+<th>Клуб</th>
+<th>Рік народження</th>
+<th>Оплата</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat5 %}
+<tr>
+<td>{{forloop.counter}}</td>
+<td>{{rider.lname}}</td>
+<td>{{rider.fname}}</td>
+<td>{{rider.nickname}}</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td align="center">{{rider.status}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+{% endblock %}
+
+	

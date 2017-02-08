@@ -1,14 +1,7 @@
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-<!--  <script src="http://cloud.tinymce.com/4/tinymce.min.js?apiKey=<your_key>"></script>   -->
-<script src="http://cdn.tinymce.com/4/tinymce.min.js"></script>
-<link href="/media/css/forms.css" rel="stylesheet" type="text/css" media="screen" />
-
-<style type="text/css">
 .form-style-1 {
     margin: 0px auto;
     max-width: 650px;
-    padding: 0px 0px 0px 0px;
+    padding: 0px 0px 10px 20px;
     font: 13px "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 .form-style-1 ul {
@@ -21,7 +14,7 @@
     padding: 0;
     display: block;
     list-style: none;
-    margin: 0px 0 0 0;
+    margin: 10px 0 0 0;
 }
 .form-style-1 label{
     margin:0 0 3px 0;
@@ -47,7 +40,7 @@ select{
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     border:1px solid #BEBEBE;
-    padding: 0px;
+    padding: 7px;
     margin:0px;
     -webkit-transition: all 0.30s ease-in-out;
     -moz-transition: all 0.30s ease-in-out;
@@ -80,10 +73,11 @@ select{
 
 .form-style-1 select {
     width: 100%;
-    padding: 16px 20px;
+    padding: 7px 5px;
     border: none;
-    border-radius: 4px;
+    border-radius: 2px;
     background-color: #f1f1f1;
+    font-size: 14px ;
 }
 
 .form-style-1 textarea {
@@ -118,53 +112,3 @@ select{
 .form-style-1 .required{
     color:red;
 }
-</style>
-
-<script>
-$(document).ready(function(){
-//    var autocomplete = new google.maps.places.Autocomplete(document.getElementById('adr'), {types: ['(regions)'], componentRestrictions: {country: 'ua'}, language : 'ua', location : ['50.627250', '26.2509700'], radius: '1000000' });
-//    var autocomplete = new google.maps.places.Autocomplete(document.getElementById('adr'), { types: ['(cities)']});
-
-    $( "#event_datepicker" ).datepicker({
-      changeMonth: true,
-      changeYear: true,
-      showOn: "button",
-      buttonImage: "/media/images/calendar16_15.gif",
-      buttonImageOnly: true,
-      buttonText: "Виберіть дату",
-      dateFormat: "dd.mm.yy",
-      minDate: "-1Y", 
-      maxDate: "+2Y"
-    });
-    
-});
-
-tinymce.init({
-  selector: 'textarea.editable',
-  height: 500,
-  menubar: false,
-  plugins: [
-    'advlist autolink lists link image charmap print preview anchor',
-    'searchreplace visualblocks code fullscreen',
-    'insertdatetime media table contextmenu paste code'
-  ],
-  toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
-  content_css: '//www.tinymce.com/css/codepen.min.css'
-});
-</script>
-
-
-
-{% block content %}
-<h1>Додати захід</h1>
-
-<form action="" method="POST" class="form-style-1" enctype="multipart/form-data">
-        <ul>
-            {{ form.as_ul }}
-        </ul>
-        <input type="submit" value="Зберегти">
-</form>	
-	
-{% endblock %}
-
-	

@@ -131,7 +131,7 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
-
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -151,6 +151,19 @@ INSTALLED_APPS = (
     'portal',
     'tinymce',
 )
+
+# GOOGLE setting
+RECAPTCHA_SECRET_KEY = "6LeptAUTAAAAAMWpC4bEiwcDvda48vC8IcCzQJNf"
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#DEFAULT_FROM_EMAIL = 'rivelo@ymail.com'
+EMAIL_USE_SSL = True
+#EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'rivno100@gmail.com'
+EMAIL_HOST_PASSWORD = 'rivelo2016'
+EMAIL_PORT = 465
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

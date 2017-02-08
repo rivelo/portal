@@ -16,7 +16,7 @@
 }
 #nav li{
 	float:left;
-	margin-right:10px;
+	margin-right:0px;
 	position:relative;
 	display:block;
 }
@@ -83,6 +83,7 @@
 <script>
 $(document).ready(function(){
 //    $("img.poster").hide();
+	$("#map").hide();
 
     $("div.poster").click(function(){
     	var div_p = $(this)
@@ -127,6 +128,9 @@ $(document).ready(function(){
 
 	$("div.map").click(function(){
 		$(this).find("div.map_content").html($("#map"));
+		$("#map").show();
+//		initMap($(this).attr("lat"), $(this).attr("lng"));
+		initMap();
 	})
 
 });
@@ -135,7 +139,10 @@ function initMap(x,y) {
 	if (x == null){
 		x = 50.627250;
 	} 
-  var myLatLng = {lat: x, lng: 26.2509700};
+	if (y == null) {
+		y = 26.2509700
+	}
+  var myLatLng = {lat: x, lng: y};
 
   var map = new google.maps.Map(document.getElementById('map'), {
     zoom: 17,
@@ -217,12 +224,23 @@ function initMap(x,y) {
 {% endif %}
 
 
+<h4> Дата та час: {{item.date|date:"d-m-Yр. H:i"}}</h4>
+
 
 {% if item.reg_url %}
 <h4>Реєстрація:  
+<!-- 
 <a href="{{item.reg_url}}">Перейти до реєстрації</a>
+ -->
+ <a href="{% url 'event-registration' item.pk %}">Перейти до реєстрації</a>
 </h4>
 {% endif %} 
+
+
+<h4>Учасники:  
+<a href="/event/{{item.pk}}/registration/list/">Список зареєстрованих учасників</a>
+</h4>
+
 
 
 <div class="map" lat="{{item.lat}}" lng="{{item.lng}}">

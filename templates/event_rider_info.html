@@ -1,0 +1,138 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<script>
+$(document).ready(function(){
+//    $("#id_event").prop( "disabled", true );
+
+if (!navigator.cookieEnabled) {
+  alert( 'Включите cookie для комфортной работы с этим сайтом' );
+}
+
+});
+</script>
+
+<style>
+
+.field {clear:both; text-align:right; line-height:25px;}
+label {float:left; padding-right:10px;}
+.main {float:left}
+
+.urlcss a:link, .urlcss a:visited {
+    background-color: #14a839;
+    color: white;
+    padding: 8px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    font-weight: normal;
+    width: 100%;
+}
+
+
+.urlcss a:hover, .urlcss a:active {
+    background-color: #00dd37;
+
+</style>
+
+{% block content %}
+
+<div class="post">
+
+<div style="width:560px; float:left;">
+<h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}"</h2>
+</div>	
+	{% if rider.event.icon %}
+	<div style="float:right;">
+	<img src="/media/{{rider.event.icon}}" />
+	</div>
+	{% endif %} 
+
+<br>
+
+<div class="main">
+<div class="field">
+   <label for="a">Стать</label>
+   {% ifequal rider.sex  1 %}
+   <img src="/media/images/male-icon_35.png" height="25" style="padding-right:133px;" title="Чоловіча">
+   {% endifequal %}
+   {% ifequal rider.sex  0 %}
+   <img src="/media/images/female-icon_35.png" height="25" style="padding-right:133px;" title="Жіноча">
+   {% endifequal %}
+</div>
+
+<div class="field">
+   <label for="n">Ім'я</label>
+   <input type="text" id="ln" value="{{rider.fname}}" />
+</div>
+<div class="field">
+   <label for="ln">Прізвище</label>
+   <input type="text" id="ln" value="{{rider.lname}}" />
+</div>
+
+<div class="field">
+   <label for="a">Нік</label>
+   <input type="text" id="a" value="{{rider.nickname}}"/>
+</div>
+<div class="field">
+   <label for="a">День народження</label>
+   <input type="text" id="a" value="{{rider.birthday|date:"d.m.Y"}}"/>
+</div>
+<div class="field">
+   <label for="a">Країна</label>
+   <input type="text" id="a" value="{{rider.country}}"/>
+</div>
+<div class="field">
+   <label for="a">Місто</label>
+   <input type="text" id="a" value="{{rider.city}}"/>
+</div>
+<div class="field">
+   <label for="a">E-mail</label>
+   <input type="text" id="a" value="{{rider.email}}"/>
+</div>
+<div class="field">
+   <label for="a">Телефон</label>
+   <input type="text" id="a" value="{{rider.phone}}"/>
+</div>
+<div class="field">
+   <label for="a">Команда</label>
+   <input type="text" id="a" value="{{rider.club}}" />
+</div>
+<div class="field">
+   <label for="a">Тип велосипеду</label>
+   <input type="text" id="a" value="{{rider.bike_type}}"/>
+</div>
+{% if rider.pay > 0 %}
+<div class="field">
+   <label for="a">Оплата</label>
+   <input type="text" id="a" value="{{rider.pay}}" />грн.
+</div>
+<div class="field">
+   <label for="a">Дата оплати</label>
+   <input type="text" id="a" value="{{rider.pay_date}}" />
+</div>
+{% endif %}
+<div class="field">
+   <label for="a">Опис</label>
+   <input type="text" id="a" value="{{rider.descriptin}}"/>
+</div>
+</div>
+
+{% if thismail %}
+	<h4>Ви можете виконати наступні дії:</h4> 
+{% endif %}
+         
+<div class="urlcss" style="float:none;">
+<a href="#">Змінити дані</a><br>
+<a href="{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %} " >Список зареєстрованих учасників</a><br>
+<a href="{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
+<a href="#" >Зареєструватись на інші марафони</a>
+</div>
+
+</div>
+
+{% endblock %}
+
+<script src='https://www.google.com/recaptcha/api.js?hl=ua'></script>
+
+

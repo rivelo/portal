@@ -26,10 +26,12 @@ Released   : 20090122
 <meta name="description" content="" />
 
 <link href="/media/css/normalize.css" rel="stylesheet" type="text/css"/>
+
 <link rel="stylesheet" href="/media/css/jquery-ui.min.css">
 <link href="/media/css/style.css" rel="stylesheet" type="text/css" media="screen" />
 <link href="/media/css/cangas.datepicker.css" rel="stylesheet" type="text/css"/>
 <link type="text/css" rel="stylesheet" href="/media/css/paginator.css">
+
 
 <!--
 <link href="/media/css/datepicker.css" rel="stylesheet" type="text/css"/>
@@ -37,16 +39,10 @@ Released   : 20090122
 <link rel="stylesheet" href="/media/css/calendar.css">
 -->
 
-<script src="/media/jquery-1.11.3.min.js"></script>
+<script src="/media/jquery-1.12.4.min.js"></script>
 <script src="/media/jquery-ui.min.js"></script>
 <script src="/media/jquery.datepicker.extension.range.min.js"></script>
-
-<style type="text/css">
-  span:visited{ text-decoration:none; color:#ffffff; }
-  span:hover{ text-decoration:underline; color:#293d6b; }
-  span {color:#ffffff; cursor: pointer; }
-</style>
-
+ 
 <script>
 $(document).ready(function() {
 
@@ -171,7 +167,16 @@ $( "#button_login" ).click(function() {
 	<!-- end #logo -->
 	<div id="content">
 
+{% if weblink %}
 	{% include weblink %}
+{% else %}
+{% if error_data %}
+	<br>	<div class="error">{{ error_data }}</div>
+{% endif %}
+{% if success_data %}
+	<br>	<div class="success">{{ success_data }}</div>
+{% endif %}
+{% endif %}
 <!--			
 		
 		<div class="post">

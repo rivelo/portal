@@ -1,5 +1,11 @@
 ﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<style type="text/css">
+  #calendar_wrap span:visited{ text-decoration:none; color:#ffffff; }
+  #calendar_wrap span:hover{ text-decoration:underline; color:#293d6b; }
+  #calendar_wrap span {color:#ffffff; cursor: pointer; }
+</style>
+
 
 {% load poll_extras %} 
 
@@ -21,7 +27,7 @@
      navigationAsDateFormat: true,
      selectOtherMonths: true,
 //     changeMonth: true,
-     autoSize: false,
+     autoSize: true,
      yearRange: "2008:2020",
 //     defaultDate: "24-01-2017",
      selectOtherMonths: true,
@@ -46,8 +52,18 @@
                 	$.each(msg,function(index,item){
 						$("#content").append('<div class="center">' + item['name'] + '[' + item['date'] + ']</div>');
 						$("#content").append('<div>' + item["text"] + '</div>');
-						$("#content").append('<img src="/media/' + item['photo'] + '" width="650px"> </img>');
-						$("#content").append('forum_url');
+						if (item['photo']) {
+							$("#content").append('<img src="/media/' + item['photo'] + '" width="650px"> </img>');
+						}
+						$("#content").append('<br><p style="font-weight:bold;">Посилання на форум: <a href="'+item['forum_url']+'">'+item['forum_url']+'</a></p>');
+						$("#content").append('<h4> Дата та час: '+ item['date'] +'</h4>');
+						if (item['reg_url'] != '') {
+							$("#content").append('<h4>Реєстрація: <a href="'+item['reg_url']+'">Перейти до реєстрації</a> </h4>');
+							$("#content").append('<h4>Учасники: <a href="/event/'+ item['pk']+ '/registration/list/">Список зареєстрованих учасників</a></h4>');
+						}
+						
+						
+						
 						$("#content").append('<p class="meta"><em>{ Опубліковано <a href="#">' + item['user__username'] + ' </a>, ' + item['pub_date'] + '</em></p>'); 
                     });
                 },
@@ -80,13 +96,13 @@
   $('#datepicker').datepicker('setDate', availableDates); // ['+2d', '01-01-2017']
 {% endif %}
   
-$("body").on("click", ".ui-datepicker-year", function(e){ 
+$("body").on("click", "#datepicker .ui-datepicker-year", function(e){ 
 	console.log("VAL_YEAR_HTML = " + $(".ui-datepicker-year").html());
      window.location = "/calendar/year/"+$(".ui-datepicker-year").html()+"/";    
 });    
 
 
-$("body").on("click", ".ui-datepicker-month", function(e){ 
+$("body").on("click", "#datepicker .ui-datepicker-month", function(e){ 
 	console.log("VAL_MONTH_HTML = " + $(".ui-datepicker-month").html());
 	var month = 1;
 	switch ($(".ui-datepicker-month").html()) {
@@ -134,7 +150,7 @@ $("body").on("click", ".ui-datepicker-month", function(e){
 
 
 /*
-$("body").on("click", "td[data-handler='selectDay']", function(e){ 
+$("body").on("click", "#datepicker td[data-handler='selectDay']", function(e){ 
 	console.log("VAL_HTML = " + $("td[data-handler='selectDay']").html());
 //    window.location = "/calendar/year/"+$(".ui-datepicker-year").html()+"/";    
 });

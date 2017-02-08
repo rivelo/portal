@@ -1,0 +1,186 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="/media/css/forms.css" rel="stylesheet" type="text/css" media="screen" />
+ 
+<script>
+$(document).ready(function(){
+//    $("#id_event").prop( "disabled", true );
+phone_f = $("#id_phone").parents('li');
+$("#gaddr").insertAfter(phone_f);
+$("#id_birthday_month").insertAfter($("#id_birthday_day"));
+$("#id_city").parents("li").attr("style", "display: none");
+$("#id_country").parents("li").attr("style", "display: none");
+
+$("#id_pay_time").parents("li").insertAfter($("#pay_datepicker").parents("li"));
+
+if (!navigator.cookieEnabled) {
+  alert( 'Включите cookie для комфортной работы с этим сайтом' );
+}
+     
+    //var autocomplete = new google.maps.places.Autocomplete(document.getElementById('city_google'), {types: ['(regions)'], componentRestrictions: {country: 'ua'}, language : 'ua', location : ['50.627250', '26.2509700'], radius: '1000000' });
+//    var autocomplete = new google.maps.places.Autocomplete(document.getElementById('adr'), { types: ['(cities)']});
+
+{% if google_city_off %}
+var currentDate = new Date();  
+    $( "#pay_datepicker" ).datepicker({
+      changeMonth: true,
+      changeYear: true,
+      showOn: "button",
+      buttonImage: "/media/images/calendar16_15.gif",
+      buttonImageOnly: true,
+      buttonText: "Виберіть дату",
+      dateFormat: "dd.mm.yy",
+      minDate: "-1Y", 
+      maxDate: "+2Y",
+      setDate: new Date()
+    });
+{% endif %}    
+
+});
+
+var placeSearch, autocomplete;
+
+function setAutocompleteCountry() {
+	var country = document.getElementById('country').value;
+  	autocomplete.setComponentRestrictions({'country': country});
+}
+
+function initAutocomplete() {
+  // Create the autocomplete object, restricting the search to geographical
+  // location types.
+  autocomplete = new google.maps.places.Autocomplete(
+      /** @type {!HTMLInputElement} */(document.getElementById('city_google')),
+      {types: ['geocode'], componentRestrictions: {country: 'ua'}, language : 'uk'});
+
+  // When the user selects an address from the dropdown, populate the address
+  // fields in the form.
+  autocomplete.addListener('place_changed', fillInAddress);
+  
+  document.getElementById('country').addEventListener('change', setAutocompleteCountry);
+}
+
+
+function fillInAddress() {
+  // Get the place details from the autocomplete object.
+  var place = autocomplete.getPlace();
+
+    document.getElementById('id_city').value = '';
+    document.getElementById('id_city').disabled = false;
+	
+  for (var i = 0; i < place.address_components.length; i++) {
+    var addressType = place.address_components[i].types[0];
+    console.log("addrType = " + addressType);
+    if (addressType == 'country' ) {
+    	console.log("Country = " + place.address_components[i]['long_name']);
+		var val = place.address_components[i]['long_name'];
+		document.getElementById('id_country').value = val;
+    }
+    if (addressType == 'locality' ) {
+		console.log("City = " + place.address_components[i]['long_name']);    
+		var val = place.address_components[i]['long_name'];
+		document.getElementById('id_city').value = val;
+    }
+  }
+//  autocomplete.setComponentRestrictions({'country': 'pl'});
+
+}
+</script>
+
+<style>
+.controls {
+  margin-top: 10px;
+  border: 1px solid transparent;
+  border-radius: 2px 0 0 2px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  height: 32px;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+#city_google {
+  background-color: #fff;
+  font-family: Roboto;
+  font-size: 15px;
+  font-weight: 300;
+  margin-left: 0px;
+  padding: 0 11px 0 13px;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+<!--
+.form-style-1 > span:visited{ text-decoration:none; color:black; }
+.form-style-1 > span:hover{ text-decoration:underline; color:#293d6b; }
+.form-style-1 > span {color:black; cursor: pointer; }
+-->
+</style>
+
+{% block content %}
+
+<div class="post">
+
+<div >
+<h2 class="title" style="float:left;">Реєстрація на марафон "{{event.name}}"</h2>
+	
+	{% if event.icon %}
+	<img src="/media/{{event.icon}}" style="float:right; object-fit: contain;" />
+	{% endif %} 
+</div>
+<br>
+<br>
+
+
+<div style="width:100%; float:none;">
+<form action="" method="POST" enctype="multipart/form-data" class="form-style-1">
+        <ul>
+
+{% if rider_name %}
+<li>
+<h3 style="float:none;">{{rider_name}}</h3>
+</li>
+{% for rule in event_rules %}
+<p>{{rule}}</p>
+{% endfor %}
+{% endif %}        
+
+            {{ form.as_ul }}
+        </ul>
+
+{% if google_city_off %}        
+<div id="gaddr" style="display: none;">
+{% else %}
+<div id="gaddr">
+{% endif %}
+<li>
+<label>Країна</label>
+      <select id="country">
+        <option value="ua">Ukraine</option>
+        <option value="pl">Poland</option>
+        <option value="by">Belarus</option>
+        <option value="hu">Hungary</option>
+        <option value="sk">Slovakia</option>
+        <option value="ro">Romania</option>
+        <option value="md">Moldova</option>
+        <option value="ru">Russia</option>
+        <option value="pt">Portugal</option>
+      </select>
+</li>      
+<label>Місто</label> 
+<input id="city_google" type="text" value="" size="105" placeholder="Введіть населений пункт">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&libraries=places&callback=initAutocomplete&language=ua" async defer></script>
+</div>        
+        <br>
+        <br>
+        <div class="g-recaptcha" data-sitekey="6LeptAUTAAAAAJSG6xhkRW1hSxCPvBBd5Xo4H045"></div>
+        <input type="submit" value="Зареєструватись">
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}
+
+<script src='https://www.google.com/recaptcha/api.js?hl=ua'></script>
+
+
