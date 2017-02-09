@@ -53,7 +53,7 @@ def portal_sendmail(to, subject, message):
 
 def send_reg_mail(request, rid, mto):
     revent = RegEvent.objects.get(pk = rid)
-    w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True})
+    w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN})
     subject = 'Реєстрація'  
     from_email = 'rivno100@gmail.com' 
     to = mto
@@ -66,13 +66,15 @@ def send_reg_mail(request, rid, mto):
 
 
 def email_two(rid, mto):
-    subject = "I am an HTML email"
+    subject = "Реєстрація. Дані про оплату"
     to = [mto]
     from_email = 'rivno100@gmail.com'
     revent = RegEvent.objects.get(pk = rid)
     ctx = {
         'rider': revent, 
-        'thismail' : True
+#        'thismail' : True,
+        'add_pay': True,
+        'default_domain': settings.DEFAULT_DOMAIN,
     }
 
     message = get_template('event_rider_info.html').render(Context(ctx))
@@ -226,9 +228,6 @@ def add_event(request):
                
             evt = Events(name=name, text=text, url=url, reg_url=reg_url, reg_status=reg_status, photo=photo, icon=icon, forum_url=forum_url, lat=lat, lng=lng, description=description, date=date, city=city, user = user)
             evt.save()
-#            if reg_status == True:
-#                reg_url = "/event/"+ str(evt.pk) +"/registration/"
-#            evt.reg_url = reg_url
             
             for t in type: 
                 evt.type.add(t)
@@ -388,7 +387,6 @@ def add_reg(request, id):
     calendar = embeded_calendar()
     if request.method == 'POST':
         form = RegEventsForm(request.POST, instance=r)
-        gresp = {} 
         gr = grecaptcha_verify(request)
         if gr['status'] == False:
             vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
@@ -402,6 +400,7 @@ def add_reg(request, id):
 #            event = form.cleaned_data['event']
             fname = form.cleaned_data['fname']
             lname = form.cleaned_data['lname']
+            nickname = form.cleaned_data['nickname']
             email = form.cleaned_data['email']
             phone = form.cleaned_data['phone']
             country = form.cleaned_data['country']
@@ -415,7 +414,7 @@ def add_reg(request, id):
             description = form.cleaned_data['description']
             event = a
             
-            regevt = RegEvent(event=event, fname=fname, lname=lname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, description = description)
+            regevt = RegEvent(event=event, fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, description = description)
             regevt.save()
             reg_code = hashlib.sha256(str(regevt.pk)).hexdigest()
             regevt.reg_code = reg_code 
@@ -433,10 +432,62 @@ def add_reg(request, id):
                 return render(request, 'index.html', vars)                
                 #return HttpResponse("Cookie don't work!!!" +  request.session['registrationcode'], content_type="text/plain")
             request.session.delete_test_cookie()
-            
+            del request.session['reg_email']
             return HttpResponseRedirect('/event/rider/'+str(regevt.pk)+'/info/')
     else:
         form = RegEventsForm(instance=r)
+        
+    vars = {'weblink': 'event_reg_add.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'form': form}
+    vars.update(calendar)        
+    evnt = {'event': a}
+    vars.update(evnt)
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def edit_reg(request, id, hash):
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    calendar = embeded_calendar()
+
+    revent = RegEvent.objects.get(pk = id)
+    a = revent.event
+    if hash != revent.reg_code:
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним! '}
+        return render(request, 'index.html', vars)
+
+    if request.method == 'POST':
+        form = RegEventsForm(request.POST, instance=revent)
+        gr = grecaptcha_verify(request)
+        if gr['status'] == False:
+            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
+            vars.update(calendar)        
+            evnt = {'event': a}
+            vars.update(evnt)
+            return render(request, 'index.html', vars)
+            
+            # https://developers.google.com/recaptcha/docs/verify
+        if form.is_valid():
+            form.save()
+#            reg_code = hashlib.sha256(str(revent.pk)).hexdigest()
+#            regevt.reg_code = reg_code 
+#            regevt.save()
+            
+            request.session['registrationcode'] = revent.reg_code
+            request.session.set_expiry(0)
+            request.session.set_test_cookie()
+            #request.session.clear()
+            if request.session.test_cookie_worked() == False:
+                vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'У вас вимкнено Cookie, для повноцінної роботи увімкніть їх'}
+                vars.update(calendar)        
+                evnt = {'event': a}
+                vars.update(evnt)
+                return render(request, 'index.html', vars)                
+                #return HttpResponse("Cookie don't work!!!" +  request.session['registrationcode'], content_type="text/plain")
+            request.session.delete_test_cookie()
+            del request.session['reg_email']
+            return HttpResponseRedirect('/event/rider/'+str(revent.pk)+'/info/')
+    else:
+        form = RegEventsForm(instance=revent)
         
     vars = {'weblink': 'event_reg_add.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'form': form}
     vars.update(calendar)        
@@ -480,7 +531,7 @@ def event_reg_list(request, id):
 def get_event_rider(request, id):
     if request.session.test_cookie_worked():
         request.session.delete_test_cookie()
-        return HttpResponse("У вашому браузері не працюють кукі/Cookie. ")
+        return HttpResponse("У вашому браузері не працюють куки/Cookie. ")
     
     revent = RegEvent.objects.get(pk = id)
     code = request.session.get("registrationcode")
@@ -493,7 +544,7 @@ def get_event_rider(request, id):
     
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent}
+    vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent, 'reg_ok': True}
     calendar = embeded_calendar()
     vars.update(calendar)        
     regmail = request.session.get("reg_email")
@@ -535,7 +586,13 @@ def add_rider_pay(request, id, hash):
             reg_code = hashlib.sha256(str(revent.pk)+str(revent.pay)).hexdigest()
             revent.reg_code = reg_code 
             revent.save()
-            email_two(revent.pk, revent.email)
+            #if (not paymail) and (paymail != True):
+            try:
+                email_two(revent.pk, revent.email)
+            except:
+                vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Сталася помилка. Звяжіться з адміністратором rivno100@gmail.com'}
+                return render(request, 'index.html', vars)
+                
             vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'success_data': 'Дякуємо за внесені дані, після перевірки адміністрацією Вас буде відмічено на протязі доби'}
             return render(request, 'index.html', vars)
             
@@ -557,4 +614,31 @@ def add_rider_pay(request, id, hash):
     
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
 
+
+def register_to_all(request, hash):
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    try:
+        revent = RegEvent.objects.get(reg_code = hash)
+        event_list = Events.objects.filter(reg_status=True)    
+    except RegEvent.DoesNotExist:
+        revent = None
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним! У разі питань зверніться до адміністрації за адресою rivno100@gmail.com'}
+        return render(request, 'index.html', vars)
+
+    if hash != revent.reg_code:
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним! У разі питань зверніться до адміністрації за адресою rivno100@gmail.com'}
+        return render(request, 'index.html', vars)
+
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent, 'register_all': True, 'reg_event_list': event_list, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    regmail = request.session.get("reg_email")
+    if (not regmail) and (regmail != True):
+        send_reg_mail(request, revent.pk, revent.email)
+        res_data = "EMail надіслано"
+        request.session['reg_email'] = True
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
     

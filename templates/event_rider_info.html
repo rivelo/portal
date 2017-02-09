@@ -3,6 +3,8 @@
 <script>
 $(document).ready(function(){
 //    $("#id_event").prop( "disabled", true );
+$(".reg_filed").prop('disabled', true);
+
 
 if (!navigator.cookieEnabled) {
   alert( 'Включите cookie для комфортной работы с этим сайтом' );
@@ -15,7 +17,11 @@ if (!navigator.cookieEnabled) {
 
 .field {clear:both; text-align:right; line-height:25px;}
 label {float:left; padding-right:10px;}
+{% if register_all %}
+.main {float:right}
+{% else %}
 .main {float:left}
+{% endif %}
 
 .urlcss a:link, .urlcss a:visited {
     background-color: #14a839;
@@ -38,8 +44,22 @@ label {float:left; padding-right:10px;}
 {% block content %}
 
 <div class="post">
+{% if thismail or add_pay %}
+	<div style="style="width:560px; float:none; clear:both;">
+{% else %}
+	<div style="width:560px; float:left;">	
+{% endif %}
 
-<div style="width:560px; float:left;">
+{% if register_all %}
+<h2 class="title">Зареєструватись на інші марафони/заходи:</h2>
+</div>
+{% endif %}
+{% if add_pay %}
+<h2 class="title">Ви підтвердили оплату за марафон "{{rider.event.name}}" на суму {{rider.pay}} гривень</h2>
+<h3>На протязі доби Ваші дані буде перевірено і надіслано Вам листа про статус вашої реєстрації. У разі питань звертайтесь за адресою rivno100@gmail.com</h3>
+</div>
+{% endif %}
+{% if reg_ok %}
 <h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}"</h2>
 </div>	
 	{% if rider.event.icon %}
@@ -47,8 +67,30 @@ label {float:left; padding-right:10px;}
 	<img src="/media/{{rider.event.icon}}" />
 	</div>
 	{% endif %} 
+{% endif %}
+{% if thismail %}
+<h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}"</h2>
+</div>	
+	{% if rider.event.icon %}
+	<div style="float:right;">
+	<img src="/media/{{rider.event.icon}}" />
+	</div>
+	{% endif %} 
+{% endif %}
 
 <br>
+
+{% if register_all %}
+<div style="float:left; padding-right:30px;">
+<form action="/">
+{% for reg_evnt in reg_event_list %}
+<h3><img src="/media/{{reg_evnt.icon}}"> {{reg_evnt.name}} <input type="checkbox" name="{{reg_evnt.pk}}" value="Bike"></h3>  
+{% endfor %}
+  <input type="submit" value="Submit">
+</form>
+</div>
+{% endif %}
+
 
 <div class="main">
 <div class="field">
@@ -63,71 +105,84 @@ label {float:left; padding-right:10px;}
 
 <div class="field">
    <label for="n">Ім'я</label>
-   <input type="text" id="ln" value="{{rider.fname}}" />
+   <input type="text" id="fname" class="reg_filed" value="{{rider.fname}}" />
 </div>
 <div class="field">
    <label for="ln">Прізвище</label>
-   <input type="text" id="ln" value="{{rider.lname}}" />
+   <input type="text" id="lname" class="reg_filed" value="{{rider.lname}}" />
 </div>
 
 <div class="field">
    <label for="a">Нік</label>
-   <input type="text" id="a" value="{{rider.nickname}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.nickname}}"/>
 </div>
 <div class="field">
    <label for="a">День народження</label>
-   <input type="text" id="a" value="{{rider.birthday|date:"d.m.Y"}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.birthday|date:"d.m.Y"}}"/>
 </div>
 <div class="field">
    <label for="a">Країна</label>
-   <input type="text" id="a" value="{{rider.country}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.country}}"/>
 </div>
 <div class="field">
    <label for="a">Місто</label>
-   <input type="text" id="a" value="{{rider.city}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.city}}"/>
 </div>
 <div class="field">
    <label for="a">E-mail</label>
-   <input type="text" id="a" value="{{rider.email}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.email}}"/>
 </div>
 <div class="field">
    <label for="a">Телефон</label>
-   <input type="text" id="a" value="{{rider.phone}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.phone}}"/>
 </div>
 <div class="field">
    <label for="a">Команда</label>
-   <input type="text" id="a" value="{{rider.club}}" />
+   <input type="text" id="a" class="reg_filed" value="{{rider.club}}" />
 </div>
 <div class="field">
    <label for="a">Тип велосипеду</label>
-   <input type="text" id="a" value="{{rider.bike_type}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.bike_type}}"/>
 </div>
 {% if rider.pay > 0 %}
 <div class="field">
    <label for="a">Оплата</label>
-   <input type="text" id="a" value="{{rider.pay}}" />грн.
+   <input type="text" id="a" class="reg_filed" value="{{rider.pay}}" />грн.
 </div>
 <div class="field">
    <label for="a">Дата оплати</label>
-   <input type="text" id="a" value="{{rider.pay_date}}" />
+   <input type="text" id="a" class="reg_filed" value="{{rider.pay_date}}" />
 </div>
 {% endif %}
 <div class="field">
    <label for="a">Опис</label>
-   <input type="text" id="a" value="{{rider.descriptin}}"/>
+   <input type="text" id="a" class="reg_filed" value="{{rider.description}}"/>
 </div>
 </div>
 
-{% if thismail %}
-	<h4>Ви можете виконати наступні дії:</h4> 
+
+{% if thismail or add_pay %}
+<div class="urlcss" style="float:none; clear:both;">
+<h4>Ви можете виконати наступні дії:</h4> 
+<a href="{{ default_domain }}{% url 'portal.event_calendar.views.edit_reg'  rider.pk rider.reg_code %}">Змінити дані</a><br>
+<a href="{{ default_domain }}{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %}" >Список зареєстрованих учасників</a><br>
+<a href="{{ default_domain }}{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
+<a href="{{ default_domain }}{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a>
+</div>
 {% endif %}
-         
+{% if reg_ok %}         
 <div class="urlcss" style="float:none;">
-<a href="#">Змінити дані</a><br>
+<a href="{% url 'portal.event_calendar.views.edit_reg'  rider.pk rider.reg_code %}">Змінити дані</a><br>
 <a href="{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %} " >Список зареєстрованих учасників</a><br>
 <a href="{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
-<a href="#" >Зареєструватись на інші марафони</a>
+<a href="{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a>
 </div>
+{% endif %}
+{% if register_all %}
+<div class="urlcss" style="float:none;">
+<a href="{{ default_domain }}{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %}" >Зареєструватись</a><br>
+</div>
+{% endif %}
 
 </div>
 

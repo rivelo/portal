@@ -113,36 +113,48 @@ function fillInAddress() {
 .form-style-1 > span:hover{ text-decoration:underline; color:#293d6b; }
 .form-style-1 > span {color:black; cursor: pointer; }
 -->
+
+ul.rules {
+    list-style-type: square;
+}
 </style>
 
 {% block content %}
 
 <div class="post">
 
-<div >
-<h2 class="title" style="float:left;">Реєстрація на марафон "{{event.name}}"</h2>
-	
+<div>
+<h2 class="title" >Реєстрація на марафон "{{event.name}}" 
 	{% if event.icon %}
 	<img src="/media/{{event.icon}}" style="float:right; object-fit: contain;" />
 	{% endif %} 
+</h2>
+{% if google_city_off %} 
+<h3 class="title" style="color:black; font-size: 18; float:left;">Заповніть дані про оплату</h3>
+{% endif %}	
 </div>
-<br>
-<br>
 
 
-<div style="width:100%; float:none;">
+<div style="width:100%; float:none; clear:both;">
 <form action="" method="POST" enctype="multipart/form-data" class="form-style-1">
-        <ul>
-
+		<ul>
 {% if rider_name %}
 <li>
 <h3 style="float:none;">{{rider_name}}</h3>
 </li>
+<li>
+<ul class="rules">
+<b>Вартість реєстрації:</b>
 {% for rule in event_rules %}
-<p>{{rule}}</p>
+<li> - {{rule}}
+{% if  rule.cur_date_rule %}
+<b style="color: red;">*{{rule.cur_date_rule}}</b>
+{% endif %}
+</li> 
 {% endfor %}
 {% endif %}        
-
+</ul>
+</li>
             {{ form.as_ul }}
         </ul>
 

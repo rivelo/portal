@@ -27,12 +27,19 @@ class Rules(models.Model):
     sum = models.FloatField(blank = True, null = True)
     description = models.CharField(max_length=255)    
     
+    def cur_date_rule(self):
+        today = datetime.date.today()
+        if (today >= self.date_in) and (today <= self.date_out):
+            return "Діюча вартість на сьогодні " + today.strftime('%d.%m.%Y')
+        else:
+            return
+    
     def __unicode__(self):
-        return '%s [%s <-> %s] - %s грн.' % (self.name, self.date_in, self.date_out, self.sum)
+        return '%s [%s <-> %s] - %s грн.' % (self.name, self.date_in.strftime('%d.%m.%Y'), self.date_out.strftime('%d.%m.%Y'), self.sum)
         #return u'%s - %s' % (self.name, self.name_ukr) 
 
     class Meta:
-        ordering = ["name"]    
+        ordering = ["date_in"]    
 
 
 class GroupBikeType(models.Model):
@@ -120,12 +127,12 @@ class RegEvent (models.Model):
     bike_type = models.ForeignKey(BikeType, blank=True, null=True, on_delete=models.SET_NULL)
     birthday = models.DateField(auto_now_add=False, blank = True, null = True, default=datetime.date(2000,1,1), help_text="Виберіть дату народження: День/Місяць/Рік")
     pay = models.FloatField(blank = True, null = True, help_text=" гривні")
-    pay_date = models.DateTimeField(blank = True, null = True)
+    pay_date = models.DateTimeField(blank = True, null = True )
     pay_type = models.CharField(max_length=50, blank=True, null=True, choices=PAY_METHOD_CHOICES)
     reg_code = models.CharField(max_length=100, blank=True, help_text="Код для можливого редагування ваших даних")
     date = models.DateTimeField(auto_now_add = True)
     status = models.BooleanField(default=False)
-    start_number = models.IntegerField(help_text="Стартовий номер", default=0, blank=True) # Стартовий номер; 0 - не вибрано
+    start_number = models.IntegerField(help_text="Стартовий номер від 1 до 999", default=0, blank=True) # Стартовий номер; 0 - не вибрано
     description = models.TextField(blank=True)
 
     def __unicode__(self):

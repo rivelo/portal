@@ -47,7 +47,7 @@ $(document).ready(function(){
 <br>
 <div style="width:560px; float:left;">
 <h2 class="title"> Список зареєстрованих учасників <br>{{event.name}} </h2>
-<a href="/event/{{event.pk}}/registration/">Зареєструватись >>></a>
+<a href="/event/{{event.pk}}/registration/" style="font-size: 16; color: red;">Зареєструватись >>></a>
 </div>
 <div style="float:right;">
 	{% if event.icon %}
@@ -70,7 +70,17 @@ $(document).ready(function(){
 </thead>
 <tbody>
 {% for rider in list %}
-<tr>
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+
+
 <td>{{forloop.counter}}</td>
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
@@ -105,7 +115,15 @@ $(document).ready(function(){
 </thead>
 <tbody>
 {% for rider in cat1 %}
-<tr>
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
 <td>{{forloop.counter}}</td>
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
@@ -136,7 +154,15 @@ $(document).ready(function(){
 </thead>
 <tbody>
 {% for rider in cat2 %}
-<tr>
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
 <td>{{forloop.counter}}</td>
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
@@ -166,7 +192,15 @@ $(document).ready(function(){
 </thead>
 <tbody>
 {% for rider in cat3 %}
-<tr>
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
 <td>{{forloop.counter}}</td>
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
@@ -196,7 +230,15 @@ $(document).ready(function(){
 </thead>
 <tbody>
 {% for rider in cat4 %}
-<tr>
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
 <td>{{forloop.counter}}</td>
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
@@ -226,7 +268,15 @@ $(document).ready(function(){
 </thead>
 <tbody>
 {% for rider in cat5 %}
-<tr>
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
 <td>{{forloop.counter}}</td>
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>

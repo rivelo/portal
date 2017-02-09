@@ -164,6 +164,8 @@ EMAIL_HOST_USER = 'rivno100@gmail.com'
 EMAIL_HOST_PASSWORD = 'rivelo2016'
 EMAIL_PORT = 465
 
+DEFAULT_DOMAIN = 'http://rivelo.com.ua'
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
