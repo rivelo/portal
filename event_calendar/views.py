@@ -432,7 +432,10 @@ def add_reg(request, id):
                 return render(request, 'index.html', vars)                
                 #return HttpResponse("Cookie don't work!!!" +  request.session['registrationcode'], content_type="text/plain")
             request.session.delete_test_cookie()
-            del request.session['reg_email']
+            try:
+                del request.session['reg_email']
+            except:
+                error = "відсутній параметр reg_email"
             return HttpResponseRedirect('/event/rider/'+str(regevt.pk)+'/info/')
     else:
         form = RegEventsForm(instance=r)
