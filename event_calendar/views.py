@@ -484,7 +484,10 @@ def edit_reg(request, id, hash):
                 return render(request, 'index.html', vars)                
                 #return HttpResponse("Cookie don't work!!!" +  request.session['registrationcode'], content_type="text/plain")
             request.session.delete_test_cookie()
-            del request.session['reg_email']
+            try:
+                del request.session['reg_email']
+            except:
+                error = "Параметр reg_email не існує"            
             return HttpResponseRedirect('/event/rider/'+str(revent.pk)+'/info/')
     else:
         form = RegEventsForm(instance=revent)
@@ -524,7 +527,10 @@ def event_reg_list(request, id):
 
     evnt = {'event': evt}
     vars.update(evnt)
-   
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
     
     

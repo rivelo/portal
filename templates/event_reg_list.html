@@ -11,9 +11,74 @@
 <script>
 $(document).ready(function(){
 //    $("img.poster").hide();
-    $('#rtable').DataTable({
-    	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]]
+	// all rider list
+    var rtable = $('#rtable').DataTable({
+    	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+    	
     });
+    
+	rtable.column(7).visible(false);
+	rtable.column(-1).visible(false);
+	rtable.column(-2).visible(false);
+	rtable.column(-3).visible(false);
+
+{% if user.is_authenticated %}
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Статус</a></div>');
+{% endif %}	
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
+
+    
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+         // Get the column API object
+        var column = rtable.column( $(this).attr('data-column') );
+         // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
+    
+ $("body").on('click', '#sex_rider', function() {
+	var status = $('#sex_rider').attr('val')
+	if ( status == 2) {
+		$('#sex_rider').attr('val', 1);
+		$('#rwom').hide()
+		$('#rman').show();
+		$.fn.dataTableExt.afnFiltering.push(
+        function(oSettings, aData, iDataIndex) {
+           //Only shows columns with a COUNT > 0
+           var engineColumn = parseInt(aData[9]);
+           if (engineColumn == 1)
+               return true;
+           return false;
+        });
+ 		rtable.draw();
+	}
+	if ( status == 1) {
+		$('#sex_rider').attr('val', 0);
+		$('#rwom').show();
+		$('#rman').hide()
+		$.fn.dataTableExt.afnFiltering.pop();		
+		$.fn.dataTableExt.afnFiltering.push(
+        function(oSettings, aData, iDataIndex) {
+           var engineColumn = parseInt(aData[9]);
+           if (engineColumn == 0)
+               return true;
+           return false;
+        });
+ 		rtable.draw();
+	}
+	if ( status == 0) {
+		$('#sex_rider').attr('val', 2);
+		$('#rwom').show();
+		$('#rman').show();
+		$.fn.dataTableExt.afnFiltering.pop();				
+		$.fn.dataTableExt.afnFiltering.pop();
+ 		rtable.draw();
+	}
+	
+ });    
+    
     
     $('#table_cat1').DataTable({
     	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
@@ -66,6 +131,10 @@ $(document).ready(function(){
 <th>Місто</th>
 <th>Команда</th>
 <th>Рік нар.</th>
+<th>Велосипед</th>
+<th>Стартовий номер</th>
+<th>Стать</th>
+<th>Статус</th>
 </tr>
 </thead>
 <tbody>
@@ -94,10 +163,15 @@ $(document).ready(function(){
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
+<td align="center">{{rider.bike_type}}</td>
+<td align="center">{{rider.start_number}}</td>
+<td align="center">{{rider.sex}}</td>
+<td align="center">{{rider.status}}</td>
 </tr>
 {% endfor %}
 </tbody>  
 </table>	
+
 
 <br>
 <h2>Категорія 18-29 років</h2> 
@@ -107,10 +181,10 @@ $(document).ready(function(){
 <th>№</th>
 <th>Прізвище</th><th>Імя</th>
 <th>Нік</th>
+<th title="Стать">C</th>
 <th>Місто</th>
-<th>Клуб</th>
+<th>Команда</th>
 <th>Рік народження</th>
-<th>Оплата</th>
 </tr>
 </thead>
 <tbody>
@@ -128,10 +202,16 @@ $(document).ready(function(){
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
 <td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.status}}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -146,10 +226,10 @@ $(document).ready(function(){
 <th>№</th>
 <th>Прізвище</th><th>Імя</th>
 <th>Нік</th>
+<th title="Стать">C</th>
 <th>Місто</th>
-<th>Клуб</th>
+<th>Команда</th>
 <th>Рік народження</th>
-<th>Оплата</th>
 </tr>
 </thead>
 <tbody>
@@ -167,10 +247,16 @@ $(document).ready(function(){
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
 <td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.status}}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -184,10 +270,10 @@ $(document).ready(function(){
 <th>№</th>
 <th>Прізвище</th><th>Імя</th>
 <th>Нік</th>
+<th title="Стать">C</th>
 <th>Місто</th>
-<th>Клуб</th>
+<th>Команда</th>
 <th>Рік народження</th>
-<th>Оплата</th>
 </tr>
 </thead>
 <tbody>
@@ -205,10 +291,16 @@ $(document).ready(function(){
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
 <td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.status}}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -222,10 +314,10 @@ $(document).ready(function(){
 <th>№</th>
 <th>Прізвище</th><th>Імя</th>
 <th>Нік</th>
+<th title="Стать">C</th>
 <th>Місто</th>
-<th>Клуб</th>
+<th>Команда</th>
 <th>Рік народження</th>
-<th>Оплата</th>
 </tr>
 </thead>
 <tbody>
@@ -243,10 +335,16 @@ $(document).ready(function(){
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
 <td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.status}}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -260,10 +358,10 @@ $(document).ready(function(){
 <th>№</th>
 <th>Прізвище</th><th>Імя</th>
 <th>Нік</th>
+<th title="Стать">C</th>
 <th>Місто</th>
-<th>Клуб</th>
+<th>Команда</th>
 <th>Рік народження</th>
-<th>Оплата</th>
 </tr>
 </thead>
 <tbody>
@@ -281,10 +379,17 @@ $(document).ready(function(){
 <td>{{rider.lname}}</td>
 <td>{{rider.fname}}</td>
 <td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.status}}</td>
+
 </tr>
 {% endfor %}
 </tbody>  
