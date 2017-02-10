@@ -56,7 +56,7 @@ class RegEventsForm(forms.ModelForm):
     class Meta:
         model = RegEvent
         fields = '__all__'
-        exclude = ['user', 'status', 'pay', 'pay_date', 'pay_type', 'reg_code']
+        exclude = ['user', 'status', 'pay', 'pay_date', 'pay_type', 'reg_code', 'start_number']
         
         
 class PayRegEventsForm(forms.ModelForm):

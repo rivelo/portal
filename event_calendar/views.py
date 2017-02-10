@@ -51,10 +51,14 @@ def portal_sendmail(to, subject, message):
         return ('error', 'Щось пішло не так')
 
 
-def send_reg_mail(request, rid, mto):
+def send_reg_mail(request, rid, mto, subject='Реєстрація'):
     revent = RegEvent.objects.get(pk = rid)
-    w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN})
-    subject = 'Реєстрація'  
+    everules = revent.event.rules.all()
+    w = None
+    if request.session.get("registration_subject"):
+        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Ви успішно відредагували свої дані на марафон ', 'event_rules': everules})
+    else:
+        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Вітаємо ви успішно зареєструвались на марафон ', 'event_rules': everules })
     from_email = 'rivno100@gmail.com' 
     to = mto
     text_content = 'www.rivelo.com.ua'
@@ -91,6 +95,10 @@ def custom_proc(request):
         'user': request.user,
         'ip_address': request.META['REMOTE_ADDR']
     }
+
+
+def auth_group(user, group):
+    return True if user.groups.filter(name=group) else False
 
 
 def processUploadedImage(file, dir=''): 
@@ -167,7 +175,7 @@ def calendar_filter(request, year, month=None):
 
 def google_location(request):
     gmaps = googlemaps.Client(key='AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ')
-    res = gmaps.places_autocomplete("кост", language="ua", type='(regions)', components={'country': 'ua'})
+    res = gmaps.places_autocomplete("Рівн", language="uk", type='(regions)', components={'country': 'ua'})
     str = "<br>"
     for i in res:
         str = str + i['terms'][0]['value']+ " / " + i['description'] + "<br>"  
@@ -410,11 +418,11 @@ def add_reg(request, id):
             birthday = form.cleaned_data['birthday']
             #pay = form.cleaned_data['pay']
             #date = form.cleaned_data['date']
-            #status = form.cleaned_data['status']
+            sex = form.cleaned_data['sex']
             description = form.cleaned_data['description']
             event = a
             
-            regevt = RegEvent(event=event, fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, description = description)
+            regevt = RegEvent(event=event, fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, sex=sex, description = description)
             regevt.save()
             reg_code = hashlib.sha256(str(regevt.pk)).hexdigest()
             regevt.reg_code = reg_code 
@@ -434,6 +442,7 @@ def add_reg(request, id):
             request.session.delete_test_cookie()
             try:
                 del request.session['reg_email']
+                del request.session["registration_subject"]
             except:
                 error = "відсутній параметр reg_email"
             return HttpResponseRedirect('/event/rider/'+str(regevt.pk)+'/info/')
@@ -474,7 +483,6 @@ def edit_reg(request, id, hash):
 #            reg_code = hashlib.sha256(str(revent.pk)).hexdigest()
 #            regevt.reg_code = reg_code 
 #            regevt.save()
-            
             request.session['registrationcode'] = revent.reg_code
             request.session.set_expiry(0)
             request.session.set_test_cookie()
@@ -490,7 +498,8 @@ def edit_reg(request, id, hash):
             try:
                 del request.session['reg_email']
             except:
-                error = "Параметр reg_email не існує"            
+                error = "Параметр reg_email не існує"
+            request.session["registration_subject"] = 'Реєстрація. Редагування даних'            
             return HttpResponseRedirect('/event/rider/'+str(revent.pk)+'/info/')
     else:
         form = RegEventsForm(instance=revent)
@@ -505,22 +514,24 @@ def edit_reg(request, id, hash):
 def event_reg_list(request, id):
     evt = Events.objects.get(pk=id)
     revent = RegEvent.objects.filter(event = id).order_by("date") #all rider list
-    curyear = datetime.datetime.now().year
-    cat1_b = curyear-18
-    cat1_e = curyear-29
-#    revent_cat1 = RegEvent.objects.filter(event = id, birthday__gt = datetime.date(cat1_b, 1, 1), birthday__lt = datetime.date(cat1_e, 1, 1)).order_by("date") #all rider list
-    revent_cat1 = RegEvent.objects.filter(event = id, birthday__range=[datetime.date(cat1_e, 1, 1), datetime.date(cat1_b, 12, 31)])
-    cat2_b = curyear-30
-    cat2_e = curyear-39
-    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat2_b, 12, 31), birthday__gte = datetime.date(cat2_e, 1, 1)).order_by("date") #all rider list
-    cat3_b = curyear-40
-    cat3_e = curyear-49
-    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat3_b, 12, 31), birthday__gte = datetime.date(cat3_e, 1, 1)).order_by("date") #all rider list
-    cat4_b = curyear-50
-    cat4_e = curyear-59
-    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat4_b, 12, 31), birthday__gte = datetime.date(cat4_e, 1, 1)).order_by("date") #all rider list
-    cat5_b = curyear-60
-    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(cat5_b, 1, 1)).order_by("date") #all rider list
+    event_date = evt.date
+    #curyear = datetime.datetime.now().year
+    cat1_b = event_date.replace(year = event_date.year-18)
+    cat1_e = event_date.replace(year = event_date.year-30)
+    #revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(1999, 1, 5), birthday__gte = datetime.date(1987, 1, 5)).order_by("date") #all rider list
+    revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date).order_by("date") #all rider list
+    #RegEvent.objects.filter(event = id, birthday__range=[cat1_e, cat1_b])
+    cat2_b = event_date.replace(year = event_date.year-30)
+    cat2_e = event_date.replace(year = event_date.year-40)
+    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e).order_by("date") #all rider list
+    cat3_b = event_date.replace(year = event_date.year-40)
+    cat3_e = event_date.replace(year = event_date.year-50)
+    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e).order_by("date") #all rider list
+    cat4_b = event_date.replace(year = event_date.year-50)
+    cat4_e = event_date.replace(year = event_date.year-60)
+    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e).order_by("date") #all rider list
+    cat5_b = event_date.replace(year = event_date.year-60)
+    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
     
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -544,21 +555,27 @@ def get_event_rider(request, id):
     
     revent = RegEvent.objects.get(pk = id)
     code = request.session.get("registrationcode")
-    if not code:
+    if not code and auth_group(request.user, 'admin')==False:
 #    if "registrationcode" in request.session : 
         return HttpResponse("Ваше посилання вже не є актуальним! model = " + revent.reg_code, content_type="text/plain")
 
-    if request.session['registrationcode'] != revent.reg_code :
-        return HttpResponse("Ваше посилання вже не є актуальним! model = " + revent.reg_code + "SESSION_ID = "+ request.COOKIES['sessionid'], content_type="text/plain")
-    
+    if request.session.get('registrationcode') != revent.reg_code and auth_group(request.user, 'admin')==False:
+    #if request.session['registrationcode'] != revent.reg_code :
+        return HttpResponse("Ваше посилання вже не є актуальним!!! model = " + revent.reg_code + "  SESSION_ID = "+ str(request.session.get('registrationcode'))+ "AUTH = " + str(auth_group(request.user, 'admin')), content_type="text/plain") 
+                            #request.COOKIES['sessionid'], content_type="text/plain")
+    everules = revent.event.rules.all()
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent, 'reg_ok': True}
+    vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent, 'reg_ok': True, 'event_rules': everules}
     calendar = embeded_calendar()
     vars.update(calendar)        
     regmail = request.session.get("reg_email")
     if (not regmail) and (regmail != True):
-        send_reg_mail(request, revent.pk, revent.email)
+        if request.session.get("registration_subject"):
+            #request.session.get["registration_subject"]
+            send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
+        else:
+            send_reg_mail(request, revent.pk, revent.email)
         res_data = "EMail надіслано"
         request.session['reg_email'] = True
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
@@ -650,4 +667,17 @@ def register_to_all(request, hash):
         res_data = "EMail надіслано"
         request.session['reg_email'] = True
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def test_func(request):
+    revent = RegEvent.objects.get(pk = 15)
+    everules = revent.event.rules.all()
+    w = None
+    if request.session.get("registration_subject"):
+        pass
+    else:
+        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Ви успішно відредагували свої дані на марафон ', 'event_rules': everules})
+#    send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
+    return w
+
     

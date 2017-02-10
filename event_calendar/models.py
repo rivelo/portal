@@ -135,6 +135,11 @@ class RegEvent (models.Model):
     start_number = models.IntegerField(help_text="Стартовий номер від 1 до 999", default=0, blank=True) # Стартовий номер; 0 - не вибрано
     description = models.TextField(blank=True)
 
+    def save(self, *args, **kwargs):
+#        if self.reg_status == True:
+#            self.reg_url = "/event/"+ str(self.pk) +"/registration/"
+        super(RegEvent, self).save(*args, **kwargs) # Call the "real" save() method.
+
     def __unicode__(self):
         return u"%s %s - [%s]" % (self.fname, self.lname, self.event)
 

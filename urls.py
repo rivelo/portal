@@ -38,6 +38,7 @@ urlpatterns = patterns('',
     url(r'^event/rider/(?P<id>\d+)/info/$', 'portal.event_calendar.views.get_event_rider', name='event-rider-info'),
     url(r'^event/rider/(?P<id>\d+)/pay/(?P<hash>[A-Fa-f0-9]{64})/$', 'portal.event_calendar.views.add_rider_pay', name='rider-pay-submit'),
     url(r'^event/rider/(?P<id>\d+)/registration/(?P<hash>[A-Fa-f0-9]{64})/edit/$', 'portal.event_calendar.views.edit_reg', name='event-registration-edit'),
+    url(r'^test/$', 'portal.event_calendar.views.test_func'),
     url(r'^location/$', 'portal.event_calendar.views.google_location'),
     url(r'^tinymce/', include('tinymce.urls')),
 
