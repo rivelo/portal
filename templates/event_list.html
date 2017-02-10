@@ -13,6 +13,7 @@
 	list-style:none;
 	font-weight:bold;
 	margin-bottom:10px;
+	-webkit-padding-start: 0px;	
 }
 #nav li{
 	float:left;
@@ -24,7 +25,8 @@
 	display:block;
 	padding:5px;
 	color:#fff;
-	background:#333;
+//	color: black;
+	background:#6b0c36; //#99f67c;
 	text-decoration:none;
 	
 	text-shadow:1px 1px 1px rgba(0,0,0,0.75); /* Тень текста, чтобы приподнять его на немного */
@@ -61,7 +63,7 @@
 	opacity:1; /* Делаем непрозрачным */
 }
 #nav li:hover a{ /* Устанавливаем стили для верхнего уровня, когда выводится выпадающий список */
-	background:#6b0c36;
+	background: #6b0c36;
 	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
 	text-decoration:underline;
 }
@@ -70,7 +72,7 @@
 	-webkit-transition:-webkit-transform 0.075s linear;
 }
 #nav li:hover ul li a:hover{ /* Устанавливаем стили для выпадающих пунктов, когда курсор наводится на конкретный пункт */
-	background:#333;
+	background: #333;
 	background:rgba(51,51,51,0.75); /* Будет полупрозрачным */
 	text-decoration:underline;
 	-moz-transform:scale(1.05);
@@ -97,6 +99,53 @@
 }
 .content {
     width: 82%;
+}
+
+/* Style The Dropdown Button */
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
 }
 </style>
 
@@ -206,13 +255,24 @@ function initMap(x,y) {
 {% if item.icon %}
   <div class="column menu">	<img src="/media/{{item.icon}}" ></img> </div>	
 {% endif %}
+
+<div class="column content">
 {% if user.is_authenticated %}
-	<div class="column content"><h2><a href="/event/{{item.pk}}/edit/">{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2> </div> 
+<div class="dropdown">
+  <span>
+<h2><a href="{% url 'event-show' item.pk %}">{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2>
+  </span>
+  <div class="dropdown-content">
+	<a href="/event/{{item.pk}}/edit/">Редагувати</a>
+   <a href="{% url 'event-show' item.pk %}">Перейти</a>
+  </div>
+</div>
+	 
+ 
 {% else %}
-	<div class="column content">
 	<h2><a href="{% url 'event-show' item.pk %}" >{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2>
-	</div>
 {% endif %}
+</div>
 </div>
 
 <div> 
@@ -254,6 +314,17 @@ function initMap(x,y) {
 <h4>Реєстрація:  
 <a href="{% url 'event-registration' item.pk %}">Перейти до реєстрації</a>
 </h4>
+<ul class="rules">
+<b>Вартість реєстрації:</b>
+{% for rule in item.rules.all %}
+<li> - {{rule}}
+{% if  rule.cur_date_rule %}
+<b style="color: red;">*{{rule.cur_date_rule}}</b>
+{% endif %}
+</li> 
+{% endfor %}
+* можливість вибрати стартовий номер <b>+5грн</b>
+</ul>
 <h4>Учасники:  
 <a href="/event/{{item.pk}}/registration/list/">Список зареєстрованих учасників</a>
 </h4>

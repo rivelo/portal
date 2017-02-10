@@ -89,6 +89,20 @@ class Events (models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     pub_date = models.DateField(auto_now_add=True)
     rules = models.ManyToManyField(Rules, blank=True)
+
+    def days_left(self):
+        today = datetime.datetime.today()
+        ldays = (self.date - today).days
+        if ldays > 0:
+            return ldays
+        else:
+            return 0
+
+    def cur_reg_sum(self):
+        today = datetime.date.today()
+        rule = self.rules.get(date_in__lte = today, date_out__gte = today)
+#        if (today >= self.date_in) and (today <= self.date_out):
+        return rule.sum
     
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:
