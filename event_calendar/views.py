@@ -105,7 +105,7 @@ def processUploadedImage(file, dir=''):
     upload_suffix = 'upload/' + dir + file.name
     upload_path = settings.MEDIA_ROOT + 'upload/' + file.name
         
-    destination = open(settings.MEDIA_ROOT + '/upload/'+ dir + file.name, 'wb+')
+    destination = open(settings.MEDIA_ROOT + 'upload/'+ dir + file.name, 'wb+')
     #destination = open('/media/upload/'+file.name, 'wb+')
     for chunk in file.chunks():
         destination.write(chunk)
@@ -220,7 +220,17 @@ def add_event(request):
             reg_url = form.cleaned_data['url']
             reg_status = form.cleaned_data['reg_status']
             photo = form.cleaned_data['photo']
+            if photo == None:
+                upload_path_p = None
+            if isinstance(photo, InMemoryUploadedFile):
+                upload_path_p = processUploadedImage(photo, 'events/poster/') 
+                a.photo=upload_path_p
             icon = form.cleaned_data['icon']
+            if icon == None:
+                upload_path_i = None
+            if isinstance(url, InMemoryUploadedFile):
+                upload_path_i = processUploadedImage(icon, 'events/icon/')
+                a.icon=upload_path_i 
             forum_url = form.cleaned_data['forum_url']
             gps_track = form.cleaned_data['gps_track']
             lat = form.cleaned_data['lat']

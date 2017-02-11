@@ -251,7 +251,7 @@ function initMap(x,y) {
 </h4>
 <ul class="rules">
 <b>Вартість реєстрації:</b>
-{% for rule in item.rules.all %}
+{% for rule in event.rules.all %}
 <li> - {{rule}}
 {% if  rule.cur_date_rule %}
 <b style="color: red;">*{{rule.cur_date_rule}}</b>

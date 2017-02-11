@@ -53,6 +53,18 @@ class RegEventsForm(forms.ModelForm):
     birthday = forms.DateField( widget=SelectDateWidget(years=YEAR_CHOICES, months=MONTH_CHOISES), label='Дата народження',) #input_formats=['%d.%m.%Y'],
     description = forms.CharField(widget=forms.Textarea(attrs={'cols': 93, 'rows': 8}), required=False, label='Примітки')
 
+    def clean(self):
+        cleaned_data = super(RegEventsForm, self).clean()
+        chk_phone = cleaned_data.get("phone")
+        chkevent = cleaned_data.get("event")
+        res = RegEvent.objects.filter(event = chkevent, phone = chk_phone)
+
+        if res :
+            raise forms.ValidationError("Користувач з таким телефоном вже існує")
+
+        # Always return the full collection of cleaned data.
+        return cleaned_data
+
     class Meta:
         model = RegEvent
         fields = '__all__'

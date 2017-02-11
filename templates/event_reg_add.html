@@ -117,6 +117,15 @@ function fillInAddress() {
 ul.rules {
     list-style-type: square;
 }
+
+.errorlist {
+        background-color: #fffb9b;
+        color: red;
+        display: block;
+        font-size: 14px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
 </style>
 
 {% block content %}
@@ -152,10 +161,10 @@ ul.rules {
 {% endif %}
 </li> 
 {% endfor %}
-{% endif %}
-* можливість вибрати стартовий номер <b>+5грн</b>        
+* можливість вибрати стартовий номер <b>+5грн</b>
 </ul>
 </li>
+{% endif %}
             {{ form.as_ul }}
         </ul>
 
