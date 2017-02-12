@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 from django import template
 import MySQLdb
+from portal.event_calendar.models import Events
 
 import datetime
 
@@ -22,4 +23,13 @@ def season(value):
     p = datetime.datetime.now().month % 12 / 3
     str = value + "logo_" + name[p] + ".gif" 
     return str
+
+
+@register.filter(name='rider_statistic')
+def rider_statistic(event, sex):
+#    ev = Events()
+    ev = event
+    count = ev.riders_count(sex)
+    a = str(count)
+    return a
 

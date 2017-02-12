@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.db.models import Count
 #from portal.news.models import Category
 
 import datetime
@@ -98,8 +99,24 @@ class Events (models.Model):
         else:
             return 0
 
-    def cur_reg_sum(self):
-        today = datetime.date.today()
+    def riders_count(self, sex=None):
+        if sex != None:
+            r = self.regevent_set.filter(sex = sex)
+        else:
+            r = self.regevent_set.all()
+        count = r.count()
+        return count
+
+    def riders_city(self):
+        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
+        return r
+
+    def riders_bike(self):
+        r = self.regevent_set.values('bike_type', 'bike_type__name').annotate(num_bike=Count('bike_type')).order_by('-num_bike')
+        return r
+
+    def cur_reg_sum(self, today=datetime.date.today()):
+        #today = datetime.date.today()
         rule = self.rules.get(date_in__lte = today, date_out__gte = today)
 #        if (today >= self.date_in) and (today <= self.date_out):
         return rule.sum

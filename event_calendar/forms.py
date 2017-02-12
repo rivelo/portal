@@ -58,10 +58,8 @@ class RegEventsForm(forms.ModelForm):
         chk_phone = cleaned_data.get("phone")
         chkevent = cleaned_data.get("event")
         res = RegEvent.objects.filter(event = chkevent, phone = chk_phone)
-
         if res :
             raise forms.ValidationError("Користувач з таким телефоном вже існує")
-
         # Always return the full collection of cleaned data.
         return cleaned_data
 
@@ -79,6 +77,28 @@ class PayRegEventsForm(forms.ModelForm):
     start_number = forms.IntegerField(label="Стартовий номер", min_value=0, max_value=999, required=False)
     pay_type = forms.ChoiceField(label='Спосіб оплати', choices= RegEvent.PAY_METHOD_CHOICES)
     description = forms.CharField(widget=forms.Textarea(attrs={'cols': 93, 'rows': 8}), required=False, label='Примітки')    
+
+    def clean(self):
+        cleaned_data = super(PayRegEventsForm, self).clean()
+        chk_number = cleaned_data.get("start_number")
+        chk_pay = cleaned_data.get("pay")
+        pdate = cleaned_data.get("pay_date")
+        chk_event = self.instance.event
+        sum = chk_event.cur_reg_sum(pdate)
+        if int(chk_pay) <= sum-1:
+            msg = "Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y'))
+            self._errors["pay"] = self.error_class([msg])
+            #raise forms.ValidationError("Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y')))             
+        #res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).order_by('start_number')
+        res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).values_list('start_number', flat=True).order_by('start_number')
+        if len(res) > 0 :
+            nlist = ', '.join(map(str, res))
+            if chk_number in res:
+                #del cleaned_data["start_number"]
+                raise forms.ValidationError("Номер %s вже вибраний. Виберіть інший окрім (%s)" % (chk_number, nlist))
+        # Always return the full collection of cleaned data.
+        return cleaned_data
+
     
     class Meta:
         model = RegEvent

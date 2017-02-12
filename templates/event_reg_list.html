@@ -5,16 +5,32 @@
 
 
 <style>
+#event_stat:hover {
+background-color: yellow;
+}
+
 </style>
 
 
 <script>
 $(document).ready(function(){
-//    $("img.poster").hide();
+	$( "#tabs" ).tabs();
+	$( "#tabs" ).hide()
+
+	$( "#event_stat" ).click(function() {
+//  		$( "#tabs" ).show()
+  		if ($("#event_stat").html() == "Cтатистика") {
+    		$("#event_stat").html("Приховати статистику");
+    	}
+    	else {
+    		$("#event_stat").html("Cтатистика");
+    	}
+    	$( "#tabs" ).toggle()
+	});
+
 	// all rider list
     var rtable = $('#rtable').DataTable({
     	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
-    	
     });
     
 	rtable.column(7).visible(false);
@@ -22,9 +38,9 @@ $(document).ready(function(){
 	rtable.column(-2).visible(false);
 	rtable.column(-3).visible(false);
 
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
 {% if user.is_authenticated %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Статус</a></div>');
 {% endif %}	
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
@@ -102,7 +118,11 @@ $(document).ready(function(){
     
 });
 
+
+
 </script>
+
+{% load poll_extras %}
 
 {% block content %}
 
@@ -132,7 +152,7 @@ $(document).ready(function(){
 <th>Команда</th>
 <th>Рік нар.</th>
 <th>Велосипед</th>
-<th>Стартовий номер</th>
+<th title="Стартовий номер">#</th>
 <th>Стать</th>
 <th>Статус</th>
 </tr>
@@ -164,13 +184,49 @@ $(document).ready(function(){
 <td>{{rider.club}}</td>
 <td align="center">{{rider.birthday|date:"Y"}}</td>
 <td align="center">{{rider.bike_type.name}}</td>
-<td align="center">{{rider.start_number}}</td>
+<td align="center">
+{% if rider.start_number %}
+{{rider.start_number}}
+{% endif %}
+</td>
 <td align="center">{{rider.sex}}</td>
 <td align="center">{{rider.status}}</td>
 </tr>
 {% endfor %}
 </tbody>  
 </table>	
+
+<h3 style="font-size:16px; font-weight:bold; color: black;" title="Показати статистику" id="event_stat">Cтатистика</h3>
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Стать</a></li>
+    <li><a href="#tabs-2">Місто</a></li>
+    <li><a href="#tabs-3">Велосипед</a></li>
+  </ul>
+  <div id="tabs-1">
+    <p>
+    жінок - {{ event|rider_statistic:"0" }}
+	<br>
+	чоловіків - {{ event|rider_statistic:"1" }}
+    </p>
+  </div>
+  <div id="tabs-2">
+	<p>
+	{% for city in event.riders_city %}
+		{{city.city}} - {{city.num_city}}<br>
+	{% endfor %}
+	</p>
+  </div>
+  <div id="tabs-3">
+    <p>
+	{% for bike in event.riders_bike %}
+		{{bike.bike_type__name}} - {{bike.num_bike}}<br>
+	{% endfor %}
+    </p>
+  </div>
+</div>
+
+
 
 
 <br>
@@ -179,7 +235,7 @@ $(document).ready(function(){
 <thead>
 <tr>
 <th>№</th>
-<th>Прізвище</th><th>Імя</th>
+<th>Імя / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">C</th>
 <th>Місто</th>
@@ -199,8 +255,7 @@ $(document).ready(function(){
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.lname}}</td>
-<td>{{rider.fname}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
 {% if rider.sex = 1 %}
@@ -224,7 +279,7 @@ $(document).ready(function(){
 <thead>
 <tr>
 <th>№</th>
-<th>Прізвище</th><th>Імя</th>
+<th>Імя / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">C</th>
 <th>Місто</th>
@@ -244,8 +299,7 @@ $(document).ready(function(){
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.lname}}</td>
-<td>{{rider.fname}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
 {% if rider.sex = 1 %}
@@ -268,7 +322,7 @@ $(document).ready(function(){
 <thead>
 <tr>
 <th>№</th>
-<th>Прізвище</th><th>Імя</th>
+<th>Імя / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">C</th>
 <th>Місто</th>
@@ -288,8 +342,7 @@ $(document).ready(function(){
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.lname}}</td>
-<td>{{rider.fname}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
 {% if rider.sex = 1 %}
@@ -312,7 +365,7 @@ $(document).ready(function(){
 <thead>
 <tr>
 <th>№</th>
-<th>Прізвище</th><th>Імя</th>
+<th>Імя / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">C</th>
 <th>Місто</th>
@@ -332,8 +385,7 @@ $(document).ready(function(){
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.lname}}</td>
-<td>{{rider.fname}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
 {% if rider.sex = 1 %}
@@ -356,7 +408,7 @@ $(document).ready(function(){
 <thead>
 <tr>
 <th>№</th>
-<th>Прізвище</th><th>Імя</th>
+<th>Імя / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">C</th>
 <th>Місто</th>
@@ -376,8 +428,7 @@ $(document).ready(function(){
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.lname}}</td>
-<td>{{rider.fname}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
 {% if rider.sex = 1 %}
