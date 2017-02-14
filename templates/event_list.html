@@ -267,7 +267,6 @@ function initMap(x,y) {
    <a href="{% url 'event-show' item.pk %}">Перейти</a>
   </div>
 </div>
-	 
  
 {% else %}
 	<h2><a href="{% url 'event-show' item.pk %}" >{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2>

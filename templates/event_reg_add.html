@@ -8,7 +8,7 @@ $(document).ready(function(){
 phone_f = $("#id_phone").parents('li');
 $("#gaddr").insertAfter(phone_f);
 $("#id_birthday_month").insertAfter($("#id_birthday_day"));
-$("#id_city").parents("li").attr("style", "display: none");
+//$("#id_city").parents("li").attr("style", "display: none");
 $("#id_country").parents("li").attr("style", "display: none");
 
 $("#id_pay_time").parents("li").insertAfter($("#pay_datepicker").parents("li"));
@@ -49,7 +49,7 @@ function initAutocomplete() {
   // Create the autocomplete object, restricting the search to geographical
   // location types.
   autocomplete = new google.maps.places.Autocomplete(
-      /** @type {!HTMLInputElement} */(document.getElementById('city_google')),
+      /* @type {!HTMLInputElement} */ (document.getElementById('city_google')),
       {types: ['geocode'], componentRestrictions: {country: 'ua'}, language : 'uk'});
 
   // When the user selects an address from the dropdown, populate the address
@@ -189,7 +189,11 @@ ul.rules {
 </li>      
 <label>Місто</label> 
 <input id="city_google" type="text" value="" size="105" placeholder="Введіть населений пункт">
+<!-- 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&libraries=places&callback=initAutocomplete&language=ua" async defer></script>
+&region=UA -->
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&libraries=places&callback=initAutocomplete&language=uk"></script>
+
 </div>        
         <br>
         <br>

@@ -1,15 +1,97 @@
 ﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+#primary_nav_wrap
+{
+	margin-top:5px
+}
+
+#primary_nav_wrap ul
+{
+	list-style:none;
+	position:relative;
+	float:left;
+	margin:0;
+	padding:0
+}
+
+#primary_nav_wrap ul a
+{
+	display:block;
+//	color:#333;
+	text-decoration:none;
+//	font-weight:700;
+	font-size:16px;
+	line-height:32px;
+	padding:0 15px;
+//	font-family:"HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif
+}
+
+#primary_nav_wrap ul li
+{
+	position:relative;
+	float:left;
+	margin:0;
+	padding:0
+}
+
+#primary_nav_wrap ul li.current-menu-item
+{
+	background:#3fb54b
+}
+
+#primary_nav_wrap ul li:hover
+{
+	 background:#32a006;
+//	 #f6f6f6;
+}
+
+#primary_nav_wrap ul ul
+{
+	display:none;
+	position:absolute;
+	top:100%;
+	left:0;
+//	background:#fff;
+	background:green;
+	padding:0
+}
+
+#primary_nav_wrap ul ul li
+{
+	float:none;
+	width:200px
+}
+
+#primary_nav_wrap ul ul a
+{
+	line-height:120%;
+	padding:10px 15px
+}
+
+#primary_nav_wrap ul ul ul
+{
+	top:0;
+	left:100%
+}
+
+#primary_nav_wrap ul li:hover > ul
+{
+	display:block
+}
+</style>
+
 
 <div id="menu">
+<nav id="primary_nav_wrap">
 <ul>
 	{% ifequal sel_menu "main" %}			
-				<li class="current_page_item"><a href="/">Головна</a></li>
+				<li class="current-menu-item"><a href="/">Головна</a></li>
 	{% else %}
 				<li><a href="/">Головна</a></li>
 	{% endifequal %}
 	
 	{% ifequal sel_menu "photo" %}
-				<li class="current_page_item"><a href="/photo/">Фото</a></li>
+				<li class="current-menu-item"><a href="/photo/">Фото</a></li>
 	{% else %}
 				<li><a href="/photo/">Фото</a></li>
 	{% endifequal %}
@@ -17,24 +99,61 @@
 				<li><a href="/forum/index.php">Форум</a></li>
 {% comment %}			
 	{% ifequal sel_menu "guest" %}				
-				<li class="current_page_item"><a href="/contact/">Гостьова книга</a></li>
+				<li class="current-menu-item"><a href="/contact/">Гостьова книга</a></li>
 	{% else %}
 				<li><a href="/contact/">Гостьова книга</a></li>
 	{% endifequal %}
 {% endcomment %}					
 				
 	{% ifequal sel_menu "calendar" %}				
-				<li class="current_page_item"><a  href="/calendar/">Заходи {{year}}</a></li>
+				<li class="current-menu-item"><a  href="/calendar/">Заходи {{year}}</a>
+	<ul>
+      <li><a href="{% url 'event-show' 2 %}">Рівно100</a></li>
+      <li><a href="{% url 'event-show' 5 %}">Медовий трейл</a></li>
+      <li><a href="{% url 'event-show' 4 %}">100 миль</a></li>
+	</ul>
+				</li>
 	{% else %}			
-				<li><a  href="/calendar/">Заходи</a></li>
+  <li><a  href="/calendar/">Заходи</a>
+    <ul>
+      <li><a href="{% url 'event-show' 2 %}">Рівно100</a></li>
+      <li><a href="{% url 'event-show' 5 %}">Медовий трейл</a></li>
+      <li><a href="{% url 'event-show' 4 %}">100 миль</a></li>
+    </ul>
+  </li>
 	{% endifequal %}
 	
 	{% ifequal sel_menu "about" %}				
-				<li class="current_page_item"><a  href="/about/">Про нас</a></li>
+				<li class="current-menu-item"><a  href="/about/">Про нас</a></li>
 	{% else %}			
 				<li><a  href="/about/">Про нас</a></li>
 	{% endifequal %}
-
-				
+	
+{% comment %}
+  <li class="current-menu-item"><a href="#">Home</a></li>
+  <li><a href="#">Menu 1</a>
+    <ul>
+      <li><a href="#">Sub Menu 1</a></li>
+      <li><a href="#">Sub Menu 2</a></li>
+      <li><a href="#">Sub Menu 3</a></li>
+      <li><a href="#">Sub Menu 4</a>
+        <ul>
+          <li><a href="#">Deep Menu 1</a>
+            <ul>
+              <li><a href="#">Sub Deep 1</a></li>
+              <li><a href="#">Sub Deep 2</a></li>
+              <li><a href="#">Sub Deep 3</a></li>
+                <li><a href="#">Sub Deep 4</a></li>
+            </ul>
+          </li>
+          <li><a href="#">Deep Menu 2</a></li>
+        </ul>
+      </li>
+      <li><a href="#">Sub Menu 5</a></li>
+    </ul>
+  </li>
+{% endcomment %}
 </ul>
+</nav>
+
 </div>

@@ -57,7 +57,12 @@ $( "#d_photo" ).dialog({
 	autoResize:true,
 	minHeight: 'auto',
 	width:'auto',
-	position: { my: "left center", at: "left center", of: ".photo_url"  },
+//	position: { my: "left center", at: "left center", of: ".photo_url"  },
+	position: {
+   my: "center",
+   at: "center",
+   of: "#logo"
+	},
 	open: function(){ $(this).dialog('option', 'width', $("#d_img").width()+20, 'height', $("#d_img").height()+20)
 					$(this).dialog('option', "width", document.getElementById("d_img").width);
 //					console.log("THIS = ", document.getElementById("d_img").width);
@@ -74,11 +79,12 @@ $( "#d_photo" ).dialog({
 
 $(".photo_url" ).click(function($this) {
 	$("#d_img").attr('src', $(this).attr('src'));
-//	$("#d_img").attr('width', '600px');
+	$("#d_img").attr('width', '500px');
+	$("#d_url").attr("href", $(this).children().attr('url'));
+	$("#d_url").html("Перейти до альбому " + $(this).children().attr('title'));
 
-    console.log("THIS click = ", $(this).children() );
 	$("#d_photo").dialog("open");
-    $("#d_photo").dialog('option', "width", 550);
+    $("#d_photo").dialog('option', "width", 530);
     $("#d_photo").dialog('option', "title", $(this).children().attr("title"));
     $("#d_img").attr('title', $(this).children().attr("title"));
 });
@@ -177,17 +183,6 @@ $( "#button_login" ).click(function() {
 	<br>	<div class="success">{{ success_data }}</div>
 {% endif %}
 {% endif %}
-<!--			
-		
-		<div class="post">
-			<h2 class="title">Lorem ipsum sed aliquam</h2>
-			<p class="meta"><em>{ Posted by <a href="#">admin</a> on March 8, 2008 }</em></p>
-			<div class="entry">
-				<p>Sed lacus. Donec lectus. Nullam pretium nibh ut turpis. Nam bibendum. In nulla tortor, elementum vel, tempor at, varius non, purus. Mauris vitae nisl nec metus placerat consectetuer. Donec ipsum. Proin imperdiet est. Phasellus <a href="#">dapibus semper urna</a>. Pellentesque ornare, orci in consectetuer hendrerit, urna elit eleifend nunc, ut consectetuer nisl felis ac diam. Etiam non felis. Donec ut ante. In id eros. Suspendisse lacus turpis, cursus egestas at sem. Phasellus pellentesque. Mauris quam enim, molestie in, rhoncus ut, lobortis a, est.</p>
-				<p class="links"><a href="#" class="comments">Comments (64)</a> &nbsp;&nbsp;&nbsp; <a href="#" class="permalink">Full article</a></p>
-			</div>
-		</div>
-	-->		
 	</div>
 
 	<!-- end #content -->
@@ -204,11 +199,12 @@ $( "#button_login" ).click(function() {
 			<li>
 <div id="d_photo" title="Photo form" >
 <img id="d_img" src="{{photo1.url}}" alt="photo" title="TEST photo"/>
+<a id="d_url" href="/photo/album/{{photo1.album.album_id}}/">Перейти до альбому {{photo1.album}}</a>
 </div>			
 				<h2>Фото:</h2>
 				<ul class="list1">
-					<li><span class="photo_url" src="{{photo1.url}}"><img src="{{photo1.image}}" alt="{{photo1.album.title}}" width="105" height="90" title="{{photo1.album}}"/></span></li>
-					<li class="alt"><span class="photo_url" src="{{photo2.url}}"><img src="{{photo2.image}}" alt="" width="105" height="90" title="{{photo2.album}}"/></span></li>
+					<li><span class="photo_url" src="{{photo1.url}}"><img src="{{photo1.image}}" alt="{{photo1.album.title}}" width="105" height="90" title="{{photo1.album}}" url="/photo/album/{{photo1.album.album_id}}/"/></span></li>
+					<li class="alt"><span class="photo_url" src="{{photo2.url}}"><img src="{{photo2.image}}" alt="" width="105" height="90" title="{{photo2.album}}" url="/photo/album/{{photo2.album.album_id}}/"/></span></li>
 <!-- 					<li></li>
 					<li class="alt"><a href="#"></a></li>
 					 -->
