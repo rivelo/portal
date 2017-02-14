@@ -33,3 +33,9 @@ def rider_statistic(event, sex):
     a = str(count)
     return a
 
+
+@register.assignment_tag #(name='minustwo')
+def get_current_event():
+    c_year = datetime.datetime.now().year
+    event = Events.objects.filter(date__year = c_year)
+    return event

@@ -7,6 +7,12 @@
 <style>
 #event_stat:hover {
 background-color: yellow;
+cursor: pointer;
+}
+
+.cat_showhide:hover {
+background-color: yellow;
+cursor: pointer;
 }
 
 </style>
@@ -28,6 +34,57 @@ $(document).ready(function(){
     	$( "#tabs" ).toggle()
 	});
 
+	$( "#event_cat1" ).click(function() {
+  		if ($("#event_cat1").html() == "Категорія 18-29 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat1").html("Категорія 18-29 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat1").html("Категорія 18-29 років <<Показати>>");
+    	}
+    	$("#table_cat1_wrapper").toggle();
+	});
+
+	$( "#event_cat2" ).click(function() {
+  		if ($("#event_cat2").html() == "Категорія 30-39 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat2").html("Категорія 30-39 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat2").html("Категорія 30-39 років <<Показати>>");
+    	}
+    	$("#table_cat2_wrapper").toggle();
+	});
+
+	$( "#event_cat3" ).click(function() {
+  		if ($("#event_cat3").html() == "Категорія 40-49 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat3").html("Категорія 40-49 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat3").html("Категорія 40-49 років <<Показати>>");
+    	}
+    	$("#table_cat3_wrapper").toggle();
+	});
+
+	$( "#event_cat4" ).click(function() {
+  		if ($("#event_cat4").html() == "Категорія 50-59 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat4").html("Категорія 50-59 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat4").html("Категорія 50-59 років <<Показати>>");
+    	}
+    	$("#table_cat4_wrapper").toggle();
+	});
+
+	$( "#event_cat5" ).click(function() {
+  		if ($("#event_cat5").html() == "Категорія 60+ років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat5").html("Категорія 60+ років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat5").html("Категорія 60+ років <<Показати>>");
+    	}
+    	$("#table_cat5_wrapper").toggle();
+	});
+
+	
 	// all rider list
     var rtable = $('#rtable').DataTable({
     	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
@@ -115,7 +172,13 @@ $(document).ready(function(){
     $('#table_cat5').DataTable({
     	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
     });
-    
+   
+
+$("#table_cat1_wrapper").hide();    
+$("#table_cat2_wrapper").hide();
+$("#table_cat3_wrapper").hide();
+$("#table_cat4_wrapper").hide();
+$("#table_cat5_wrapper").hide();
 });
 
 
@@ -230,7 +293,7 @@ $(document).ready(function(){
 
 
 <br>
-<h2>Категорія 18-29 років</h2> 
+<h2 id="event_cat1" class="cat_showhide">Категорія 18-29 років <<Показати>></h2> 
 <table id="table_cat1" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -274,7 +337,7 @@ $(document).ready(function(){
 
 
 <br>
-<h2>Категорія 30-39 років</h2> 
+<h2 id="event_cat2" class="cat_showhide">Категорія 30-39 років <<Показати>></h2> 
 <table id="table_cat2" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -317,7 +380,7 @@ $(document).ready(function(){
 </table>	
 
 <br>
-<h2>Категорія 40-49 років</h2> 
+<h2 id="event_cat3" class="cat_showhide">Категорія 40-49 років <<Показати>></h2> 
 <table id="table_cat3" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -360,7 +423,7 @@ $(document).ready(function(){
 </table>	
 
 <br>
-<h2>Категорія 50-59 років</h2> 
+<h2 id="event_cat4" class="cat_showhide">Категорія 50-59 років <<Показати>></h2> 
 <table id="table_cat4" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -403,7 +466,7 @@ $(document).ready(function(){
 </table>	
 
 <br>
-<h2>Категорія 60+ років</h2> 
+<h2 id="event_cat5" class="cat_showhide">Категорія 60+ років <<Показати>></h2> 
 <table id="table_cat5" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>

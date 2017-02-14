@@ -243,7 +243,7 @@ function initMap(x,y) {
 {% endif %}
 
 
-<h4> Дата та час: {{event.date|date:"d-m-Yр. H:i"}}</h4>
+<h4> Дата та час: {{event.date|date:"d-m-Yр. H:i"}} <p style="color: grey; font-size:11px">*До заходу залишилось {{event.days_left}} днів</p> </h4>
 
 
 {% if event.reg_status == True %}
@@ -262,7 +262,7 @@ function initMap(x,y) {
 * можливість вибрати стартовий номер <b>+5грн</b>
 </ul>
 <h4>Учасники:  
-<a href="/event/{{event.pk}}/registration/list/">Список зареєстрованих учасників</a>
+<a href="/event/{{event.pk}}/registration/list/">Список зареєстрованих учасників >>> ({{event.riders_count}} чоловік)</a> 
 </h4>
 {% endif %}
 

@@ -57,9 +57,12 @@ class RegEventsForm(forms.ModelForm):
         cleaned_data = super(RegEventsForm, self).clean()
         chk_phone = cleaned_data.get("phone")
         chkevent = cleaned_data.get("event")
+        chkcity = cleaned_data.get("city")
         res = RegEvent.objects.filter(event = chkevent, phone = chk_phone)
         if res :
             raise forms.ValidationError("Користувач з таким телефоном вже існує")
+        if chkcity == '':
+            raise forms.ValidationError("Виберіть місто з автодоповнення")
         # Always return the full collection of cleaned data.
         return cleaned_data
 

@@ -80,6 +80,7 @@
 }
 </style>
 
+{% load poll_extras %} 
 
 <div id="menu">
 <nav id="primary_nav_wrap">
@@ -108,17 +109,19 @@
 	{% ifequal sel_menu "calendar" %}				
 				<li class="current-menu-item"><a  href="/calendar/">Заходи {{year}}</a>
 	<ul>
-      <li><a href="{% url 'event-show' 2 %}">Рівно100</a></li>
-      <li><a href="{% url 'event-show' 5 %}">Медовий трейл</a></li>
-      <li><a href="{% url 'event-show' 4 %}">100 миль</a></li>
+      {% get_current_event as event_list %}
+      {% for event in event_list %}
+      	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
+      {% endfor %}
 	</ul>
 				</li>
 	{% else %}			
   <li><a  href="/calendar/">Заходи</a>
     <ul>
-      <li><a href="{% url 'event-show' 2 %}">Рівно100</a></li>
-      <li><a href="{% url 'event-show' 5 %}">Медовий трейл</a></li>
-      <li><a href="{% url 'event-show' 4 %}">100 миль</a></li>
+      {% get_current_event as event_list %}
+      {% for event in event_list %}
+      	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
+      {% endfor %}
     </ul>
   </li>
 	{% endifequal %}
