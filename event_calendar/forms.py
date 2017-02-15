@@ -86,11 +86,21 @@ class PayRegEventsForm(forms.ModelForm):
         chk_number = cleaned_data.get("start_number")
         chk_pay = cleaned_data.get("pay")
         pdate = cleaned_data.get("pay_date")
+        if not pdate:
+            msg = "Введіть дату і час коли була здійснена оплата"
+            self._errors["pay_date"] = self.error_class([msg])
+            raise forms.ValidationError("Відсутня ДАТА або ЧАС")
         chk_event = self.instance.event
         sum = chk_event.cur_reg_sum(pdate)
-        if int(chk_pay) <= sum-1:
-            msg = "Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y'))
+        try:
+            cpay = int(chk_pay)
+            if int(chk_pay) <= sum-1:
+                msg = "Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y'))
+                self._errors["pay"] = self.error_class([msg])
+        except:
+            msg = "Введіть суму оплати"
             self._errors["pay"] = self.error_class([msg])
+            
             #raise forms.ValidationError("Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y')))             
         #res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).order_by('start_number')
         res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).values_list('start_number', flat=True).order_by('start_number')
