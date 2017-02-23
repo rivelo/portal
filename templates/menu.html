@@ -11,7 +11,8 @@
 	position:relative;
 	float:left;
 	margin:0;
-	padding:0
+	padding:0;
+	z-index: 5;
 }
 
 #primary_nav_wrap ul a
@@ -24,6 +25,7 @@
 	line-height:32px;
 	padding:0 15px;
 //	font-family:"HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif
+	z-index: 5;
 }
 
 #primary_nav_wrap ul li
@@ -32,6 +34,7 @@
 	float:left;
 	margin:0;
 	padding:0
+	
 }
 
 #primary_nav_wrap ul li.current-menu-item
@@ -54,6 +57,7 @@
 //	background:#fff;
 	background:green;
 	padding:0
+	z-index: 5;
 }
 
 #primary_nav_wrap ul ul li
@@ -80,7 +84,6 @@
 }
 </style>
 
-{% load poll_extras %} 
 
 <div id="menu">
 <nav id="primary_nav_wrap">
@@ -98,14 +101,9 @@
 	{% endifequal %}
 								
 				<li><a href="/forum/index.php">Форум</a></li>
-{% comment %}			
-	{% ifequal sel_menu "guest" %}				
-				<li class="current-menu-item"><a href="/contact/">Гостьова книга</a></li>
-	{% else %}
-				<li><a href="/contact/">Гостьова книга</a></li>
-	{% endifequal %}
-{% endcomment %}					
-				
+
+{% load poll_extras %}
+
 	{% ifequal sel_menu "calendar" %}				
 				<li class="current-menu-item"><a  href="/calendar/">Заходи {{year}}</a>
 	<ul>
@@ -124,7 +122,7 @@
       {% endfor %}
     </ul>
   </li>
-	{% endifequal %}
+	{% endifequal %}				
 	
 	{% ifequal sel_menu "about" %}				
 				<li class="current-menu-item"><a  href="/about/">Про нас</a></li>

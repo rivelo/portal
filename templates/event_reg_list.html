@@ -2,6 +2,58 @@
 
 <link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
 <script src="/media/jquery.dataTables.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+
+<style>
+/* Style The Dropdown Button */
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+</style>
+
 
 
 <style>
@@ -91,10 +143,12 @@ $(document).ready(function(){
     });
     
 	rtable.column(7).visible(false);
+	rtable.column(-4).visible(false);
 	rtable.column(-1).visible(false);
 	rtable.column(-2).visible(false);
 	rtable.column(-3).visible(false);
 
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Дія</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
 {% if user.is_authenticated %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
@@ -172,7 +226,28 @@ $(document).ready(function(){
     $('#table_cat5').DataTable({
     	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
     });
-   
+ 
+ 
+$("body").on("click",".reg_status",function(e){ 	
+	$(this).editable('/rider/registration/', {
+     data   : "{'True':'True','False':'False'}",
+     loadtype: 'POST',
+     type   : 'select',
+     submit : 'OK',
+     tooltip   : 'Click to edit...',
+     style   : 'inherit',
+     event : "dblclick",
+     submitdata : function() {
+      	return {rid : $(this).attr('rider_id')};
+    	 },
+     callback : function(value, settings) {
+         var obj = jQuery.parseJSON(value);
+         console.log(obj);
+         str = '[' + obj['status'] + "]";
+         $(this).html(str);
+     }
+    }).trigger("focus"); 
+});   
 
 $("#table_cat1_wrapper").hide();    
 $("#table_cat2_wrapper").hide();
@@ -218,6 +293,9 @@ $("#table_cat5_wrapper").hide();
 <th title="Стартовий номер">#</th>
 <th>Стать</th>
 <th>Статус</th>
+{% if user.is_authenticated %}
+<th>Дія</th>
+{% endif %}
 </tr>
 </thead>
 <tbody>
@@ -233,7 +311,9 @@ $("#table_cat5_wrapper").hide();
 {% endif %}
 
 
-<td>{{forloop.counter}}</td>
+<td>
+{{forloop.counter}}
+</td>
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
@@ -253,7 +333,24 @@ $("#table_cat5_wrapper").hide();
 {% endif %}
 </td>
 <td align="center">{{rider.sex}}</td>
-<td align="center">{{rider.status}}</td>
+{% if user.is_authenticated %}
+	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.status}}</td>
+{% else %}
+	<td align="center">{{rider.status}}</td>
+{% endif %}
+{% if user.is_authenticated %}
+	<td align="center" >
+<div class="dropdown">
+  <span>
+<a href="{% url 'rider-pay-submit-admin' rider.pk %}"><img src="/media/images/menu_navigation_40.png" height="25"></a>
+  </span>
+  <div class="dropdown-content">
+	<a href="{% url 'rider-pay-submit-admin' rider.pk %}">Внести оплату</a>
+	<a href="{% url 'rider-reminder-mail' rider.pk %}">Відправити лист</a>
+  </div>
+</div>
+	</td>
+{% endif %}
 </tr>
 {% endfor %}
 </tbody>  

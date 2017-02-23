@@ -96,8 +96,11 @@ $( "#button_login" ).click(function() {
 
 });
 </script>
-  
+ 
 </head>
+
+ 
+
 <body class="main-Page">
 <div id="header-wrapper">
 	<div id="header">
@@ -125,8 +128,8 @@ $( "#button_login" ).click(function() {
 			</form>
 		</div>
 
-{% load poll_extras %} 
 {% load i18n %}
+{% load poll_extras %}
 		
 		<div id="d_login" title="Login form">
 {% if user.is_authenticated %}
@@ -163,9 +166,10 @@ $( "#button_login" ).click(function() {
 	<!-- end #header -->
 </div>
 <!-- end #header-wrapper -->
+
 <div id="page">
     <div id="logo">
-        <br><img src="{{'/media/images/'|season }}" alt="" title="">
+	<br><img src="{{'/media/images/'|season }}" alt="" title="">
 	<!--	<h1><a href="#">Commission</a></h1>
     <p><em>{ by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> }</em></p> -->
 	</div>

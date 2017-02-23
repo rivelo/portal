@@ -27,28 +27,54 @@ import googlemaps
 
 from portal.mysql_portal import get_month_event, get_month_events, get_day_events
 
+from django.core.mail import send_mail
 
-def portal_sendmail(to, subject, message):
-    from_mail = settings.EMAIL_HOST_USER #settings.DEFAULT_FROM_EMAIL  
-    #to = ['rivelo@ymail.com',]  
-    #subject = ''  
 
-    email_text = """\
-    From: %s  
-    To: %s  
-    Subject: %s
-    %s
-    """ % (from_mail, ", ".join(to), subject, message)
+def admin_sendmail(request, id):
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    calendar = embeded_calendar()
+    if auth_group(request.user, 'admin')==False:
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'У вас не вистачає повноважень!'}
+        return render(request, 'index.html', vars)
+    revent = RegEvent.objects.get(pk = id)
+    csum = revent.event.cur_reg_sum()
+    dleft = revent.event.days_left()
+    
+    message = """Нагадуємо що до заходу залишилось %s днів. \n 
+    На даний момент реєстрація коштує %s гривень. Не затягуйте з оплатою адже чим ближче до заходу тим реєстраційний внесок більший.\n
+    Оплату марафону можна здійснити: \n
+    - на картку приватбанку (4323 3552 0025 8937 - Панчук Ігор) \n
+    - оплатити в магазині Рівело (місто Рівне, вул.Кавказька 6) [http://www.rivelo.com.ua/about/] \n
+    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/%s/show/ \n
+    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/%s/registration/list/ \n
+    Гарних покатеньок і до зустрічі на старті.
+    """ % (dleft, csum, revent.pk, revent.pk)
+    
+    res = send_mail('Нагадування про оплату', message, revent.email, ['rivelo@ymail.com'], fail_silently=False)
+        
+    if res == 1:
+        return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response("index.html", {'success_data': "Щось пішло не так. Пошта " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-    try:  
-        server = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT)
-        server.ehlo()
-        server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        server.sendmail(from_mail, to, email_text)
-        server.close()
-        return ('ok', 'Лист успішно відправлено')
-    except:  
-        return ('error', 'Щось пішло не так')
+#===============================================================================
+#    from_mail = settings.EMAIL_HOST_USER #settings.DEFAULT_FROM_EMAIL  
+#    email_text = """\
+#    From: %s  
+#    To: %s  
+#    Subject: %s
+#    %s
+#    """ % (from_mail, ", ".join(to), subject, message)
+#    try:  
+#        server = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT)
+#        server.ehlo()
+#        server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+#        server.sendmail(from_mail, to, email_text)
+#        server.close()
+#        return ('ok', 'Лист успішно відправлено')
+#    except:  
+#        return ('error', 'Щось пішло не так')
+#===============================================================================
 
 
 def send_reg_mail(request, rid, mto, subject='Реєстрація'):
@@ -329,7 +355,8 @@ def edit_event(request, id):
             a.save()
             return HttpResponseRedirect('/calendar/')
     else:
-        form = EventsForm(instance=a)
+        stime = a.date.strftime("%H:%M")
+        form = EventsForm(instance=a, initial={'time': stime})
 
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -591,13 +618,18 @@ def get_event_rider(request, id):
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
-def add_rider_pay(request, id, hash):
+def add_rider_pay(request, id, hash=None):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     revent = RegEvent.objects.get(pk = id)    
-    if hash != revent.reg_code:
+    if hash != None and hash != revent.reg_code:
         vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним!'}
         return render(request, 'index.html', vars)
+    
+    if hash == None and auth_group(request.user, 'admin')==False:
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним або у вас не вистачає повноважень!'}
+        return render(request, 'index.html', vars)
+        
 #    else:
 #        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'success_data': res_data}
 #        return render(request, 'index.html', vars)
@@ -690,4 +722,20 @@ def test_func(request):
 #    send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
     return w
 
+
+def event_rider_status(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('rid'):
+                rid = request.POST['rid']
+                rider = RegEvent.objects.get(pk = rid)
+                rider.status = not rider.status
+                rider.save()
+                json = dict(status = rider.status)
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     

@@ -25,7 +25,7 @@ class EventsForm(forms.ModelForm):
     lng = forms.DecimalField(max_digits=9, decimal_places=6, required=False, label='Довгота')
 #    date = forms.SplitDateTimeField(label='Дата', input_date_formats=["%d.%m.%Y"], input_time_formats=["%H:%M"])
     date = forms.DateTimeField(initial = datetime.datetime.today, input_formats=['%d.%m.%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y', attrs={'id':"event_datepicker"}), required=False)
-    time = forms.TimeField(initial = "12:00", input_formats=['%H:%M'], required=False)
+    time = forms.TimeField(initial = "10:00", input_formats=['%H:%M'], required=False)
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
     
     class Meta:

@@ -16,6 +16,10 @@ def inday(value, arg):
     else:
         return None
 
+@register.filter
+def lower1(value): # Only one argument.
+    """Converts a string into all lowercase"""
+    return value.lower()
 
 @register.filter(name='season')
 def season(value):

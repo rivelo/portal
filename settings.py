@@ -23,11 +23,22 @@ DATABASES = {
         'PASSWORD': 'qwerty',
         'HOST': '127.0.0.1',
         'PORT': '3306',        
-        
-    }
+    },
+    'catalog': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rivelo',
+        'USER': 'rivelo',
+        'PASSWORD': 'Pnj5i5zjF6uC7nv',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',        
+    },
+    
 }
 
 DATABASE_HOST = '';
+
+#DATABASE_ROUTERS = ['portal.db_router.CatalogRouter', 'portal.db_router.OtherRouter']
+DATABASE_ROUTERS = ['portal.db_router.DBRouter',]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -144,11 +155,14 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'portal',
     'portal.news',
     'portal.gallery',
     'portal.event_calendar',
     'portal.funnies',
-    'portal',
+    'portal.tools',
+    'portal.accounting',
+    
     'tinymce',
 )
 
