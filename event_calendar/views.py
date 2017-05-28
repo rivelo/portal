@@ -553,6 +553,9 @@ def event_reg_list(request, id):
     revent = RegEvent.objects.filter(event = id).order_by("date") #all rider list
     event_date = evt.date
     #curyear = datetime.datetime.now().year
+    cat0_b = event_date.replace(year = event_date.year-12)
+    cat0_e = event_date.replace(year = event_date.year-18)
+    revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date).order_by("date") #all rider list
     cat1_b = event_date.replace(year = event_date.year-18)
     cat1_e = event_date.replace(year = event_date.year-30)
     #revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(1999, 1, 5), birthday__gte = datetime.date(1987, 1, 5)).order_by("date") #all rider list
@@ -572,7 +575,7 @@ def event_reg_list(request, id):
     
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
+    vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
     calendar = embeded_calendar()
     vars.update(calendar)        
 
@@ -583,6 +586,31 @@ def event_reg_list(request, id):
     except:
         error = "Параметр reg_email не існує"
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    
+    
+def event_reg_edit(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('rid'):
+                rid = request.POST['rid']
+                number = request.POST['number']
+                rider = RegEvent.objects.get(pk = rid)
+                chk_event = rider.event
+                #res = RegEvent.objects.filter(event = chk_event, start_number = number).values_list('start_number', flat=True).order_by('start_number')
+                res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).values_list('start_number', flat=True).order_by('start_number')
+                if len(res) > 0 :
+                    nlist = ', '.join(map(str, res))
+                    #return HttpResponse("Номер %s вже вибраний. Виберіть інший окрім (%s)" % (number, nlist))
+                    if int(number) in res:
+                        return HttpResponse("Номер %s вже вибраний. Виберіть інший окрім (%s)" % (number, nlist))
+                rider.start_number = number
+                rider.save()
+                return HttpResponse(rider.start_number, content_type='text/plain')
+    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
     
 def get_event_rider(request, id):

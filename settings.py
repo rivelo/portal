@@ -160,10 +160,10 @@ INSTALLED_APPS = (
     'portal.gallery',
     'portal.event_calendar',
     'portal.funnies',
-    'portal.tools',
-    'portal.accounting',
+#    'portal.tools',
+#    'portal.accounting',
     
-    'tinymce',
+    'tinymce',	
 )
 
 # GOOGLE setting

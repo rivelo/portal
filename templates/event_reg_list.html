@@ -67,6 +67,19 @@ background-color: yellow;
 cursor: pointer;
 }
 
+
+.hover-content {
+    display:none;
+}
+ 
+.pay_type:hover .hover-content {
+    display:block;
+}
+
+.category:hover .hover-content {
+    display:block;
+} 
+
 </style>
 
 
@@ -86,6 +99,16 @@ $(document).ready(function(){
     	$( "#tabs" ).toggle()
 	});
 
+	$( "#event_cat0" ).click(function() {
+  		if ($("#event_cat0").html() == "Категорія до 18 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat0").html("Категорія до 18 років <<Приховати>>");	
+    	}
+    	else {
+    		$("#event_cat0").html("Категорія до 18 років <<Показати>>");
+    	}
+    	$("#table_cat0_wrapper").toggle();
+	});
+	
 	$( "#event_cat1" ).click(function() {
   		if ($("#event_cat1").html() == "Категорія 18-29 років &lt;&lt;Показати&gt;&gt;") {
     		$("#event_cat1").html("Категорія 18-29 років <<Приховати>>");
@@ -147,12 +170,18 @@ $(document).ready(function(){
 	rtable.column(-1).visible(false);
 	rtable.column(-2).visible(false);
 	rtable.column(-3).visible(false);
+	rtable.column(-5).visible(false);
+	rtable.column(-6).visible(false);
 
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Дія</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Дія</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
 {% if user.is_authenticated %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Телефон</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Примітки</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Статус</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Оплата</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
 {% endif %}	
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
 
@@ -205,8 +234,11 @@ $(document).ready(function(){
 	}
 	
  });    
-    
-    
+
+ 	$('#table_cat0').DataTable({
+ 	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+ 	});
+
     $('#table_cat1').DataTable({
     	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
     });
@@ -249,6 +281,28 @@ $("body").on("click",".reg_status",function(e){
     }).trigger("focus"); 
 });   
 
+
+$("body").on("click", ".number_edit", function(e){
+    $(this).editable('/event/{{event.id}}/registration/edit/number/', {
+ 		id   : 'rid',
+        name : 'number',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 },
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+
+
+$("#table_cat0_wrapper").hide();
 $("#table_cat1_wrapper").hide();    
 $("#table_cat2_wrapper").hide();
 $("#table_cat3_wrapper").hide();
@@ -294,7 +348,10 @@ $("#table_cat5_wrapper").hide();
 <th>Стать</th>
 <th>Статус</th>
 {% if user.is_authenticated %}
+<th>Оплата</th>
 <th>Дія</th>
+<th>Телефон</th>
+<th>Примітки</th>
 {% endif %}
 </tr>
 </thead>
@@ -325,9 +382,29 @@ $("#table_cat5_wrapper").hide();
 </td>
 <td>{{rider.city}}</td>
 <td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
+
+<td align="center" class="category"
+{% if rider.category == 1 %} 
+style="background-color: yellow;"
+{% endif %}
+{% if rider.category == 2 %} 
+style="background-color: blue;"
+{% endif %}
+{% if rider.category == 3 %} 
+style="background-color: green;"
+{% endif %}
+{% if rider.category == 4 %} 
+style="background-color: red;"
+{% endif %}
+{% if rider.category == 5 %} 
+style="background-color: white;"
+{% endif %}
+
+>{{rider.birthday|date:"Y"}} <div class="hover-content">{{rider.category}}</div> </td>
+
+
 <td align="center">{{rider.bike_type.name}}</td>
-<td align="center">
+<td align="center" class="number_edit" rid="{{rider.id}}">
 {% if rider.start_number %}
 {{rider.start_number}}
 {% endif %}
@@ -335,6 +412,7 @@ $("#table_cat5_wrapper").hide();
 <td align="center">{{rider.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.status}}</td>
+	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.pay_type}}<div class="hover-content">{{rider.pay_date}}</div></td>
 {% else %}
 	<td align="center">{{rider.status}}</td>
 {% endif %}
@@ -350,6 +428,13 @@ $("#table_cat5_wrapper").hide();
   </div>
 </div>
 	</td>
+	<td>
+	{{rider.phone}}
+	</td>
+	<td>
+	{{rider.description}}
+	</td>
+	
 {% endif %}
 </tr>
 {% endfor %}
@@ -362,6 +447,7 @@ $("#table_cat5_wrapper").hide();
     <li><a href="#tabs-1">Стать</a></li>
     <li><a href="#tabs-2">Місто</a></li>
     <li><a href="#tabs-3">Велосипед</a></li>
+    <li><a href="#tabs-4">Інше</a></li>
   </ul>
   <div id="tabs-1">
     <p>
@@ -384,10 +470,62 @@ $("#table_cat5_wrapper").hide();
 	{% endfor %}
     </p>
   </div>
+  <div id="tabs-4">
+    <p>
+    Оплачених - {{ event.riders_pay_count }}
+	<br>    
+    {% if user.is_authenticated %}
+    Сума - {{ event.riders_pay_sum }}
+    {% endif %}
+    </p>
+  </div>
+  
 </div>
 
 
 
+<br>
+<h2 id="event_cat0" class="cat_showhide">Категорія до 18 років <<Показати>></h2> 
+<table id="table_cat0" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat0 %}
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.fname}} {{rider.lname}}</td>
+<td>{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.city}}</td>
+<td>{{rider.club}}</td>
+<td align="center">{{rider.birthday|date:"Y"}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
 
 <br>
 <h2 id="event_cat1" class="cat_showhide">Категорія 18-29 років <<Показати>></h2> 

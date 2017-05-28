@@ -2,7 +2,7 @@
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Sum
 #from portal.news.models import Category
 
 import datetime
@@ -107,6 +107,20 @@ class Events (models.Model):
         count = r.count()
         return count
 
+    def riders_pay_count(self, pcount=None):
+        if pcount == None:
+            r = self.regevent_set.filter(status = True)
+            count = r.count()
+        else:
+            r = self.regevent_set.filter(status=True).aggregate(total_pay=Sum('pay'))
+            count = r.values()[0]
+        return count
+
+    def riders_pay_sum(self):
+         r = self.regevent_set.filter(status=True).aggregate(total_pay=Sum('pay'))
+         psum = r.values()[0]
+         return psum
+
     def riders_city(self):
         r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
         return r
@@ -165,6 +179,42 @@ class RegEvent (models.Model):
     status = models.BooleanField(default=False)
     start_number = models.IntegerField(help_text="Стартовий номер від 1 до 999", default=0, blank=True) # Стартовий номер; 0 - не вибрано
     description = models.TextField(blank=True)
+    #start_status = models.BooleanField(default=False)
+
+    def category(self):
+        event_date = self.event.date
+        birthday = self.birthday
+
+        cat0_b = event_date.replace(year = event_date.year-12)
+        cat0_e = event_date.replace(year = event_date.year-18)
+        if (birthday <= cat0_b.date()) and (birthday >= cat0_e.date()): 
+            return 0
+        
+        cat1_b = event_date.replace(year = event_date.year-18)
+        cat1_e = event_date.replace(year = event_date.year-30)
+        if (birthday <= cat1_b.date()) and (birthday >= cat1_e.date()):
+            return 1
+        
+        cat2_b = event_date.replace(year = event_date.year-30)
+        cat2_e = event_date.replace(year = event_date.year-40)
+        if (birthday <= cat2_b.date()) and (birthday >= cat2_e.date()):
+            return 2
+        
+        cat3_b = event_date.replace(year = event_date.year-40)
+        cat3_e = event_date.replace(year = event_date.year-50)
+        if (birthday <= cat3_b.date()) and (birthday >= cat3_e.date()):
+            return 3
+        
+        cat4_b = event_date.replace(year = event_date.year-50)
+        cat4_e = event_date.replace(year = event_date.year-60)
+        if (birthday <= cat4_b.date()) and (birthday >= cat4_e.date()):
+            return 4
+
+        cat5_b = event_date.replace(year = event_date.year-60)
+        #revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
+        if (birthday <= cat5_b.date()):
+            return 5
+ 
 
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:
@@ -176,7 +226,47 @@ class RegEvent (models.Model):
 
     class Meta:
         ordering = ["date"]    
+
+
+#===============================================================================
+# class PointType(models.Model):
+#     name = models.CharField(max_length=255)
+#     description = models.TextField(blank=True)
+#     event = models.ForeignKey(Events, blank=True, null=True, on_delete=models.SET_NULL)
+#     status = models.BooleanField(default=True)
+#     
+#     def __unicode__(self):
+#         return '%s / %s' % (self.name, self.description)
+#         #return u'%s - %s' % (self.name, self.name_ukr) 
+# 
+#     class Meta:
+#         ordering = ["name"]        
+#     
+#===============================================================================
     
-    
+#===============================================================================
+# class ResultEvent (models.Model):
+#     reg_event = models.ForeignKey(RegEvent, blank=True, null=True, on_delete=models.SET_NULL)    
+# #    point_type = models.ForeignKey(PointType, blank=True, null=True, on_delete=models.SET_NULL)
+#     start = models.DateTimeField(blank = True, null = True)
+#     kp1 = models.DateTimeField(blank = True, null = True)
+#     kp2 = models.DateTimeField(blank = True, null = True)
+#     kp3 = models.DateTimeField(blank = True, null = True)
+#     finish = models.DateTimeField(blank = True, null = True)
+#     description = models.TextField(blank=True)
+# 
+#     def save(self, *args, **kwargs):
+# #        if self.reg_status == True:
+# #            self.reg_url = "/event/"+ str(self.pk) +"/registration/"
+#         super(ResultEvent, self).save(*args, **kwargs) # Call the "real" save() method.
+# 
+#     def __unicode__(self):
+#         return u"%s %s - [%s]" % (self.point_type, self.dtime, self.description)
+# 
+#     class Meta:
+#         ordering = ["reg_event", "dtime"]    
+#     
+#===============================================================================
+
     
     
