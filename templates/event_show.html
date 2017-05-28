@@ -273,7 +273,9 @@ function initMap(x,y) {
 {% else %}
 {% endif %}
 
- 
+<h4>Результати:  
+<a href="{% url 'event-result' event.pk %}">Результати</a>
+</h4>
 
 
 <div class="map" lat="{{event.lat}}" lng="{{event.lng}}">

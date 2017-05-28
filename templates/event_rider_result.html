@@ -263,17 +263,15 @@ $(document).ready(function(){
     });
  
  
-$("body").on("click",".reg_status",function(e){ 	
-	$(this).editable('/rider/registration/', {
-     data   : "{'True':'True','False':'False'}",
+$("body").on("click",".kp1_add",function(e){ 	
+	$(this).editable('/rider/result/add/', {
      loadtype: 'POST',
-     type   : 'select',
      submit : 'OK',
-     tooltip   : 'Click to edit...',
+     tooltip   : 'Click to add time',
      style   : 'inherit',
-     event : "dblclick",
+     event : "click",
      submitdata : function() {
-      	return {rid : $(this).attr('rider_id')};
+      	return {rid : $(this).attr('rid')};
     	 },
      callback : function(value, settings) {
          var obj = jQuery.parseJSON(value);
@@ -348,9 +346,8 @@ $("#table_cat5_wrapper").hide();
 
 <br>
 <div style="width:560px; float:left;">
-<h2 class="title"> Список зареєстрованих учасників <br>{{event.name}} </h2>
-<h3 style="color: grey; ">До заходу залишилось {{event.days_left}} днів </h3>
-<div style="margin: 0px 0px 20px 0px;"><a class="register" href="/event/{{event.pk}}/registration/" style="font-size: 16; color: red;">Зареєструватись >>></a> *Реєстрація на сьогодні вартує {{event.cur_reg_sum}} гривень</div>
+<h2 class="title"> Результати марафону <br>{{event.name}} </h2>
+
 </div>
 <div style="float:right;">
 	{% if event.icon %}
@@ -361,7 +358,7 @@ $("#table_cat5_wrapper").hide();
 <table id="rtable" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
-<th>№</th>
+<th title="Стартовий номер">№</th>
 <th>Ім'я / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">С</th>
@@ -369,7 +366,9 @@ $("#table_cat5_wrapper").hide();
 <th>Команда</th>
 <th>Рік нар.</th>
 <th>Велосипед</th>
-<th title="Стартовий номер">#</th>
+<th title="Старт">Старт</th>
+<th title="КП1">КП1</th>
+<th title="Фінішний час">Фініш</th>
 <th>Стать</th>
 <th>Статус</th>
 {% if user.is_authenticated %}
@@ -395,7 +394,7 @@ $("#table_cat5_wrapper").hide();
 
 
 <td>
-{{forloop.counter}}
+{{rider.start_number}}
 </td>
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
@@ -430,11 +429,9 @@ style="background-color: white;"
 
 
 <td align="center">{{rider.bike_type.name}}</td>
-<td align="center" class="number_edit" rid="{{rider.id}}">
-{% if rider.start_number %}
-{{rider.start_number}}
-{% endif %}
-</td>
+<td align="center" rid="{{rider.id}}"> - </td>
+<td align="center" class="kp1_add" rid="{{rider.id}}"> </td>
+<td align="center" class="finish_add" rid="{{rider.id}}"> </td>
 <td align="center">{{rider.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.status}}</td>
@@ -449,7 +446,6 @@ style="background-color: white;"
 <a href="{% url 'rider-pay-submit-admin' rider.pk %}"><img src="/media/images/menu_navigation_40.png" height="25"></a>
   </span>
   <div class="dropdown-content">
-	<a href="{% url 'rider-pay-submit-admin' rider.pk %}">Внести оплату</a>
 	<a href="{% url 'rider-reminder-mail' rider.pk %}">Відправити лист</a>
   </div>
 </div>

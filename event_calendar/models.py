@@ -179,7 +179,7 @@ class RegEvent (models.Model):
     status = models.BooleanField(default=False)
     start_number = models.IntegerField(help_text="Стартовий номер від 1 до 999", default=0, blank=True) # Стартовий номер; 0 - не вибрано
     description = models.TextField(blank=True)
-    #start_status = models.BooleanField(default=False)
+    start_status = models.BooleanField(default=False)
 
     def category(self):
         event_date = self.event.date
@@ -244,29 +244,27 @@ class RegEvent (models.Model):
 #     
 #===============================================================================
     
-#===============================================================================
-# class ResultEvent (models.Model):
-#     reg_event = models.ForeignKey(RegEvent, blank=True, null=True, on_delete=models.SET_NULL)    
-# #    point_type = models.ForeignKey(PointType, blank=True, null=True, on_delete=models.SET_NULL)
-#     start = models.DateTimeField(blank = True, null = True)
-#     kp1 = models.DateTimeField(blank = True, null = True)
-#     kp2 = models.DateTimeField(blank = True, null = True)
-#     kp3 = models.DateTimeField(blank = True, null = True)
-#     finish = models.DateTimeField(blank = True, null = True)
-#     description = models.TextField(blank=True)
-# 
-#     def save(self, *args, **kwargs):
-# #        if self.reg_status == True:
-# #            self.reg_url = "/event/"+ str(self.pk) +"/registration/"
-#         super(ResultEvent, self).save(*args, **kwargs) # Call the "real" save() method.
-# 
-#     def __unicode__(self):
-#         return u"%s %s - [%s]" % (self.point_type, self.dtime, self.description)
-# 
-#     class Meta:
-#         ordering = ["reg_event", "dtime"]    
-#     
-#===============================================================================
+class ResultEvent (models.Model):
+    reg_event = models.ForeignKey(RegEvent, blank=True, null=True, on_delete=models.SET_NULL)    
+#    point_type = models.ForeignKey(PointType, blank=True, null=True, on_delete=models.SET_NULL)
+    start = models.DateTimeField(blank = True, null = True)
+    kp1 = models.DateTimeField(blank = True, null = True)
+    kp2 = models.DateTimeField(blank = True, null = True)
+    kp3 = models.DateTimeField(blank = True, null = True)
+    finish = models.DateTimeField(blank = True, null = True)
+    description = models.TextField(blank=True)
+ 
+    def save(self, *args, **kwargs):
+#        if self.reg_status == True:
+#            self.reg_url = "/event/"+ str(self.pk) +"/registration/"
+        super(ResultEvent, self).save(*args, **kwargs) # Call the "real" save() method.
+ 
+    def __unicode__(self):
+        return u"%s - [%s]" % (self.reg_event, self.finish)
+ 
+    class Meta:
+        ordering = ["reg_event", "finish"]    
+     
 
     
     

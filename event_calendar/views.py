@@ -16,7 +16,7 @@ from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
 
-from models import Events, RegEvent
+from models import Events, RegEvent, ResultEvent
 from forms import EventsForm, RegEventsForm, PayRegEventsForm
 
 from portal.gallery.models import Album, Photo
@@ -28,6 +28,7 @@ import googlemaps
 from portal.mysql_portal import get_month_event, get_month_events, get_day_events
 
 from django.core.mail import send_mail
+from datetime import date
 
 
 def admin_sendmail(request, id):
@@ -766,4 +767,86 @@ def event_rider_status(request):
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
     
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
+
+def rider_start_status(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('rid'):
+                rid = request.POST['rid']
+                rider = RegEvent.objects.get(pk = rid)
+                rider.start_status = not rider.start_status
+                rider.save()
+                json = dict(status = rider.start_status)
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
+
+def event_result(request, id):
+    evt = Events.objects.get(pk=id)
+    revent = RegEvent.objects.filter(event = id, start_status = True).order_by("date") #all rider list
+    event_date = evt.date
+    #curyear = datetime.datetime.now().year
+    cat0_b = event_date.replace(year = event_date.year-12)
+    cat0_e = event_date.replace(year = event_date.year-18)
+    revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date, start_status = True).order_by("date") #all rider list
+    cat1_b = event_date.replace(year = event_date.year-18)
+    cat1_e = event_date.replace(year = event_date.year-30)
+    #revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(1999, 1, 5), birthday__gte = datetime.date(1987, 1, 5)).order_by("date") #all rider list
+    revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date, start_status = True).order_by("date") #all rider list
+    #RegEvent.objects.filter(event = id, birthday__range=[cat1_e, cat1_b])
+    cat2_b = event_date.replace(year = event_date.year-30)
+    cat2_e = event_date.replace(year = event_date.year-40)
+    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e, start_status = True).order_by("date") #all rider list
+    cat3_b = event_date.replace(year = event_date.year-40)
+    cat3_e = event_date.replace(year = event_date.year-50)
+    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e, start_status = True).order_by("date") #all rider list
+    cat4_b = event_date.replace(year = event_date.year-50)
+    cat4_e = event_date.replace(year = event_date.year-60)
+    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e, start_status = True).order_by("date") #all rider list
+    cat5_b = event_date.replace(year = event_date.year-60)
+    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b, start_status = True).order_by("date") #all rider list
+    
+ #   photo1 = Photo.objects.random()
+ #   photo2 = Photo.objects.random()
+#    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
+    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}    
+#    calendar = embeded_calendar()
+#    vars.update(calendar)        
+
+    evnt = {'event': evt}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+        
+
+def result_add(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('rid'):
+                rid = request.POST['rid']
+                rider = ResultEvent.objects.get(reg_event = rid)
+                if rider == None:
+                    rev = RegEvent.objects.get(pk = rid)
+                    r = ResultEvent()
+                    r.reg_event = rev
+                    r.kp1 = datetime.datetime.now()
+                    r.save()
+#                rider.start_status = not rider.start_status
+#                rider.save()
+#                json = dict(status = rider.start_status)
+#                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                    HttpResponse("Час додано", content_type='text/plain')    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+    
     

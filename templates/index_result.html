@@ -1,0 +1,205 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Design by Free CSS Templates
+http://www.freecsstemplates.org
+Released for free under a Creative Commons Attribution 2.5 License
+
+Name       : Commission
+Description: A two-column, fixed-width design for 1024x768 screen resolutions.
+Version    : 1.0
+Released   : 20090122
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Rivelo - Велопортал Рівного</title>
+<meta name="keywords" content="rivelo велосипед рівне вело рівне рівело" />
+<!-- 
+<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9, minimum-scale=0.9";> 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+-->
+<meta name="viewport" content="initial-scale=1.0, user-scalable=yes">
+
+
+<meta name="description" content="" />
+
+<link href="/media/css/normalize.css" rel="stylesheet" type="text/css"/>
+
+<link rel="stylesheet" href="/media/css/jquery-ui.min.css">
+<link href="/media/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+<link href="/media/css/cangas.datepicker.css" rel="stylesheet" type="text/css"/>
+<link type="text/css" rel="stylesheet" href="/media/css/paginator.css">
+
+
+<!--
+<link href="/media/css/datepicker.css" rel="stylesheet" type="text/css"/>
+ 
+<link rel="stylesheet" href="/media/css/calendar.css">
+-->
+
+<script src="/media/jquery-1.12.4.min.js"></script>
+<script src="/media/jquery-ui.min.js"></script>
+<script src="/media/jquery.datepicker.extension.range.min.js"></script>
+ 
+<script>
+$(document).ready(function() {
+
+$("#d_login").dialog({ 
+	autoOpen: false,
+	position: { my: "left center", at: "left center", of: "#button_login"  } 
+	});
+
+
+$( "#d_photo" ).dialog({ 
+	autoOpen: false,
+	autoResize:true,
+	minHeight: 'auto',
+	width:'auto',
+//	position: { my: "left center", at: "left center", of: ".photo_url"  },
+	position: {
+   my: "center",
+   at: "center",
+   of: "#logo"
+	},
+	open: function(){ $(this).dialog('option', 'width', $("#d_img").width()+20, 'height', $("#d_img").height()+20)
+					$(this).dialog('option', "width", document.getElementById("d_img").width);
+//					console.log("THIS = ", document.getElementById("d_img").width);
+//					console.log("THIS = ", $("#d_img").height());
+					},
+	create: function(){ $(this).dialog('option', 'width', $("#d_img").width()+20, 'height', $("#d_img").height()+20)
+					},					 
+	});
+
+//    $("#d_img").load(function() {
+//		alert('Загрузка завершена!');
+//	});
+
+
+$(".photo_url" ).click(function($this) {
+	$("#d_img").attr('src', $(this).attr('src'));
+	$("#d_img").attr('width', '500px');
+	$("#d_url").attr("href", $(this).children().attr('url'));
+	$("#d_url").html("Перейти до альбому " + $(this).children().attr('title'));
+
+	$("#d_photo").dialog("open");
+    $("#d_photo").dialog('option', "width", 530);
+    $("#d_photo").dialog('option', "title", $(this).children().attr("title"));
+    $("#d_img").attr('title', $(this).children().attr("title"));
+});
+
+
+$( "#button_login" ).click(function() {
+  $( "#d_login" ).dialog("open");
+});
+
+});
+</script>
+ 
+</head>
+
+ 
+
+<body class="main-Page">
+<div id="header-wrapper">
+	<div id="header">
+	
+		<!-- #menu -->
+		{% include "menu.html" %}
+		<!-- end #menu -->
+
+<div id="login_panel"> 		
+
+{% if user.is_authenticated %}
+<span id="button_login">{{user.username|upper}}</span>
+{% else %}
+<span id="button_login">Login</span>
+{% endif %}
+
+</div>
+
+		<div id="search" >
+			<form method="get" action="">
+				<fieldset>
+				<input type="text" name="s" id="search-text" size="15" />
+				<input type="submit" id="search-submit" value="Пошук" />
+				</fieldset>
+			</form>
+		</div>
+
+{% load i18n %}
+{% load poll_extras %}
+		
+		<div id="d_login" title="Login form">
+{% if user.is_authenticated %}
+  <form method="post" action="/accounts/logout/">
+        {% csrf_token %}
+        <label>User name: {{user.username|upper}}</label>
+        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
+        <input type="hidden" name="next_page" value="{{ next|escape }}" />
+    </form>
+{% else %}
+  <form action="/accounts/login/" method="post" id="login_form">
+    <label for="username">User name:</label>
+    <input type="text" name="username" value="" id="username">
+    <label for="password">Password:</label>
+    <input type="password" name="password" value="" id="password">
+
+    <input type="submit" value="login" />
+    <input type="hidden" name="next" value="{{ next|escape }}" />
+  </form>
+  
+  <form method="post" action="/accounts/logout/" style="display:none;" id="logout_form">
+        {% csrf_token %}
+        <label id="user_label">User name: {{user.username|upper}}</label>
+        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
+        <input type="hidden" name="next_page" value="{{ next|escape }}" />
+    </form>
+  
+{% endif %}
+		
+		</div>
+		
+		<!-- end #search -->
+	</div>
+	<!-- end #header -->
+</div>
+<!-- end #header-wrapper -->
+
+<div id="page">
+    <div id="logo">
+	<br><img src="{{'/media/images/'|season }}" alt="" title="">
+	<!--	<h1><a href="#">Commission</a></h1>
+    <p><em>{ by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> }</em></p> -->
+	</div>
+	<hr />
+	<!-- end #logo -->
+	<div >
+
+{% if weblink %}
+	{% include weblink %}
+{% else %}
+{% if error_data %}
+	<br>	<div class="error">{{ error_data }}</div>
+{% endif %}
+{% if success_data %}
+	<br>	<div class="success">{{ success_data }}</div>
+{% endif %}
+{% endif %}
+	</div>
+
+	<!-- end #content -->
+
+	<!-- end #sidebar -->
+	<div style="clear: both;">&nbsp;</div>
+</div>
+<!-- end #page -->
+
+<div id="footer">
+	<p>Copyright (c) 2008 Sitename.com. All rights reserved. Design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a>.</p>
+</div>
+<!-- end #footer -->
+
+</body>
+</html>
