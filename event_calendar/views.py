@@ -15,6 +15,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template import Context
 from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
+from django.core.exceptions import ObjectDoesNotExist
 
 from models import Events, RegEvent, ResultEvent
 from forms import EventsForm, RegEventsForm, PayRegEventsForm
@@ -29,6 +30,7 @@ from portal.mysql_portal import get_month_event, get_month_events, get_day_event
 
 from django.core.mail import send_mail
 from datetime import date
+from django.core.context_processors import request
 
 
 def admin_sendmail(request, id):
@@ -788,7 +790,8 @@ def rider_start_status(request):
 
 def event_result(request, id):
     evt = Events.objects.get(pk=id)
-    revent = RegEvent.objects.filter(event = id, start_status = True).order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("kp1") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    #revent = RegEvent.objects.filter(event = id, start_status = True).values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list    
     event_date = evt.date
     #curyear = datetime.datetime.now().year
     cat0_b = event_date.replace(year = event_date.year-12)
@@ -810,14 +813,12 @@ def event_result(request, id):
     revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e, start_status = True).order_by("date") #all rider list
     cat5_b = event_date.replace(year = event_date.year-60)
     revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b, start_status = True).order_by("date") #all rider list
-    
  #   photo1 = Photo.objects.random()
  #   photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
     vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}    
 #    calendar = embeded_calendar()
 #    vars.update(calendar)        
-
     evnt = {'event': evt}
     vars.update(evnt)
     try:
@@ -835,18 +836,68 @@ def result_add(request):
             POST = request.POST  
             if POST.has_key('rid'):
                 rid = request.POST['rid']
-                rider = ResultEvent.objects.get(reg_event = rid)
-                if rider == None:
-                    rev = RegEvent.objects.get(pk = rid)
+                val = request.POST['value']
+                point = request.POST['point']
+                rev = RegEvent.objects.get(pk = rid)
+                try:
+                    rider = ResultEvent.objects.get(reg_event__pk = rid)
+                    format = '%Y-%m-%d %H:%M:%S'
+                    time_point = "2017-05-28 %s" % (val)
+                    #rider.kp1 = datetime.strptime(time_kp, format)
+                    if point == 'kp1':
+                        rider.kp1 = time_point#datetime.datetime.now()
+                    if point == 'finish':
+                        rider.finish = time_point
+                    rider.save()
+                    return HttpResponse("Час додано" + val, content_type='text/plain')
+                except ObjectDoesNotExist:
+                #rider = None
+                #if rider == None:
                     r = ResultEvent()
                     r.reg_event = rev
-                    r.kp1 = datetime.datetime.now()
+                    if point == 'kp1':
+                        r.kp1 = datetime.datetime.now()
+                    if point == 'finish':
+                        rider.finish = datetime.datetime.now()                      
                     r.save()
 #                rider.start_status = not rider.start_status
 #                rider.save()
 #                json = dict(status = rider.start_status)
 #                return HttpResponse(simplejson.dumps(json), content_type='application/json')
-                    HttpResponse("Час додано", content_type='text/plain')    
+                    return HttpResponse("Час додано" + val, content_type='text/plain')
+                #else:
+                #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
+
+def event_start(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('event'):
+                val = request.POST['value']
+                try:
+                    #riders = ResultEvent.objects.filter(reg_event__status = True, reg_event__start_status = True)
+                    riders = ResultEvent.objects.all()
+                    format = '%Y-%m-%d %H:%M:%S'
+                    time_point = "2017-05-28 %s" % (val)
+                    if val == '' or val == None:
+                       time_point = datetime.datetime.now()
+                    riders.update(start=time_point)
+                    riders = RegEvent.objects.filter(status = True, start_status = True, resultevent__start = None)
+                    for rider in riders: 
+                        r = ResultEvent(reg_event=rider, start=time_point)
+                        r.save()
+                    
+                    return HttpResponse("Час додано" + val, content_type='text/plain')
+                
+                except ObjectDoesNotExist:
+                    return HttpResponse("Час не додано", content_type='text/plain')
+                
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+    
+    
     
     

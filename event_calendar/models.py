@@ -253,6 +253,14 @@ class ResultEvent (models.Model):
     kp3 = models.DateTimeField(blank = True, null = True)
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
+
+    def get_time_diff(self):
+        if self.start == None:
+            return "DNS"
+        if self.finish == None:
+            return "DNF"
+        res = self.finish - self.start
+        return str(res)   # Assuming dt2 is the more recent time
  
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:
