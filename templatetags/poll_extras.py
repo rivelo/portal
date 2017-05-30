@@ -28,11 +28,18 @@ def season(value):
     str = value + "logo_" + name[p] + ".gif" 
     return str
 
-
 @register.filter(name='rider_statistic')
 def rider_statistic(event, sex):
 #    ev = Events()
     ev = event
+    count = ev.riders_count(sex)
+    a = str(count)
+    return a
+
+@register.filter(name='res_statistic')
+def res_statistic(event_res, sex):
+#    ev = Events()
+    ev = event_res
     count = ev.riders_count(sex)
     a = str(count)
     return a
