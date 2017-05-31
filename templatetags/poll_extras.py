@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 from django import template
 import MySQLdb
-from portal.event_calendar.models import Events
+from portal.event_calendar.models import Events, ResultEvent
 
 import datetime
 
@@ -40,10 +40,9 @@ def rider_statistic(event, sex):
 def res_statistic(event_res, sex):
 #    ev = Events()
     ev = event_res
-    count = ev.riders_count(sex)
-    a = str(count)
+    #count = ev.r_count(sex)
+    a = str("count")
     return a
-
 
 @register.assignment_tag #(name='minustwo')
 def get_current_event():

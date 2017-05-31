@@ -191,13 +191,16 @@ $(document).ready(function(){
     } );
     
 	rtable.column(7).visible(false);
-//	rtable.column(-4).visible(false);
 	rtable.column(-1).visible(false);
 	rtable.column(-2).visible(false);
-//	rtable.column(-3).visible(false);
-//	rtable.column(-5).visible(false);
-//	rtable.column(-6).visible(false);
-//	rtable.column(-7).visible(false);
+	
+{% if user.is_authenticated %}
+	rtable.column(-4).visible(false);
+	rtable.column(-3).visible(false);
+	rtable.column(-5).visible(false);
+	rtable.column(-6).visible(false);
+	rtable.column(-7).visible(false);
+{% endif %}
 
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">стать</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');
@@ -599,14 +602,14 @@ style="background-color: white;"
   </ul>
   <div id="tabs-1">
     <p>
-    жінок - {{ event|res_statistic:"0" }}
+    жінок - {{ list|res_statistic:"0" }}
 	<br>
 	чоловіків - {{ event|res_statistic:"1" }}
     </p>
   </div>
   <div id="tabs-2">
 	<p>
-	{% for city in event.riders_city %}
+	{% for city in list.riders_city %}
 		{{city.city}} - {{city.num_city}}<br>
 	{% endfor %}
 	</p>
@@ -649,29 +652,29 @@ style="background-color: white;"
 </thead>
 <tbody>
 {% for rider in cat0 %}
-{% if rider.status == True and rider.pay > 0 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay > 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
 <tr style="color: black; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay == 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.fname}} {{rider.lname}}</td>
-<td>{{rider.nickname}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.reg_event.sex = 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
 {% endif %}
 </td>
-<td>{{rider.city}}</td>
-<td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.resultevent.get_time_diff }}</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -694,18 +697,18 @@ style="background-color: white;"
 </thead>
 <tbody>
 {% for rider in cat1 %}
-{% if rider.status == True and rider.pay > 0 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay > 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
 <tr style="color: black; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay == 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.fname}} {{rider.lname}}</td>
-<td>{{rider.nickname}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
 <td align="center">
 {% if rider.sex = 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
@@ -713,10 +716,10 @@ style="background-color: white;"
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
 {% endif %}
 </td>
-<td>{{rider.city}}</td>
-<td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
-<td align="center">{{rider.resultevent }}</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -735,32 +738,34 @@ style="background-color: white;"
 <th>Місто</th>
 <th>Команда</th>
 <th>Рік народження</th>
+<th>Загальний час</th>
 </tr>
 </thead>
 <tbody>
 {% for rider in cat2 %}
-{% if rider.status == True and rider.pay > 0 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay > 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
 <tr style="color: black; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay == 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.fname}} {{rider.lname}}</td>
-<td>{{rider.nickname}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.reg_event.sex = 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
 {% endif %}
 </td>
-<td>{{rider.city}}</td>
-<td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -778,32 +783,34 @@ style="background-color: white;"
 <th>Місто</th>
 <th>Команда</th>
 <th>Рік народження</th>
+<th>Загальний час</th>
 </tr>
 </thead>
 <tbody>
 {% for rider in cat3 %}
-{% if rider.status == True and rider.pay > 0 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay > 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
 <tr style="color: black; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay == 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.fname}} {{rider.lname}}</td>
-<td>{{rider.nickname}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.reg_event.sex = 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
 {% endif %}
 </td>
-<td>{{rider.city}}</td>
-<td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -821,32 +828,34 @@ style="background-color: white;"
 <th>Місто</th>
 <th>Команда</th>
 <th>Рік народження</th>
+<th>Загальний час</th>
 </tr>
 </thead>
 <tbody>
 {% for rider in cat4 %}
-{% if rider.status == True and rider.pay > 0 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay > 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
 <tr style="color: black; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay == 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.fname}} {{rider.lname}}</td>
-<td>{{rider.nickname}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.reg_event.sex = 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
 {% endif %}
 </td>
-<td>{{rider.city}}</td>
-<td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
 </tr>
 {% endfor %}
 </tbody>  
@@ -864,32 +873,34 @@ style="background-color: white;"
 <th>Місто</th>
 <th>Команда</th>
 <th>Рік народження</th>
+<th>Загальний час</th>
 </tr>
 </thead>
 <tbody>
 {% for rider in cat5 %}
-{% if rider.status == True and rider.pay > 0 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay > 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
 <tr style="color: black; font-weight:bold;">
 {% endif %}
-{% if rider.status == False and rider.pay == 0 %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
 <td>{{forloop.counter}}</td>
-<td>{{rider.fname}} {{rider.lname}}</td>
-<td>{{rider.nickname}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.reg_event.sex = 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
 {% endif %}
 </td>
-<td>{{rider.city}}</td>
-<td>{{rider.club}}</td>
-<td align="center">{{rider.birthday|date:"Y"}}</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
 
 </tr>
 {% endfor %}

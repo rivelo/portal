@@ -262,13 +262,17 @@ class ResultEvent (models.Model):
         res = self.finish - self.start
         return str(res)   # Assuming dt2 is the more recent time
  
-    def riders_count(self, sex=None):
+    def r_count(self, sex=None):
         if sex != None:
             r = self.reg_event_set.filter(reg_event__sex = sex)
         else:
             r = self.reg_event_set.all()
         count = r.count()
         return count
+    
+    def riders_city(self):
+        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
+        return r
  
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:

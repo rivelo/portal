@@ -790,29 +790,27 @@ def rider_start_status(request):
 
 def event_result(request, id):
     evt = Events.objects.get(pk=id)
-    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
     #revent = RegEvent.objects.filter(event = id, start_status = True).values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list    
     event_date = evt.date
     #curyear = datetime.datetime.now().year
     cat0_b = event_date.replace(year = event_date.year-12)
     cat0_e = event_date.replace(year = event_date.year-18)
-    revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date, start_status = True).order_by("date") #all rider list
+    revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b, reg_event__birthday__gte = cat0_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
     cat1_b = event_date.replace(year = event_date.year-18)
     cat1_e = event_date.replace(year = event_date.year-30)
-    #revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(1999, 1, 5), birthday__gte = datetime.date(1987, 1, 5)).order_by("date") #all rider list
-    revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date, start_status = True).order_by("date") #all rider list
-    #RegEvent.objects.filter(event = id, birthday__range=[cat1_e, cat1_b])
+    revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b, reg_event__birthday__gte = cat1_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
     cat2_b = event_date.replace(year = event_date.year-30)
     cat2_e = event_date.replace(year = event_date.year-40)
-    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e, start_status = True).order_by("date") #all rider list
+    revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b, reg_event__birthday__gte = cat2_e, reg_event__start_status = True).order_by("-finish") #all rider list
     cat3_b = event_date.replace(year = event_date.year-40)
     cat3_e = event_date.replace(year = event_date.year-50)
-    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e, start_status = True).order_by("date") #all rider list
+    revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b, reg_event__birthday__gte = cat3_e, reg_event__start_status = True).order_by("-finish") #all rider list
     cat4_b = event_date.replace(year = event_date.year-50)
     cat4_e = event_date.replace(year = event_date.year-60)
-    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e, start_status = True).order_by("date") #all rider list
+    revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b, reg_event__birthday__gte = cat4_e, reg_event__start_status = True).order_by("-finish") #all rider list
     cat5_b = event_date.replace(year = event_date.year-60)
-    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b, start_status = True).order_by("date") #all rider list
+    revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b, reg_event__start_status = True).order_by("-finish") #all rider list
  #   photo1 = Photo.objects.random()
  #   photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
