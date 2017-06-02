@@ -161,7 +161,7 @@ INSTALLED_APPS = (
     'portal.event_calendar',
     'portal.funnies',
 #    'portal.tools',
-#    'portal.accounting',
+    'portal.accounting',
     
     'tinymce',	
 )

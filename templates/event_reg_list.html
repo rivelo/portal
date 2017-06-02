@@ -173,6 +173,7 @@ $(document).ready(function(){
 	rtable.column(-5).visible(false);
 	rtable.column(-6).visible(false);
 	rtable.column(-7).visible(false);
+	rtable.column(-8).visible(false);
 
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Дія</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
@@ -180,6 +181,7 @@ $(document).ready(function(){
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Телефон</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Email</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Примітки</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Старт</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Статус</a></div>');
@@ -336,21 +338,25 @@ $("#table_cat5_wrapper").hide();
 });
 
 
-
 </script>
 
 {% load poll_extras %}
 
 {% block content %}
 
-{% if user.is_authenticated %}
-{% endif %}
-
 <br>
 <div style="width:560px; float:left;">
 <h2 class="title"> Список зареєстрованих учасників <br>{{event.name}} </h2>
 <h3 style="color: grey; ">До заходу залишилось {{event.days_left}} днів </h3>
+
+{% if event.days_left > 0 %}
 <div style="margin: 0px 0px 20px 0px;"><a class="register" href="/event/{{event.pk}}/registration/" style="font-size: 16; color: red;">Зареєструватись >>></a> *Реєстрація на сьогодні вартує {{event.cur_reg_sum}} гривень</div>
+{% else %}
+{% if user.is_authenticated %}
+<div style="margin: 0px 0px 20px 0px;"><a class="register" href="/event/{{event.pk}}/registration/" style="font-size: 16; color: red;">Зареєструватись >>></a> *Реєстрація на сьогодні вартує {{event.cur_reg_sum}} гривень</div>
+{% endif %}
+{% endif %}
+
 </div>
 <div style="float:right;">
 	{% if event.icon %}
@@ -378,6 +384,7 @@ $("#table_cat5_wrapper").hide();
 <th>Телефон</th>
 <th>Примітки</th>
 <th>Відмітка</th>
+<th>email</th>
 {% endif %}
 </tr>
 </thead>
@@ -462,6 +469,9 @@ style="background-color: white;"
 	</td>
 	<td class="start_status" rider_id="{{rider.pk}}">
 	{{rider.start_status}}
+	</td>
+	<td class="start_status" rider_id="{{rider.pk}}">
+	{{rider.email}}
 	</td>
 
 	

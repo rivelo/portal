@@ -1,0 +1,499 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
+<script src="/media/jquery.dataTables.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+
+<style>
+/* Style The Dropdown Button */
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+/*tfoot {
+    display: table-header-group;
+}
+*/
+tfoot input {
+        width: 100%;
+        padding: 3px;
+        box-sizing: border-box;
+    }
+    
+#event_stat:hover {
+background-color: yellow;
+cursor: pointer;
+}
+
+.cat_showhide:hover {
+background-color: yellow;
+cursor: pointer;
+}
+
+
+.hover-content {
+    display:none;
+}
+ 
+.pay_type:hover .hover-content {
+    display:block;
+}
+
+.category:hover .hover-content {
+    display:block;
+} 
+
+</style>
+
+
+<script>
+$(document).ready(function(){
+	$("#dialog_start").hide();	
+
+	$( "#tabs" ).tabs();
+	$( "#tabs" ).hide()
+
+	$( "#event_stat" ).click(function() {
+//  		$( "#tabs" ).show()
+  		if ($("#event_stat").html() == "Cтатистика") {
+    		$("#event_stat").html("Приховати статистику");
+    	}
+    	else {
+    		$("#event_stat").html("Cтатистика");
+    	}
+    	$( "#tabs" ).toggle()
+	});
+
+	$( "#event_cat0" ).click(function() {
+  		if ($("#event_cat0").html() == "Категорія до 18 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat0").html("Категорія до 18 років <<Приховати>>");	
+    	}
+    	else {
+    		$("#event_cat0").html("Категорія до 18 років <<Показати>>");
+    	}
+    	$("#table_cat0_wrapper").toggle();
+	});
+	
+	$( "#event_cat1" ).click(function() {
+  		if ($("#event_cat1").html() == "Категорія 18-29 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat1").html("Категорія 18-29 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat1").html("Категорія 18-29 років <<Показати>>");
+    	}
+    	$("#table_cat1_wrapper").toggle();
+	});
+
+	$( "#event_cat2" ).click(function() {
+  		if ($("#event_cat2").html() == "Категорія 30-39 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat2").html("Категорія 30-39 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat2").html("Категорія 30-39 років <<Показати>>");
+    	}
+    	$("#table_cat2_wrapper").toggle();
+	});
+
+	$( "#event_cat3" ).click(function() {
+  		if ($("#event_cat3").html() == "Категорія 40-49 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat3").html("Категорія 40-49 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat3").html("Категорія 40-49 років <<Показати>>");
+    	}
+    	$("#table_cat3_wrapper").toggle();
+	});
+
+	$( "#event_cat4" ).click(function() {
+  		if ($("#event_cat4").html() == "Категорія 50-59 років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat4").html("Категорія 50-59 років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat4").html("Категорія 50-59 років <<Показати>>");
+    	}
+    	$("#table_cat4_wrapper").toggle();
+	});
+
+	$( "#event_cat5" ).click(function() {
+  		if ($("#event_cat5").html() == "Категорія 60+ років &lt;&lt;Показати&gt;&gt;") {
+    		$("#event_cat5").html("Категорія 60+ років <<Приховати>>");
+    	}
+    	else {
+    		$("#event_cat5").html("Категорія 60+ років <<Показати>>");
+    	}
+    	$("#table_cat5_wrapper").toggle();
+	});
+
+	
+	$('#rtable tfoot th').each( function () {
+        var title = $(this).text();
+        $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+    } );
+	
+	// all rider list
+    var rtable = $('#rtable').DataTable({
+    	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+    });
+	
+    rtable.columns().every( function () {
+        var that = this;
+ 
+        $( 'input', this.footer() ).on( 'keyup change', function () {
+            if ( that.search() !== this.value ) {
+                that
+                    .search( this.value )
+                    .draw();
+            }
+        } );
+    } );
+    
+	
+{% if user.is_authenticated %}
+	rtable.column(-1).visible(false);
+	rtable.column(-2).visible(false);
+	rtable.column(-4).visible(false);
+
+{% endif %}
+
+{% if user.is_authenticated %}
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Нова ціна</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Знижка</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Продано</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-1">Примітки</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">Опис</a></div>');
+{% endif %}	
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
+
+    
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+         // Get the column API object
+        var column = rtable.column( $(this).attr('data-column') );
+         // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
+    
+ $("body").on('click', '#sex_rider', function() {
+	var status = $('#sex_rider').attr('val')
+	if ( status == 2) {
+		$('#sex_rider').attr('val', 1);
+		$('#rwom').hide()
+		$('#rman').show();
+		$.fn.dataTableExt.afnFiltering.push(
+        function(oSettings, aData, iDataIndex) {
+           //Only shows columns with a COUNT > 0
+           var engineColumn = parseInt(aData[12]);
+           if (engineColumn == 1)
+               return true;
+           return false;
+        });
+ 		rtable.draw();
+	}
+	if ( status == 1) {
+		$('#sex_rider').attr('val', 0);
+		$('#rwom').show();
+		$('#rman').hide()
+		$.fn.dataTableExt.afnFiltering.pop();		
+		$.fn.dataTableExt.afnFiltering.push(
+        function(oSettings, aData, iDataIndex) {
+           var engineColumn = parseInt(aData[12]);
+           if (engineColumn == 0)
+               return true;
+           return false;
+        });
+ 		rtable.draw();
+	}
+	if ( status == 0) {
+		$('#sex_rider').attr('val', 2);
+		$('#rwom').show();
+		$('#rman').show();
+		$.fn.dataTableExt.afnFiltering.pop();				
+		$.fn.dataTableExt.afnFiltering.pop();
+ 		rtable.draw();
+	}
+	
+ });    
+
+ 	$('#table_cat0').DataTable({
+ 	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+ 	});
+
+    $('#table_cat1').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat2').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat3').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat4').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat5').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+ 
+        
+$("body").on("click",".finish_add",function(e){ 	
+    $(this).editable('/rider/result/add/', {
+    	id: 'point', 
+    	loadtype: 'POST',
+         submit : 'OK',
+         tooltip   : 'Click to add time',
+         style   : 'inherit',
+         event : "click",
+         submitdata : function() {
+          	return {rid : $(this).attr('rid'), point: 'finish'};
+         },
+        }).trigger("focus"); 
+});   
+    
+ 
+$("body").on("click",".kp1_add",function(e){ 	
+	$(this).editable('/rider/result/add/', { 
+	 id: 'point',
+	 
+	 loadtype: 'POST',
+     submit : 'OK',
+     tooltip   : 'Click to add time',
+     style   : 'inherit',
+     event : "click",
+     submitdata : function() {
+      	return {rid : $(this).attr('rid'), point: 'kp1'};
+    	 },
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click",".start_status",function(e){ 	
+	$(this).editable('/rider/startstatus/', {
+     data   : "{'True':'True','False':'False'}",
+     loadtype: 'POST',
+     type   : 'select',
+     submit : 'OK',
+     tooltip   : 'Click to edit...',
+     style   : 'inherit',
+     event : "dblclick",
+     submitdata : function() {
+      	return {rid : $(this).attr('rider_id')};
+    	 },
+     callback : function(value, settings) {
+         var obj = jQuery.parseJSON(value);
+         console.log(obj);
+         str = '[' + obj['status'] + "]";
+         $(this).html(str);
+     }
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click", ".number_edit", function(e){
+    $(this).editable('/event/{{event.id}}/registration/edit/number/', {
+ 		id   : 'rid',
+        name : 'number',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+
+
+});
+
+
+
+</script>
+
+{% load poll_extras %}
+
+{% block content %}
+
+
+<!-- dialog for client message -->
+<div id="dialog_start" title="Старт заходу">
+<input type="text" id="dsedit" name="mytext[]" cols="40"> </input>
+</div>	
+
+<br>
+<div style="width:560px; float:left;">
+<br>
+</div>
+{% if user.is_authenticated %}
+<div style="float:right;" >
+<img id="img_start" src="/media/images/GObutton.png" width="100px"></img>
+</div>
+{% endif %}
+
+<div style="float:right;">
+	{% if event.icon %}
+	<img src="/media/{{event.icon}}" />
+	{% endif %} 
+</div>
+
+<table id="rtable" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+{% if user.is_authenticated %}
+<th title="номер по порядку">№</th>
+<th>Товар</th>
+<th>Кількість</th>
+<th>Ціна</th>
+<th>Знижка</th>
+<th>ціна зі знижкою</th>
+<th>Продано</th>
+<th>Дія</th>
+<th>Примітки</th>
+{% endif %}
+</tr>
+</thead>
+
+<tfoot>
+<tr>
+{% if user.is_authenticated %}
+<th title="номер по порядку">№</th>
+<th>Товар</th>
+<th>Кількість</th>
+<th>Ціна</th>
+<th>Знижка</th>
+<th>ціна зі знижкою</th>
+<th>Продано</th>
+<th>Дія</th>
+<th>Примітки</th>
+{% endif %}
+</tfoot>
+
+<tbody>
+{% for rider in list %}
+
+{% if user.is_authenticated %}  
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+{% endif %}
+
+<td>
+{{forloop.counter}}
+</td>
+<td>{{rider.catalog}}</td>
+<td>{{rider.count}}</td>
+<td>{{rider.price}} грн.</td>
+<td>{{rider.price}}</td>
+<td align="center">{{rider.count}}</td>
+<td align="center">{{rider.count}}</td>
+<td align="center" rid="{{rider.reg_event.id}}"> {{rider.catalog.description}} </td>
+<td align="center">{{rider.description}}</td>
+
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+<h3 style="font-size:16px; font-weight:bold; color: black;" title="Показати статистику" id="event_stat">Cтатистика</h3>
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Стать</a></li>
+    <li><a href="#tabs-2">Місто</a></li>
+    <li><a href="#tabs-3">Велосипед</a></li>
+    <li><a href="#tabs-4">Інше</a></li>
+  </ul>
+  <div id="tabs-1">
+    <p>
+    жінок - {{ list|res_statistic:"0" }}
+	<br>
+	чоловіків - {{ event|res_statistic:"1" }}
+    </p>
+  </div>
+  <div id="tabs-2">
+	<p>
+	{% for city in list.riders_city %}
+		{{city.city}} - {{city.num_city}}<br>
+	{% endfor %}
+	</p>
+  </div>
+  <div id="tabs-3">
+    <p>
+	{% for bike in event.riders_bike %}
+		{{bike.bike_type__name}} - {{bike.num_bike}}<br>
+	{% endfor %}
+    </p>
+  </div>
+  <div id="tabs-4">
+    <p>
+    Оплачених - {{ event.riders_pay_count }}
+	<br>    
+    {% if user.is_authenticated %}
+    Сума - {{ event.riders_pay_sum }}
+    {% endif %}
+    </p>
+  </div>
+  
+</div>
+
+
+
+{% endblock %}
+
+	

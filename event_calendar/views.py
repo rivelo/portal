@@ -23,6 +23,8 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 
+from portal.accounting.models import ClientInvoice, Client
+
 import simplejson
 import googlemaps
 
@@ -429,6 +431,9 @@ def grecaptcha_verify(request):
 def add_reg(request, id):
     a = Events.objects.get(pk=id)
     r = RegEvent(event = a)
+    if a.days_left() <= 0:
+        return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції " + str(a.days_left()), content_type="text/plain")
+        
 #    r = RegEvent()
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -719,7 +724,7 @@ def register_to_all(request, hash):
     photo2 = Photo.objects.random()
     try:
         revent = RegEvent.objects.get(reg_code = hash)
-        event_list = Events.objects.filter(reg_status=True)    
+        event_list = Events.objects.filter(reg_status=True)
     except RegEvent.DoesNotExist:
         revent = None
         vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним! У разі питань зверніться до адміністрації за адресою rivno100@gmail.com'}
@@ -896,6 +901,21 @@ def event_start(request):
                 
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
-    
+
+def show_client(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    client = Client.objects.get(pk = 2010)
+    c_invoice = ClientInvoice.objects.filter(client__pk = 2010)
+    vars = {'weblink': 'shop_client.html', 'sel_menu': 'calendar', 'list': c_invoice, }    
+    evnt = {'client': client}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+#    return HttpResponse("Клієнт << " + cl.name, content_type='text/plain')
     
     
