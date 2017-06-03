@@ -945,7 +945,7 @@ def client_sale(request):
 #                    return HttpResponse("Час додано" + val, content_type='text/plain')
 #                except ObjectDoesNotExist:
 
-                return HttpResponse("Час додано", content_type='text/plain')
+                return HttpResponse("Продано "+ val +" шт.", content_type='text/plain')
                 #else:
                 #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        

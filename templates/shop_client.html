@@ -184,6 +184,7 @@ $("body").on("click", ".sale", function(e) {
         data: {cid : $(this).attr('cid'), value: $("#dsedit").val() },
         success:function(data){
         	$(this).css("opacity", 1);
+        	$("#cat_price").append('<h3>' + data +'</h3>');
         	console.log("Товар" +data+ " продано " );
         },
         error:function(data){
