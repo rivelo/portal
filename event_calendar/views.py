@@ -23,7 +23,7 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 
-from portal.accounting.models import ClientInvoice, Client
+from portal.accounting.models import ClientInvoice, Client, Catalog
 
 import simplejson
 import googlemaps
@@ -33,6 +33,7 @@ from portal.mysql_portal import get_month_event, get_month_events, get_day_event
 from django.core.mail import send_mail
 from datetime import date
 from django.core.context_processors import request
+from django.utils.translation.trans_real import catalog
 
 
 def admin_sendmail(request, id):
@@ -917,5 +918,35 @@ def show_client(request):
     return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 #    return HttpResponse("Клієнт << " + cl.name, content_type='text/plain')
+
     
+def client_sale(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('cid'):
+                cid = request.POST['cid']
+                val = request.POST['value']
+                cat = Catalog.objects.get(pk = cid)
+                client = Client.objects.get(pk = 2010)
+                ci = ClientInvoice()
+                ci.client = client
+                ci.catalog = cat
+                ci.count = int(val)
+                ci.price = cat.price
+                ci.sum = float(cat.price) * float(val)
+                ci.pay = float(cat.price) * float(val)
+                ci.currency_id = 3
+                ci.date = datetime.datetime.now()
+                ci.save()
+#                try:
+#                    return HttpResponse("Час додано" + val, content_type='text/plain')
+#                except ObjectDoesNotExist:
+
+                return HttpResponse("Час додано", content_type='text/plain')
+                #else:
+                #    r.reg_event = rev    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
