@@ -173,11 +173,15 @@ $(document).ready(function(){
 	rtable.column(-5).visible(false);
 	rtable.column(-6).visible(false);
 	rtable.column(-7).visible(false);
-	rtable.column(-8).visible(false);
+//	rtable.column(-8).visible(false);
 
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Дія</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');	
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Рік</a></div>');
 {% if user.is_authenticated %}
+	rtable.column(-8).visible(false);
+	rtable.column(5).visible(false);
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Телефон</a></div>');
@@ -187,6 +191,7 @@ $(document).ready(function(){
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Статус</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Оплата</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Дія</a></div>');	
 {% endif %}	
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
 
@@ -273,7 +278,6 @@ $("body").on("click",".reg_status",function(e){
      submit : 'OK',
      tooltip   : 'Click to edit...',
      style   : 'inherit',
-     event : "dblclick",
      submitdata : function() {
       	return {rid : $(this).attr('rider_id')};
     	 },
@@ -295,7 +299,7 @@ $("body").on("click",".start_status",function(e){
      submit : 'OK',
      tooltip   : 'Click to edit...',
      style   : 'inherit',
-     event : "dblclick",
+//     event : "dblclick",
      submitdata : function() {
       	return {rid : $(this).attr('rider_id')};
     	 },
@@ -313,7 +317,7 @@ $("body").on("click", ".number_edit", function(e){
     $(this).editable('/event/{{event.id}}/registration/edit/number/', {
  		id   : 'rid',
         name : 'number',
-        event : 'dblclick',
+//        event : 'dblclick',
         submitdata : function() {
      	 	return {rid : $(this).attr('rid'),
      	 			};
@@ -377,13 +381,13 @@ $("#table_cat5_wrapper").hide();
 <th>Велосипед</th>
 <th title="Стартовий номер">#</th>
 <th>Стать</th>
-<th>Статус</th>
+<th>Статус оплати</th>
 {% if user.is_authenticated %}
 <th>Оплата</th>
 <th>Дія</th>
 <th>Телефон</th>
 <th>Примітки</th>
-<th>Відмітка</th>
+<th>Старт</th>
 <th>email</th>
 {% endif %}
 </tr>
@@ -445,7 +449,7 @@ style="background-color: white;"
 <td align="center">{{rider.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.status}}</td>
-	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.pay_type}}<div class="hover-content">{{rider.pay_date}}</div></td>
+	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.pay_type}}<div class="hover-content">{{rider.pay_date|date:"d:m:Y H:i"}}</div></td>
 {% else %}
 	<td align="center">{{rider.status}}</td>
 {% endif %}
@@ -458,6 +462,7 @@ style="background-color: white;"
   <div class="dropdown-content">
 	<a href="{% url 'rider-pay-submit-admin' rider.pk %}">Внести оплату</a>
 	<a href="{% url 'rider-reminder-mail' rider.pk %}">Відправити лист</a>
+	<a href="{% url 'rider-invite-mail' rider.pk %}">Лист запрошення</a>
   </div>
 </div>
 	</td>

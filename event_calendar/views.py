@@ -57,7 +57,39 @@ def admin_sendmail(request, id):
     Гарних покатеньок і до зустрічі на старті.
     """ % (dleft, csum, revent.pk, revent.pk)
     
-    res = send_mail('Нагадування про оплату', message, revent.email, ['rivelo@ymail.com'], fail_silently=False)
+    #res = send_mail('Нагадування про оплату', message, revent.email, ['rivelo@ymail.com'], fail_silently=False)
+    res = send_mail('Нагадування про оплату', message, revent.email, [revent.email], fail_silently=False)
+        
+    if res == 1:
+        return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response("index.html", {'success_data': "Щось пішло не так. Пошта " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def admin_invite_mail(request, id):
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    calendar = embeded_calendar()
+    if auth_group(request.user, 'admin')==False:
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'У вас не вистачає повноважень!'}
+        return render(request, 'index.html', vars)
+    revent = RegEvent.objects.get(pk = id)
+    csum = revent.event.cur_reg_sum()
+    dleft = revent.event.days_left()
+    dleft = 4
+    
+    message = """Запрошуємо Вас на наш грунтовий марафон Медовий трейл який відбудеться в неділю 16 липня. \n
+    Новий грунтовий марафон для початківців. які мріють проїхати свої перші 84 км грунтами та для спортсменів-любителів, що хочуть показати на що вони здатні на цій дистанції!
+    Дистанція марафону пролягає лісами, полями, лугами поліського краю. Під час марафону ви побачите торфові ставки, відомий тунель кохання в Клевані, Вишневу гору з якої можна споглядати чудовий краєвид на місто.
+    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/5/show/ \n
+    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/5/registration/list/ \n
+    Нагадуємо що до заходу залишилось %s дні. Не забудьте зареєструватись завчасно. \n  
+    Посилання на реєстрацію http://www.rivelo.com.ua/event/5/registration/ \n
+    На даний момент реєстрація коштує 200 гривень. Для учасників марафону 'Рівно100' оплата становить 150 грн до 15 липня включно.\n    
+    Гарних покатеньок і до зустрічі на старті.
+    """ % (dleft)
+    
+    #res = send_mail('Нагадування про оплату', message, revent.email, ['rivelo@ymail.com'], fail_silently=False)
+    res = send_mail('запрошуємо на веломарафон "Медовий трейл"', message, revent.email, [revent.email], fail_silently=False)
         
     if res == 1:
         return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -557,31 +589,52 @@ def edit_reg(request, id, hash):
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
-def event_reg_list(request, id):
+def event_reg_list(request, id, start=False):
     evt = Events.objects.get(pk=id)
-    revent = RegEvent.objects.filter(event = id).order_by("date") #all rider list
+    revent = None
+    if start == True:
+        revent = RegEvent.objects.filter(event = id, start_status = True).order_by("date") #all rider list
+    else:
+        revent = RegEvent.objects.filter(event = id).order_by("date") #all rider list
     event_date = evt.date
     #curyear = datetime.datetime.now().year
     cat0_b = event_date.replace(year = event_date.year-12)
     cat0_e = event_date.replace(year = event_date.year-18)
-    revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date).order_by("date") #all rider list
+    if start == True:
+        revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date, start_status = True).order_by("date") #all rider list
+    else:
+        revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date).order_by("date") #all rider list
     cat1_b = event_date.replace(year = event_date.year-18)
     cat1_e = event_date.replace(year = event_date.year-30)
     #revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(1999, 1, 5), birthday__gte = datetime.date(1987, 1, 5)).order_by("date") #all rider list
-    revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date).order_by("date") #all rider list
+    if start == True:
+        revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date, start_status = True).order_by("date") #all rider list
+    else:
+        revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date).order_by("date") #all rider list
     #RegEvent.objects.filter(event = id, birthday__range=[cat1_e, cat1_b])
     cat2_b = event_date.replace(year = event_date.year-30)
     cat2_e = event_date.replace(year = event_date.year-40)
-    revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e).order_by("date") #all rider list
+    if start == True:    
+        revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e, start_status = True).order_by("date") #all rider list
+    else:
+        revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e).order_by("date") #all rider list
     cat3_b = event_date.replace(year = event_date.year-40)
     cat3_e = event_date.replace(year = event_date.year-50)
-    revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e).order_by("date") #all rider list
+    if start == True: 
+        revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e, start_status = True).order_by("date") #all rider list
+    else:
+        revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e).order_by("date") #all rider list
     cat4_b = event_date.replace(year = event_date.year-50)
     cat4_e = event_date.replace(year = event_date.year-60)
-    revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e).order_by("date") #all rider list
+    if start == True: 
+        revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e, start_status = True).order_by("date") #all rider list
+    else:
+        revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e).order_by("date") #all rider list
     cat5_b = event_date.replace(year = event_date.year-60)
-    revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
-    
+    if start == True:
+        revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b, start_status = True).order_by("date") #all rider list
+    else:
+        revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
@@ -796,7 +849,8 @@ def rider_start_status(request):
 
 def event_result(request, id):
     evt = Events.objects.get(pk=id)
-    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
     #revent = RegEvent.objects.filter(event = id, start_status = True).values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list    
     event_date = evt.date
     #curyear = datetime.datetime.now().year
@@ -846,10 +900,15 @@ def result_add(request):
                 try:
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
                     format = '%Y-%m-%d %H:%M:%S'
-                    time_point = "2017-05-28 %s" % (val)
+                    tp = datetime.datetime.now().strftime("%Y-%m-%d")
+                    if val == '':
+                        val = datetime.datetime.now().strftime("%H:%M:%S")
+                    time_point = "%s %s" % (tp, val)
                     #rider.kp1 = datetime.strptime(time_kp, format)
                     if point == 'kp1':
                         rider.kp1 = time_point#datetime.datetime.now()
+                    if point == 'kp2':
+                        rider.kp2 = time_point#datetime.datetime.now()
                     if point == 'finish':
                         rider.finish = time_point
                     rider.save()
@@ -860,6 +919,8 @@ def result_add(request):
                     r = ResultEvent()
                     r.reg_event = rev
                     if point == 'kp1':
+                        r.kp1 = datetime.datetime.now()
+                    if point == 'kp2':
                         r.kp1 = datetime.datetime.now()
                     if point == 'finish':
                         rider.finish = datetime.datetime.now()                      
@@ -883,17 +944,39 @@ def event_start(request):
             if POST.has_key('event'):
                 val = request.POST['value']
                 try:
-                    #riders = ResultEvent.objects.filter(reg_event__status = True, reg_event__start_status = True)
-                    riders = ResultEvent.objects.all()
+                    ev = request.POST['event']
+                    evt = Events.objects.get(pk = ev)
+                    riders = ResultEvent.objects.filter(reg_event__status = True, reg_event__start_status = True, reg_event__event=evt)
+                    #riders = ResultEvent.objects.all()
                     format = '%Y-%m-%d %H:%M:%S'
-                    time_point = "2017-05-28 %s" % (val)
+                    tp = datetime.datetime.now().strftime("%Y-%m-%d")                    
+                    #time_point = "2017-05-28 %s" % (val)
+                    time_point = "%s %s" % (tp, val)
                     if val == '' or val == None:
                        time_point = datetime.datetime.now()
-                    riders.update(start=time_point)
-                    riders = RegEvent.objects.filter(status = True, start_status = True, resultevent__start = None)
-                    for rider in riders: 
-                        r = ResultEvent(reg_event=rider, start=time_point)
+                    #uriders = riders.filter(start__isnull=False)
+                    uriders = riders
+                    uriders.update(start=time_point)
+                    
+                    #riders = RegEvent.objects.filter(status = True, start_status = False, resultevent__start = None, event=evt)
+                    eres = ResultEvent.objects.filter(reg_event__status = True, reg_event__start_status = False, reg_event__event=evt)
+                    eres.update(start=None)
+                    
+                    riders_dns = RegEvent.objects.filter(status = True, start_status = False, event=evt).exclude(resultevent__in = eres)
+                    for rider in riders_dns: 
+                        r = ResultEvent(reg_event=rider, start = None)
                         r.save()
+
+                    riders = RegEvent.objects.filter(status = True, start_status = True, event=evt).exclude(resultevent__in = uriders)                    
+                    for rider in riders:
+                    #    if eres:
+                    #        eres.start = time_point
+                    #        eres.save()
+                    #    else:
+                        r = ResultEvent(reg_event=rider, start=time_point)
+                        r.save()                            
+                    
+                    #riders = RegEvent.objects.filter(status = True, start_status = False, event=evt)
                     
                     return HttpResponse("Час додано" + val, content_type='text/plain')
                 
@@ -906,8 +989,8 @@ def event_start(request):
 def show_client(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
-    client = Client.objects.get(pk = 2010)
-    c_invoice = ClientInvoice.objects.filter(client__pk = 2010)
+    client = Client.objects.get(pk = 2533)
+    c_invoice = ClientInvoice.objects.filter(client__pk = 2533) #2533 - медовий трейл / 2010 - поліська січ
     vars = {'weblink': 'shop_client.html', 'sel_menu': 'calendar', 'list': c_invoice, }    
     evnt = {'client': client}
     vars.update(evnt)

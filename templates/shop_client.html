@@ -133,7 +133,6 @@ $(document).ready(function(){
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-1">Примітки</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">Опис</a></div>');
 {% endif %}	
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
 
     
     $('a.toggle-vis').on( 'click', function (e) {
@@ -221,6 +220,11 @@ $("body").on("click", ".sale", function(e) {
 <div style="float:right;" id="cat_price">Сума  грн. </div>
 </div>	
 
+
+<h2>
+{{ client.name }}
+</h2>
+
 <br>
 <div style="width:560px; float:left;">
 <br>
@@ -267,6 +271,8 @@ $("body").on("click", ".sale", function(e) {
 {% endif %}
 </tfoot>
 
+{% load template_math %}
+
 <tbody>
 {% for rider in list %}
 
@@ -288,8 +294,18 @@ $("body").on("click", ".sale", function(e) {
 <td>{{rider.catalog}}</td>
 <td class="sale" cid="{{rider.catalog.pk}}" name="{{rider.catalog}}" price="{{rider.price}}">{{rider.count}}</td>
 <td>{{rider.price}} грн.</td>
-<td>{{rider.price}}</td>
-<td align="center">{{rider.count}}</td>
+
+{% if rider.sale == 0 or rider.sale == None %}
+<td>0</td>
+<td align="center">{{rider.price}} грн.
+{% else %}
+<td>{{rider.sale}}</td>
+<td align="center">
+{{rider.sale|div:100|sub:1|mul:rider.price|mul:-1}}
+</td>
+{% endif %}
+
+
 <td align="center">{{rider.count}}</td>
 <td align="center" rid="{{rider.reg_event.id}}"> {{rider.catalog.description}} </td>
 <td align="center">{{rider.description}}</td>
