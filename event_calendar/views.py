@@ -724,7 +724,7 @@ def add_rider_pay(request, id, hash=None):
 #        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'success_data': res_data}
 #        return render(request, 'index.html', vars)
     if request.method == 'POST':
-        form = PayRegEventsForm(request.POST, instance=revent)
+        form = PayRegEventsForm(request.POST, instance=revent, request=request)
         if form.is_valid():
             pay = form.cleaned_data['pay']
             #pay_date = form.cleaned_data['pay_date']
@@ -751,7 +751,7 @@ def add_rider_pay(request, id, hash=None):
                 vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Сталася помилка. Звяжіться з адміністратором rivno100@gmail.com'}
                 return render(request, 'index.html', vars)
                 
-            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'success_data': 'Дякуємо за внесені дані, після перевірки адміністрацією Вас буде відмічено на протязі доби'}
+            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'success_data': 'Дякуємо за внесені дані, після перевірки адміністрацією Вас буде відмічено на протязі доби', 'reglist': '/event/'+str(revent.event.pk)+'/registration/list/'}
             return render(request, 'index.html', vars)
             
 #            return HttpResponseRedirect(reverse('event-rider-list', args=[revent.event.pk])) 
@@ -849,8 +849,14 @@ def rider_start_status(request):
 
 def event_result(request, id):
     evt = Events.objects.get(pk=id)
+    kp2 = False
+    kp3 = False
 #    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
     revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    if revent.exclude(kp2 = None):
+        kp2 = True
+    if revent.exclude(kp3 = None):
+        kp3 = True
     #revent = RegEvent.objects.filter(event = id, start_status = True).values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list    
     event_date = evt.date
     #curyear = datetime.datetime.now().year
@@ -874,7 +880,7 @@ def event_result(request, id):
  #   photo1 = Photo.objects.random()
  #   photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
-    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}    
+    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3}    
 #    calendar = embeded_calendar()
 #    vars.update(calendar)        
     evnt = {'event': evt}
@@ -884,10 +890,36 @@ def event_result(request, id):
     except:
         error = "Параметр reg_email не існує"
     return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
-        
+
+
+def event_result_simple(request, id, point=None):
+    evt = Events.objects.get(pk=id)
+    username = request.user.username
+    if point <> None:
+        username = point
+    #ResultEvent.objects.filter(reg_event__event = id).update(kp1=None, kp2=None)
+    revent = None
+    if username == 'kp1' or point == 'kp1':
+        revent = ResultEvent.objects.filter(reg_event__event = id, kp1 = None).order_by("reg_event__start_number") 
+        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp1 = None).order_by("kp1")
+    if username == 'kp2' or point == 'kp2':
+        revent = ResultEvent.objects.filter(reg_event__event = id, kp2 = None).order_by("kp1") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None).order_by("kp2")
+    if username == 'finish' or point == 'finish':
+        if ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None):
+            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).order_by("kp2")
+        if ResultEvent.objects.filter(reg_event__event = id).exclude(kp3 = None):
+            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).order_by("kp3")
+        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(finish = None).order_by("finish")                        
+    vars = {'weblink': 'event_simple_result.html', 'sel_menu': 'calendar', 'list': revent, 'list_res': revent_res, 'uname': username}
+    evnt = {'event': evt}
+    vars.update(evnt)
+    
+    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+            
 
 def result_add(request):
-    if auth_group(request.user, 'admin')==False:
+    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
     if request.is_ajax():
         if request.method == 'POST':  
@@ -912,7 +944,7 @@ def result_add(request):
                     if point == 'finish':
                         rider.finish = time_point
                     rider.save()
-                    return HttpResponse("Час додано" + val, content_type='text/plain')
+                    return HttpResponse("Час додано " + val, content_type='text/plain')
                 except ObjectDoesNotExist:
                 #rider = None
                 #if rider == None:

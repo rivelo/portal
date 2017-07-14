@@ -188,32 +188,37 @@ class RegEvent (models.Model):
         cat0_b = event_date.replace(year = event_date.year-12)
         cat0_e = event_date.replace(year = event_date.year-18)
         if (birthday <= cat0_b.date()) and (birthday >= cat0_e.date()): 
-            return 0
+            return [0, u'до 18 років']
         
         cat1_b = event_date.replace(year = event_date.year-18)
         cat1_e = event_date.replace(year = event_date.year-30)
         if (birthday <= cat1_b.date()) and (birthday >= cat1_e.date()):
-            return 1
+            #return 1
+            return [1, u'18-29 років']
         
         cat2_b = event_date.replace(year = event_date.year-30)
         cat2_e = event_date.replace(year = event_date.year-40)
         if (birthday <= cat2_b.date()) and (birthday >= cat2_e.date()):
-            return 2
+            #return 2
+            return [2, u'30-39 років']
         
         cat3_b = event_date.replace(year = event_date.year-40)
         cat3_e = event_date.replace(year = event_date.year-50)
         if (birthday <= cat3_b.date()) and (birthday >= cat3_e.date()):
-            return 3
+            #return 3
+            return [3, '40-49 років']
         
         cat4_b = event_date.replace(year = event_date.year-50)
         cat4_e = event_date.replace(year = event_date.year-60)
         if (birthday <= cat4_b.date()) and (birthday >= cat4_e.date()):
-            return 4
+            #return 4
+            return [4, '50-59 років']
 
         cat5_b = event_date.replace(year = event_date.year-60)
         #revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
         if (birthday <= cat5_b.date()):
-            return 5
+            #return 5
+            return [5, u'60+ років']
  
 
     def save(self, *args, **kwargs):

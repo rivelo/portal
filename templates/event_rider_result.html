@@ -235,7 +235,14 @@ $(document).ready(function(){
 		$.fn.dataTableExt.afnFiltering.push(
         function(oSettings, aData, iDataIndex) {
            //Only shows columns with a COUNT > 0
-           var engineColumn = parseInt(aData[12]);
+{% if kp2 %}
+           var engineColumn = parseInt(aData[13]);
+{% endif %}           
+{% if kp3 %}
+		var engineColumn = parseInt(aData[14]);
+{% else %}
+			var engineColumn = parseInt(aData[12]);
+{% endif %}           
            if (engineColumn == 1)
                return true;
            return false;
@@ -249,7 +256,14 @@ $(document).ready(function(){
 		$.fn.dataTableExt.afnFiltering.pop();		
 		$.fn.dataTableExt.afnFiltering.push(
         function(oSettings, aData, iDataIndex) {
-           var engineColumn = parseInt(aData[12]);
+{% if kp2 %}
+        var engineColumn = parseInt(aData[13]);
+{% endif %}           
+{% if kp3 %}
+ 		var engineColumn = parseInt(aData[14]);
+{% else %} 		
+ 		var engineColumn = parseInt(aData[12]); 		
+{% endif %}
            if (engineColumn == 0)
                return true;
            return false;
@@ -426,7 +440,19 @@ $("#table_cat5_wrapper").hide();
 
 <br>
 <div style="width:560px; float:left;">
-<h2 class="title"> Результати марафону <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a> </h2>
+<h2 class="title"> Результати марафону <a href="{% url 'event-show' event.pk  %}">{{event.name}}</a> 
+{% if user.is_authenticated %}
+{% if user|has_group:"admin"%}
+{{request.user}} <br>
+<a href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  <br>
+<a href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  <br>
+<a href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br>
+
+{% else %}
+<a href="{% url 'event-result-light' event.pk %}"><<Проста версія>></a> <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a>
+{% endif %} 
+{% endif %}
+</h2>
 <br>
 </div>
 {% if user.is_authenticated %}
@@ -450,10 +476,16 @@ $("#table_cat5_wrapper").hide();
 <th title="Стать">С</th>
 <th>Місто</th>
 <th>Команда</th>
-<th>Категорія</th>
+<th title="Вікова категорія">Вік</th>
 <th>Велосипед</th>
 <th title="Старт">Старт</th>
 <th title="КП1">КП1</th>
+{% if kp2 %}
+<th title="КП2">КП2</th>
+{% endif %}
+{% if kp3 %}
+<th title="КП3">КП3</th>
+{% endif %}
 <th title="Фініш">Фініш</th>
 <th title="Загальний час">Загальний час</th>
 <th>Стать</th>
@@ -479,6 +511,12 @@ $("#table_cat5_wrapper").hide();
 <th>Велосипед</th>
 <th title="Старт">Старт</th>
 <th title="КП1">КП1</th>
+{% if kp2 %}
+<th title="КП2">КП2</th>
+{% endif %}
+{% if kp3 %}
+<th title="КП3">КП3</th>
+{% endif %}
 <th title="Фінішний час">Фініш</th>
 <th title="Загальний час">Загальний час</th>
 <th>Стать</th>
@@ -495,7 +533,8 @@ $("#table_cat5_wrapper").hide();
 <tbody>
 {% for rider in list %}
 
-{% if user.is_authenticated %}  
+{% if user.is_authenticated %}
+  
 {% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
 <tr style="color: green; font-weight:bold;">
 {% endif %}
@@ -505,6 +544,7 @@ $("#table_cat5_wrapper").hide();
 {% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
 <tr style="color: grey">
 {% endif %}
+
 {% endif %}
 
 <td>
@@ -523,38 +563,44 @@ $("#table_cat5_wrapper").hide();
 <td>{{rider.reg_event.club}}</td>
 
 <td align="center" class="category"
-{% if rider.reg_event.category == 1 %} 
+{% if rider.reg_event.category.0 == 1 %} 
 {% if rider.reg_event.sex = 1 %}
 	style="background-color: yellow;"
 {% else %}
 	style="background-color: pink;"
 {% endif %}
 {% endif %}
-{% if rider.reg_event.category == 2 %} 
+{% if rider.reg_event.category.0 == 2 %} 
 {% if rider.reg_event.sex = 1 %}
 style="background-color: blue;"
 {% else %}
 	style="background-color: purple;"
 {% endif %}
 {% endif %}
-{% if rider.reg_event.category == 3 %} 
+{% if rider.reg_event.category.0 == 3 %} 
 style="background-color: green;"
 {% endif %}
-{% if rider.reg_event.category == 4 %} 
+{% if rider.reg_event.category.0 == 4 %} 
 style="background-color: red;"
 {% endif %}
-{% if rider.reg_event.category == 5 %} 
+{% if rider.reg_event.category.0 == 5 %} 
 style="background-color: white;"
 {% endif %}
 
 >
 <!-- {{rider.reg_event.birthday|date:"Y"}}  --> 
-{{rider.reg_event.category}} <div class="hover-content">{{rider.reg_event.category}}</div> </td>
+{{rider.reg_event.category.0}} <div class="hover-content">{{rider.reg_event.category.1}}</div> </td>
 
 
 <td align="center">{{rider.reg_event.bike_type.name}}</td>
 <td align="center" rid="{{rider.reg_event.id}}"> {{rider.start|date:'H:i:s'}} </td>
 <td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp1|date:'H:i:s'}} </td>
+{% if kp2 %}
+<td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp2|date:'H:i:s'}} </td>
+{% endif %}
+{% if kp3 %}
+<td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp3|date:'H:i:s'}} </td>
+{% endif %}
 <td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.finish|date:'H:i:s'}} </td>
 <td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.get_time_diff}} </td>
 <td align="center">{{rider.reg_event.sex}}</td>

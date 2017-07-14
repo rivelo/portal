@@ -2,6 +2,8 @@
 from django import template
 import MySQLdb
 from portal.event_calendar.models import Events, ResultEvent
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 
 import datetime
 
@@ -49,3 +51,8 @@ def get_current_event():
     c_year = datetime.datetime.now().year
     event = Events.objects.filter(date__year = c_year)
     return event
+
+@register.filter(name='has_group') 
+def has_group(user, group_name): 
+    group = Group.objects.get(name=group_name) 
+    return True if group in user.groups.all() else False

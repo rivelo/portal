@@ -71,6 +71,9 @@ class RegEventsForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['user', 'status', 'pay', 'pay_date', 'pay_type', 'reg_code', 'start_number']
         
+
+def auth_group(user, group):
+    return True if user.groups.filter(name=group) else False        
         
 class PayRegEventsForm(forms.ModelForm):
     pay = forms.FloatField(min_value = 0, label = "Оплачена сума", required=True)
@@ -81,11 +84,16 @@ class PayRegEventsForm(forms.ModelForm):
     pay_type = forms.ChoiceField(label='Спосіб оплати', choices= RegEvent.PAY_METHOD_CHOICES)
     description = forms.CharField(widget=forms.Textarea(attrs={'cols': 93, 'rows': 8}), required=False, label='Примітки')    
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(PayRegEventsForm, self).__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super(PayRegEventsForm, self).clean()
         chk_number = cleaned_data.get("start_number")
         chk_pay = cleaned_data.get("pay")
         pdate = cleaned_data.get("pay_date")
+        person_id = cleaned_data.get("person_id")
         if not pdate:
             msg = "Введіть дату і час коли була здійснена оплата"
             self._errors["pay_date"] = self.error_class([msg])
@@ -94,13 +102,17 @@ class PayRegEventsForm(forms.ModelForm):
         sum = chk_event.cur_reg_sum(pdate)
         try:
             cpay = int(chk_pay)
-            if int(chk_pay) <= sum-1:
+            if int(chk_pay) <= sum-1 and auth_group(self.request.user, 'admin')==False:
                 msg = "Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y'))
                 self._errors["pay"] = self.error_class([msg])
         except:
             msg = "Введіть суму оплати"
             self._errors["pay"] = self.error_class([msg])
-            
+        
+#        if auth_group(self.request.user, 'admin')==True:
+#            msg = forms.ValidationError("%s - %s" % ("У вас не достатньо повноважень", self.request.user)) 
+#            self._errors["pay"] = self.error_class([msg])
+
             #raise forms.ValidationError("Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y')))             
         #res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).order_by('start_number')
         res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).values_list('start_number', flat=True).order_by('start_number')

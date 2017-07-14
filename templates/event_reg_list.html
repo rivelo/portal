@@ -350,7 +350,7 @@ $("#table_cat5_wrapper").hide();
 
 <br>
 <div style="width:560px; float:left;">
-<h2 class="title"> Список зареєстрованих учасників <br>{{event.name}} </h2>
+<h2 class="title"> Список зареєстрованих учасників <br> <a href="{% url 'event-show' event.pk %}">{{event.name}}</a> </h2>
 <h3 style="color: grey; ">До заходу залишилось {{event.days_left}} днів </h3>
 
 {% if event.days_left > 0 %}
@@ -449,7 +449,7 @@ style="background-color: white;"
 <td align="center">{{rider.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.status}}</td>
-	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.pay_type}}<div class="hover-content">{{rider.pay_date|date:"d:m:Y H:i"}}</div></td>
+	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.pay_type}}<div class="hover-content">{{rider.pay_date|date:"d.m.Y H:i"}} - {{rider.pay}} грн.</div></td>
 {% else %}
 	<td align="center">{{rider.status}}</td>
 {% endif %}

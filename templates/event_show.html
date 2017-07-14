@@ -273,6 +273,9 @@ function initMap(x,y) {
 {% else %}
 {% endif %}
 
+{% if user.is_authenticated %}
+<a href="{% url 'event-result-light' event.pk %}">Відмітка на КП/Фініші</a>
+{% endif %} 
 <h4>Результати:  
 <a href="{% url 'event-result' event.pk %}">Результати</a>
 </h4>
