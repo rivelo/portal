@@ -380,38 +380,127 @@ $("body").on("click", ".number_edit", function(e){
 
 
 $( "#img_start" ).click(function() {
-		$( "#dialog_start" ).dialog({
+	$( "#dialog_start" ).dialog({
+	resizable: false,
+  	modal: true,
+	width: 380,
+	height:"auto",
+	buttons: {
+"Додати": function() {
+//	$(".ok_button").on('click', function(){
+		$.ajax({
+        type: "POST",
+        url: "/rider/start/edit/",
+        data: {event:  {{ event.pk }}, value: $("#dsedit").val() },
+        //dataType: "json",
+        success:function(data){
+        	$("#img_start").css("opacity", 1);
+        	console.log("Час змінено " + data);
+        },
+        error:function(data){
+            alert("++++ При отправке возникли проблемы" + data);
+        }
+    	});
+    console.log("Натиснуто ОК" + $("#msg_text").val()); 
+   // })
+},
+"Відмінити": function() {
+	$( this ).dialog( "close" );	
+},
+
+}  		
+	});
+});
+
+
+$( "#clear_kp1_result" ).click(function() {
+	$( "#dialog_clear" ).dialog({
 		resizable: false,
 	  	modal: true,
 		width: 380,
 		height:"auto",
   	buttons: {
-    "Додати": function() {
-//    	$(".ok_button").on('click', function(){
+    "Очистити": function() {
 			$.ajax({
             type: "POST",
-            url: "/rider/start/edit/",
-            data: {event:  {{ event.pk }}, value: $("#dsedit").val() },
-            //dataType: "json",
+            url: "/event/result/clear/",
+            data: {event:  {{ event.pk }}, point: 'kp1' },
             success:function(data){
-            	$("#img_start").css("opacity", 1);
             	console.log("Час змінено " + data);
             },
             error:function(data){
                 alert("++++ При отправке возникли проблемы" + data);
             }
         	});
-        console.log("Натиснуто ОК" + $("#msg_text").val()); 
-       // })
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
     },
     "Відмінити": function() {
     	$( this ).dialog( "close" );	
     },
-    
     }  		
-		});
+	});
 });
    
+
+$( "#clear_kp2_result" ).click(function() {
+	$( "#dialog_clear" ).dialog({
+		resizable: false,
+	  	modal: true,
+		width: 380,
+		height:"auto",
+  	buttons: {
+    "Очистити": function() {
+			$.ajax({
+            type: "POST",
+            url: "/event/result/clear/",
+            data: {event:  {{ event.pk }}, point: 'kp2' },
+            success:function(data){
+            	console.log("Час змінено " + data);
+            },
+            error:function(data){
+                alert("++++ При отправке возникли проблемы" + data);
+            }
+        	});
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
+    },
+    "Відмінити": function() {
+    	$( this ).dialog( "close" );	
+    },
+    }  		
+	});
+});
+
+
+$( "#clear_finish_result" ).click(function() {
+	$( "#dialog_clear" ).dialog({
+		resizable: false,
+	  	modal: true,
+		width: 380,
+		height:"auto",
+  	buttons: {
+    "Очистити": function() {
+			$.ajax({
+            type: "POST",
+            url: "/event/result/clear/",
+            data: {event:  {{ event.pk }}, point: 'finish' },
+            success:function(data){
+            	console.log("Час змінено " + data);
+            },
+            error:function(data){
+                alert("++++ При отправке возникли проблемы" + data);
+            }
+        	});
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
+    },
+    "Відмінити": function() {
+    	$( this ).dialog( "close" );	
+    },
+    }  		
+	});
+});
 
 
 $("#table_cat0_wrapper").hide();
@@ -436,7 +525,10 @@ $("#table_cat5_wrapper").hide();
 <!-- dialog for client message -->
 <div id="dialog_start" title="Старт заходу">
 <input type="text" id="dsedit" name="mytext[]" cols="40"> </input>
-</div>	
+</div>
+	
+<div id="dialog_clear" title="Очистити результати">
+</div>
 
 <br>
 <div style="width:560px; float:left;">
@@ -447,7 +539,6 @@ $("#table_cat5_wrapper").hide();
 <a href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  <br>
 <a href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  <br>
 <a href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br>
-
 {% else %}
 <a href="{% url 'event-result-light' event.pk %}"><<Проста версія>></a> <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a>
 {% endif %} 
@@ -455,6 +546,13 @@ $("#table_cat5_wrapper").hide();
 </h2>
 <br>
 </div>
+
+{% if user|has_group:"admin"%}
+<div id="clear_kp1_result"  style=" background:#e4e7ea; font-size: 100%; float:left;"><<Очистити дані з КП1>></div> 
+<div id="clear_kp2_result" style="background:#cfd0d0; font-size: 100%; float:left;"><<Очистити дані з КП2>></div> 
+<div id="clear_finish_result" style="background:#a9a9a9; font-size: 100%; float:left;" ><<Очистити фінішні дані>></div>
+{% endif %}
+
 {% if user.is_authenticated %}
 <div style="float:right;" >
 <img id="img_start" src="/media/images/GObutton.png" width="100px"></img>

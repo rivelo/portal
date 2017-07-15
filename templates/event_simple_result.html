@@ -230,27 +230,27 @@ $("body").on("click", ".n_riders", function(e){
 
 {% for rider in list %}
 <div class="n_riders" rid="{{rider.reg_event.id}}" number="{{rider.reg_event.start_number}}" style="width:240px; height:135px; color: black;
-{% if rider.reg_event.category == 1 %} 
+{% if rider.reg_event.category.0 == 1 %} 
 {% if rider.reg_event.sex = 1 %}
 	background-color: yellow;"
 {% else %}
 	background-color: pink;"
 {% endif %}
 {% endif %}
-{% if rider.reg_event.category == 2 %} 
+{% if rider.reg_event.category.0 == 2 %} 
 {% if rider.reg_event.sex = 1 %}
 	background-color: blue;"
 {% else %}
 	background-color: purple;"
 {% endif %}
 {% endif %}
-{% if rider.reg_event.category == 3 %} 
+{% if rider.reg_event.category.0 == 3 %} 
 	background-color: green;"
 {% endif %}
-{% if rider.reg_event.category == 4 %} 
+{% if rider.reg_event.category.0 == 4 %} 
 	background-color: red;"
 {% endif %}
-{% if rider.reg_event.category == 5 %} 
+{% if rider.reg_event.category.0 == 5 %} 
 	background-color: white;"
 {% endif %}
 >

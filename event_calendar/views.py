@@ -967,6 +967,30 @@ def result_add(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
 
+def result_clear(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('point'):
+                val = request.POST['point']
+                try:
+                    ev = request.POST['event']
+                    evt = Events.objects.get(pk = ev)
+                    riders = ResultEvent.objects.filter(reg_event__event=evt)
+                    if val == 'kp1':
+                        riders.update(kp1=None)
+                    if val == 'kp2':
+                        riders.update(kp2=None)
+                    if val == 'finish':
+                        riders.update(finish=None)
+                    return HttpResponse("Час видалено" + val, content_type='text/plain')
+                except ObjectDoesNotExist:
+                    return HttpResponse("Час не видалено", content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
+
 def event_start(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
