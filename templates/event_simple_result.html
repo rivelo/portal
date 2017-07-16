@@ -127,7 +127,6 @@ $("body").on("click",".finish_add",function(e){
 $("body").on("click",".kp1_add",function(e){ 	
 	$(this).editable('/rider/result/add/', { 
 	 id: 'point',
-	 
 	 loadtype: 'POST',
      submit : 'OK',
      tooltip   : 'Click to add time',
@@ -162,8 +161,55 @@ $("body").on("click",".start_status",function(e){
 });   
 
 
+$("body").on("click", ".chk_riders", function(e){
+	var d = $(this);
+	//	alert("Rider # = " + $(this).attr("rid"))
+	console.log($(this).parents('tr').find('td').eq(1).text())
+	ttt = "Ви впевнені що хочете відмінити час "+ $(this).parents('tr').find('td').eq(6).text() + " - " + $(this).parents('tr').find('td').eq(1).text()
+	r = confirm(ttt) 
+	if (r == true)
+	{
+	$.ajax({
+        type: "POST",
+        url: "/rider/result/remove/",
+{% if uname == "kp1" %}                
+        data: { rid: $(this).attr("rid"), point: 'kp1', value: ''},
+{% endif %}
+{% if uname == "kp2" %}                
+        data: { rid: $(this).attr("rid"), point: 'kp2', value: ''},
+{% endif %}        
+{% if uname == "kp3" %}                
+        data: { rid: $(this).attr("rid"), point: 'kp3', value: ''},
+{% endif %}        
+{% if uname == "finish" %}                
+        data: { rid: $(this).attr("rid"), point: 'finish', value: ''},
+{% endif %}        
+        dataType: "json",
+        success:function(){
+			console.log("Remove = " + $(this))
+//    		$('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>TEST</td></tr>');
+    		$(this).hide();
+        },
+        error:function(xhr, ajaxOptions, thrownError){
+            //alert( xhr.responseText );
+            //console.log("THIS error = " + d.find('h3:last').html() )
+            d.parents('tr').hide()
+            location.reload();
+            //$('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td></td></tr>');
+        }
+    });
+	}
+});
+
+
 $("body").on("click", ".n_riders", function(e){
 	var d = $(this);
+	d.css({
+		'opacity': '1',
+//		'width': '50px',
+//		'height': '50px',
+		'background-color': '#f48035'
+	});
 	$.ajax({
         type: "POST",
         url: "/rider/result/add/",
@@ -346,7 +392,7 @@ style="background-color: white;"
 {{rider.reg_event.category.1}} <div class="hover-content">{{rider.reg_event.category.0}}</div> </td>
 
 
-	<td align="center">
+	<td align="center" rid={{rider.pk}} class="chk_riders">
 {% if uname == "kp1" %}                	
 	{{rider.kp1|date:'H:i:s'}}
 {% endif %}	

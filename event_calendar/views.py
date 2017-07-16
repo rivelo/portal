@@ -459,14 +459,15 @@ def grecaptcha_verify(request):
         response['message'] = verify_rs.get('error-codes', None) or "Unspecified error."
         #return HttpResponse(response, content_type="text/plain")
         return response
-    
+  
     
 def add_reg(request, id):
     a = Events.objects.get(pk=id)
     r = RegEvent(event = a)
-    if a.days_left() <= 0:
-        return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції " + str(a.days_left()), content_type="text/plain")
-        
+    dl = a.days_left()
+    if (a.days_left() < 0):
+        if (auth_group(request.user, 'admin')==False):
+            return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції " + str(a.days_left()), content_type="text/plain")
 #    r = RegEvent()
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -900,16 +901,16 @@ def event_result_simple(request, id, point=None):
     #ResultEvent.objects.filter(reg_event__event = id).update(kp1=None, kp2=None)
     revent = None
     if username == 'kp1' or point == 'kp1':
-        revent = ResultEvent.objects.filter(reg_event__event = id, kp1 = None).order_by("reg_event__start_number") 
+        revent = ResultEvent.objects.filter(reg_event__event = id, kp1 = None).exclude(start=None).order_by("reg_event__start_number") 
         revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp1 = None).order_by("kp1")
     if username == 'kp2' or point == 'kp2':
-        revent = ResultEvent.objects.filter(reg_event__event = id, kp2 = None).order_by("kp1") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+        revent = ResultEvent.objects.filter(reg_event__event = id, kp2 = None).exclude(kp1=None).order_by("kp1") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
         revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None).order_by("kp2")
     if username == 'finish' or point == 'finish':
         if ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None):
-            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).order_by("kp2")
+            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).exclude(kp2=None).order_by("kp2")
         if ResultEvent.objects.filter(reg_event__event = id).exclude(kp3 = None):
-            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).order_by("kp3")
+            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).exclude(kp3=None).order_by("kp3")
         revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(finish = None).order_by("finish")                        
     vars = {'weblink': 'event_simple_result.html', 'sel_menu': 'calendar', 'list': revent, 'list_res': revent_res, 'uname': username}
     evnt = {'event': evt}
@@ -939,12 +940,24 @@ def result_add(request):
                     #rider.kp1 = datetime.strptime(time_kp, format)
                     if point == 'kp1':
                         rider.kp1 = time_point#datetime.datetime.now()
+                        rider.save()
                     if point == 'kp2':
                         rider.kp2 = time_point#datetime.datetime.now()
+                        rider.save()
                     if point == 'finish':
                         rider.finish = time_point
-                    rider.save()
-                    return HttpResponse("Час додано " + val, content_type='text/plain')
+                        rider.save()
+                        rider = ResultEvent.objects.get(reg_event__pk = rid)                        
+                        message = """Вітаємо вас на фініші марафону Медовий Трейл!\n 
+    Ви подолали маршрут за %s .\n\n
+    Запрошуємо вас 19 серпня відвідати наш марафон 100 миль \n
+    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/4/show/ \n
+    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/4/registration/list/ \n
+    Гарних покатеньок і до зустрічі на старті.
+    """ % (rider.get_time_diff())
+                        res = send_mail('Медовий Трейл. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+
+                    return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:
                 #rider = None
                 #if rider == None:
@@ -966,6 +979,33 @@ def result_add(request):
                 #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
+
+def result_remove(request):
+    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('rid'):
+                rid = request.POST['rid']
+                point = request.POST['point']
+                try:
+                    rider = ResultEvent.objects.get(pk = rid)
+                    if point == 'kp1':
+                        val = rider.kp1
+                        rider.kp1 = None
+                    if point == 'kp2':
+                        val = rider.kp2
+                        rider.kp2 = None
+                    if point == 'finish':
+                        val = rider.finish
+                        rider.finish = None
+                    rider.save()
+                    return HttpResponse("Час видалено " +str(val), content_type='text/plain')
+                except ObjectDoesNotExist:
+                    return HttpResponse("Часова відмітка відсутня" + str(val), content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+    
 
 def result_clear(request):
     if auth_group(request.user, 'admin')==False:
@@ -1087,5 +1127,16 @@ def client_sale(request):
                 return HttpResponse("Продано "+ val +" шт.", content_type='text/plain')
                 #else:
                 #    r.reg_event = rev    
-    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
-    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')
+
+
+def event_rider_copy(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    revent = RegEvent.objects.get(pk = id)
+    evt = Events.objects.get(pk = 5)    
+    new_object = RegEvent(event = evt, fname=revent.fname, lname=revent.lname, sex=revent.sex, nickname=revent.nickname, email=revent.email, phone=revent.phone, country=revent.country, city=revent.city, club=revent.club, bike_type=revent.bike_type, birthday=revent.birthday)
+    new_object.save()
+   
+#    return HttpResponse("Щось пішло не так :(", content_type='text/plain')            
+    return HttpResponseRedirect(reverse('event-rider-list', args=[new_object.event.pk]))
