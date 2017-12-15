@@ -248,6 +248,34 @@ class RegEvent (models.Model):
 #         ordering = ["name"]        
 #     
 #===============================================================================
+class SexManager(models.Manager):
+     def riders_count(self):
+        sex = 1
+        if sex != None:
+            r = self.regevent_set.filter(sex = sex)
+        else:
+            r = self.regevent_set.all()
+        count = r.count()
+        return count
+
+class DahlBookManager(models.Manager):
+    def get_queryset(self):
+        return super(DahlBookManager, self).get_queryset().filter(reg_event__sex=1)
+
+class MaleManager(models.Manager):
+    def get_queryset(self):
+        return super(MaleManager, self).get_queryset().filter(reg_event__sex=0)
+
+class CustomQuerySet(models.query.QuerySet):
+    def get_sex(self, sex=0):
+        return self.filter(reg_event__sex=sex).count()
+
+    def group_city(self):
+        return self.values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
+
+    def group_bike(self):
+        return self.values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
+    
     
 class ResultEvent (models.Model):
     reg_event = models.ForeignKey(RegEvent, blank=True, null=True, on_delete=models.SET_NULL)    
@@ -258,6 +286,11 @@ class ResultEvent (models.Model):
     kp3 = models.DateTimeField(blank = True, null = True)
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
+    objects = models.Manager() # The default manager.
+    male_objects = MaleManager() # The specific manager.
+    dahl_objects = DahlBookManager() 
+    #people = CustomQuerySet.as_manager()
+    objects = CustomQuerySet.as_manager()
 
     def get_time_diff(self):
         if self.start == None:
@@ -267,14 +300,7 @@ class ResultEvent (models.Model):
         res = self.finish - self.start
         return str(res)   # Assuming dt2 is the more recent time
  
-    def r_count(self, sex=None):
-        if sex != None:
-            r = self.reg_event_set.filter(reg_event__sex = sex)
-        else:
-            r = self.reg_event_set.all()
-        count = r.count()
-        return count
-    
+   
     def riders_city(self):
         r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
         return r

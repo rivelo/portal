@@ -23,7 +23,7 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 
-from portal.accounting.models import ClientInvoice, Client, Catalog
+from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store
 
 import simplejson
 import googlemaps
@@ -35,6 +35,8 @@ from datetime import date
 from django.core.context_processors import request
 from django.utils.translation.trans_real import catalog
 
+from django.db.models import Sum, Count, Max
+from django.db.models import Q
 
 def admin_sendmail(request, id):
     photo1 = Photo.objects.random()
@@ -977,7 +979,7 @@ def result_add(request):
                     return HttpResponse("Час додано" + val, content_type='text/plain')
                 #else:
                 #    r.reg_event = rev    
-    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
 
 
 def result_remove(request):
@@ -1082,11 +1084,23 @@ def event_start(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
 
-def show_client(request):
+def show_client(request, user_name='rivno100'):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
-    client = Client.objects.get(pk = 2533)
-    c_invoice = ClientInvoice.objects.filter(client__pk = 2533) #2533 - медовий трейл / 2010 - поліська січ
+    client = None
+    c_invoice = None
+    if user_name == 'med':
+        client = Client.objects.get(pk = 2533) # medov trail
+        c_invoice = ClientInvoice.objects.filter(client__pk = 2533) #2533 - медовий трейл / 2010 - поліська січ
+    if user_name == 'rivno100':        
+        client = Client.objects.get(pk = 1943) # rivno100
+        c_invoice = ClientInvoice.objects.filter(client__pk = 1943) #2533 - медовий трейл / 2010 - поліська січ
+    if user_name == 'pol_sich':        
+        client = Client.objects.get(pk = 2010) # поліська січ
+        c_invoice = ClientInvoice.objects.filter(client__pk = 2010) #2533 - медовий трейл / 2010 - поліська січ
+    if user_name == '100_mile':        
+        client = Client.objects.get(pk = 2615) # 100 миль
+        c_invoice = ClientInvoice.objects.filter(client__pk = 2615) #2533 - медовий трейл / 2010 - поліська січ
     vars = {'weblink': 'shop_client.html', 'sel_menu': 'calendar', 'list': c_invoice, }    
     evnt = {'client': client}
     vars.update(evnt)
@@ -1109,8 +1123,8 @@ def client_sale(request):
                 cid = request.POST['cid']
                 val = request.POST['value']
                 cat = Catalog.objects.get(pk = cid)
-                client = Client.objects.get(pk = 2010)
-                ci = ClientInvoice()
+                #client = Client.objects.get(pk = 2010)
+                ci = ClientInvoice(date__year = 2017)
                 ci.client = client
                 ci.catalog = cat
                 ci.count = int(val)
@@ -1140,3 +1154,124 @@ def event_rider_copy(request, id):
    
 #    return HttpResponse("Щось пішло не так :(", content_type='text/plain')            
     return HttpResponseRedirect(reverse('event-rider-list', args=[new_object.event.pk]))
+
+
+def rider_search(request):
+    if request.user.is_authenticated()==False:
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+    message = "Шукаємо текст "
+    if request.method == 'POST':  
+        POST = request.POST  
+        if POST.has_key('rider_s'):
+            rider_s = request.POST.get( 'rider_s' )
+            #list = RegEvent.objects.filter(lname__icontains = rider_s)
+            list = RegEvent.objects.filter(Q(lname__icontains = rider_s) | Q(fname__icontains = rider_s) | Q(phone__icontains=rider_s) | Q(nickname__icontains=rider_s))
+            message = message + rider_s
+            #return HttpResponse(message, content_type="text/plain;charset=utf-8")
+            vars = {'weblink': 'regevent_search_edit_table.html', 'sel_menu': 'calendar', 'list': list, 'search_str': rider_s}
+            return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+        
+    return HttpResponse(message, content_type="text/plain;charset=utf-8")
+
+
+def regevent_edit(request, id=None):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+
+    if request.is_ajax():
+        if request.method == 'POST':
+            POST = request.POST
+            
+            if POST.has_key('rid') and POST.has_key('fname'):
+                id = request.POST.get('rid')
+                d = request.POST.get('fname')
+                obj = RegEvent.objects.get(id = id)
+                obj.fname = d
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('fname', flat=True)
+                return HttpResponse(c)
+
+            if POST.has_key('rid') and POST.has_key('lname'):
+                id = request.POST.get('rid')
+                d = request.POST.get('lname')
+                obj = RegEvent.objects.get(id = id)
+                obj.lname = d
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('lname', flat=True)
+                return HttpResponse(c)
+
+            if POST.has_key('rid') and POST.has_key('nickname'):
+                id = request.POST.get('rid')
+                d = request.POST.get('nickname')
+                obj = RegEvent.objects.get(id = id)
+                obj.nickname = d
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('nickname', flat=True)
+                return HttpResponse(c)
+
+            if POST.has_key('rid') and POST.has_key('city'):
+                id = request.POST.get('rid')
+                d = request.POST.get('city')
+                obj = RegEvent.objects.get(id = id)
+                obj.city = d
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('city', flat=True)
+                return HttpResponse(c)
+
+            if POST.has_key('rid') and POST.has_key('phone'):
+                id = request.POST.get('rid')
+                d = request.POST.get('phone')
+                obj = RegEvent.objects.get(id = id)
+                obj.phone = d
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('phone', flat=True)
+                return HttpResponse(c)
+
+    message = "Щось пішло не так" 
+    return HttpResponse(message, content_type="text/plain;charset=utf-8")
+
+
+def shop_bicycle(request):
+    bs = Bicycle_Store.objects.filter(count__gte = 1)
+    return None
+
+
+def year_results(request):
+    id = 4
+    evt = Events.objects.get(pk=id)
+    events = Events.objects.filter(date__year = 2017, reg_status = True).order_by('date')
+    evt_ids = events.values('id')
+
+    kp2 = False
+    kp3 = False
+#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event__in = evt_ids, finish__isnull=False).order_by("reg_event__lname", "-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+
+    #stat_res = revent.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', ).order_by('reg_event__phone').distinct() # annotate(cphone = Count('reg_event__phone')) #.distinct('')
+    #stat_res = revent.values('reg_event__fname', 'reg_event__lname', 'reg_event__phone', 'reg_event__birthday').annotate(cphone = Count('reg_event__phone')).order_by("-cphone") #.distinct('')
+    #stat_res = revent.values('reg_event__lname', 'reg_event__fname', 'reg_event__phone',).annotate(cphone = Count('reg_event')).order_by("-cphone")
+    stat_res = revent.order_by('reg_event__phone')#.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', 'reg_event__birthday', 'reg_event__city', 'reg_event__event', 'reg_event__event__name', 'reg_event__club', 'finish')    
+    
+    #revent = RegEvent.objects.filter(event = id, start_status = True).values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list    
+    event_date = evt.date
+
+    #curyear = datetime.datetime.now().year
+ #   photo1 = Photo.objects.random()
+ #   photo2 = Photo.objects.random()
+#    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
+    #kp3 = ResultEvent.dahl_objects.count() 
+    kp2 = revent.get_sex(0) #.count()
+    kp3 = revent.get_sex(1) #.count()
+    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'kp2': kp2, 'kp3': kp3, 'events': events, 'stat_res': stat_res}    
+#    calendar = embeded_calendar()
+#    vars.update(calendar)        
+    evnt = {'event': evt}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+   
+#    pass
+#    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')

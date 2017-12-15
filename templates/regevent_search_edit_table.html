@@ -1,0 +1,599 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
+<script src="/media/jquery.dataTables.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+
+<style>
+/* Style The Dropdown Button */
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+/*tfoot {
+    display: table-header-group;
+}
+*/
+tfoot input {
+        width: 100%;
+        padding: 3px;
+        box-sizing: border-box;
+    }
+    
+#event_stat:hover {
+background-color: yellow;
+cursor: pointer;
+}
+
+.cat_showhide:hover {
+background-color: yellow;
+cursor: pointer;
+}
+
+
+.hover-content {
+    display:none;
+}
+ 
+.pay_type:hover .hover-content {
+    display:block;
+}
+
+.category:hover .hover-content {
+    display:block;
+} 
+
+</style>
+
+
+<script>
+$(document).ready(function(){
+	$("#dialog_start").hide();	
+
+	$( "#tabs" ).tabs();
+	$( "#tabs" ).hide()
+
+	$( "#event_stat" ).click(function() {
+//  		$( "#tabs" ).show()
+  		if ($("#event_stat").html() == "Cтатистика") {
+    		$("#event_stat").html("Приховати статистику");
+    	}
+    	else {
+    		$("#event_stat").html("Cтатистика");
+    	}
+    	$( "#tabs" ).toggle()
+	});
+
+	$('#rtable tfoot th').each( function () {
+        var title = $(this).text();
+        $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+    } );
+	
+	// all rider list
+    var rtable = $('#rtable').DataTable({
+    	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+    });
+	
+    rtable.columns().every( function () {
+        var that = this;
+ 
+        $( 'input', this.footer() ).on( 'keyup change', function () {
+            if ( that.search() !== this.value ) {
+                that
+                    .search( this.value )
+                    .draw();
+            }
+        } );
+    } );
+    
+	rtable.column(7).visible(false);
+	rtable.column(-1).visible(false);
+	rtable.column(-2).visible(false);
+	
+{% if user.is_authenticated %}
+	rtable.column(-4).visible(false);
+	rtable.column(-3).visible(false);
+	rtable.column(-5).visible(false);
+	rtable.column(-6).visible(false);
+	rtable.column(-7).visible(false);
+{% endif %}
+
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">стать</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Старт</a></div>');
+{% if user.is_authenticated %}
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Телефон</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Оплата</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Дія</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Фініш</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Загальний час</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
+{% endif %}	
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
+
+    
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+         // Get the column API object
+        var column = rtable.column( $(this).attr('data-column') );
+         // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
+    
+ $("body").on('click', '#sex_rider', function() {
+	var status = $('#sex_rider').attr('val')
+	if ( status == 2) {
+		$('#sex_rider').attr('val', 1);
+		$('#rwom').hide()
+		$('#rman').show();
+		$.fn.dataTableExt.afnFiltering.push(
+        function(oSettings, aData, iDataIndex) {
+           //Only shows columns with a COUNT > 0
+{% if kp2 %}
+           var engineColumn = parseInt(aData[13]);
+{% endif %}           
+{% if kp3 %}
+		var engineColumn = parseInt(aData[14]);
+{% else %}
+			var engineColumn = parseInt(aData[12]);
+{% endif %}           
+           if (engineColumn == 1)
+               return true;
+           return false;
+        });
+ 		rtable.draw();
+	}
+	if ( status == 1) {
+		$('#sex_rider').attr('val', 0);
+		$('#rwom').show();
+		$('#rman').hide()
+		$.fn.dataTableExt.afnFiltering.pop();		
+		$.fn.dataTableExt.afnFiltering.push(
+        function(oSettings, aData, iDataIndex) {
+{% if kp2 %}
+        var engineColumn = parseInt(aData[13]);
+{% endif %}           
+{% if kp3 %}
+ 		var engineColumn = parseInt(aData[14]);
+{% else %} 		
+ 		var engineColumn = parseInt(aData[12]); 		
+{% endif %}
+           if (engineColumn == 0)
+               return true;
+           return false;
+        });
+ 		rtable.draw();
+	}
+	if ( status == 0) {
+		$('#sex_rider').attr('val', 2);
+		$('#rwom').show();
+		$('#rman').show();
+		$.fn.dataTableExt.afnFiltering.pop();				
+		$.fn.dataTableExt.afnFiltering.pop();
+ 		rtable.draw();
+	}
+	
+ });    
+
+ 	$('#table_cat0').DataTable({
+ 	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+ 	});
+
+    $('#table_cat1').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat2').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat3').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat4').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+
+    $('#table_cat5').DataTable({
+    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+    });
+ 
+        
+$("body").on("click",".finish_add",function(e){ 	
+    $(this).editable('/rider/result/add/', {
+    	id: 'point', 
+    	loadtype: 'POST',
+         submit : 'OK',
+         tooltip   : 'Click to add time',
+         style   : 'inherit',
+         event : "click",
+         submitdata : function() {
+          	return {rid : $(this).attr('rid'), point: 'finish'};
+         },
+        }).trigger("focus"); 
+});   
+    
+ 
+$("body").on("click",".kp1_add",function(e){ 	
+	$(this).editable('/rider/result/add/', { 
+	 id: 'point',
+	 loadtype: 'POST',
+     submit : 'OK',
+     tooltip   : 'Click to add time',
+     style   : 'inherit',
+     event : "click",
+     submitdata : function() {
+      	return {rid : $(this).attr('rid'), point: 'kp1'};
+    	 },
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click",".start_status",function(e){ 	
+	$(this).editable('/rider/startstatus/', {
+     data   : "{'True':'True','False':'False'}",
+     loadtype: 'POST',
+     type   : 'select',
+     submit : 'OK',
+     tooltip   : 'Click to edit...',
+     style   : 'inherit',
+     event : "dblclick",
+     submitdata : function() {
+      	return {rid : $(this).attr('rider_id')};
+    	 },
+     callback : function(value, settings) {
+         var obj = jQuery.parseJSON(value);
+         console.log(obj);
+         str = '[' + obj['status'] + "]";
+         $(this).html(str);
+     }
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click", ".number_edit", function(e){
+    $(this).editable('/event/{{event.id}}/registration/edit/number/', {
+ 		id   : 'rid',
+        name : 'number',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+
+
+$("body").on("click", ".fname", function(e){
+    $(this).editable('/registration/edit/', {
+ 		id   : 'rid',
+        name : 'fname',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+
+
+$("body").on("click", ".lname", function(e){
+    $(this).editable('/registration/edit/', {
+ 		id   : 'rid',
+        name : 'lname',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+ 
+ 
+$("body").on("click", ".city", function(e){
+    $(this).editable('/registration/edit/', {
+ 		id   : 'rid',
+        name : 'city',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ }); 
+
+
+$("body").on("click", ".nickname", function(e){
+    $(this).editable('/registration/edit/', {
+ 		id   : 'rid',
+        name : 'nickname',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ }); 
+
+$("body").on("click", ".phone", function(e){
+    $(this).editable('/registration/edit/', {
+ 		id   : 'rid',
+        name : 'phone',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+
+
+});
+
+
+</script>
+
+{% load poll_extras %}
+
+{% block content %}
+
+
+
+
+<br>
+<div style="width:560px; float:left;">
+<h2 class="title"> Пошук учасника {{search_str}}</h2> 
+
+
+ 
+{% if user.is_authenticated %}
+{% if user|has_group:"admin"%}
+{{request.user}} <br>
+{% else %}
+{% endif %} 
+{% endif %}
+
+<br>
+</div>
+
+
+
+<table id="rtable" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th title="Стартовий номер">№</th>
+<th> Прізвище</th>
+<th>Ім'я </th>
+<th>Нік</th>
+<th title="Стать">С</th>
+<th>Місто</th>
+<th>Команда</th>
+<th title="Вікова категорія">Вік</th>
+<th>Велосипед</th>
+<th title="Старт">Старт</th>
+<th title="КП1">КП1</th>
+<th title="Фініш">Фініш</th>
+<th title="Загальний час">Загальний час</th>
+<th>Стать</th>
+<th>Статус</th>
+{% if user.is_authenticated %}
+<th>Оплата</th>
+<th>Телефон</th>
+<th>Примітки</th>
+<th>Відмітка</th>
+{% endif %}
+</tr>
+</thead>
+	<tfoot>
+            <tr>
+<th title="Стартовий номер">№</th>
+<th>Прізвище</th>
+<th>Ім'я</th>
+<th>Нік</th>
+<th title="Стать">С</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік нар.</th>
+<th>Велосипед</th>
+<th title="Старт">Старт</th>
+<th title="КП1">КП1</th>
+<th title="Фінішний час">Фініш</th>
+<th title="Загальний час">Загальний час</th>
+<th>Стать</th>
+<th>Статус</th>
+{% if user.is_authenticated %}
+<th>Оплата</th>
+<th>Телефон</th>
+<th>Примітки</th>
+<th>Відмітка</th>
+{% endif %}            
+            </tr>
+        </tfoot>
+<tbody>
+{% for rider in list %}
+
+{% if user.is_authenticated %}
+  
+{% if rider.status == True and rider.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.status == False and rider.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+
+{% endif %}
+
+<td>
+{{rider.start_number}}
+</td>
+<td class="lname" rid="{{rider.id}}">{{rider.lname}}</td>
+<td class="fname" rid="{{rider.id}}">{{rider.fname}}</td> 
+<td class="nickname" rid="{{rider.id}}">{{rider.nickname}}</td>
+<td align="center">
+{% if rider.sex = 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td class="city" rid="{{rider.id}}">{{rider.city}}</td>
+<td>{{rider.club}}</td>
+
+<td align="center" class="category"
+{% if rider.category.0 == 1 %} 
+{% if rider.sex = 1 %}
+	style="background-color: yellow;"
+{% else %}
+	style="background-color: pink;"
+{% endif %}
+{% endif %}
+{% if rider.category.0 == 2 %} 
+{% if rider.sex = 1 %}
+style="background-color: blue;"
+{% else %}
+	style="background-color: purple;"
+{% endif %}
+{% endif %}
+{% if rider.category.0 == 3 %} 
+style="background-color: green;"
+{% endif %}
+{% if rider.category.0 == 4 %} 
+style="background-color: red;"
+{% endif %}
+{% if rider.category.0 == 5 %} 
+style="background-color: white;"
+{% endif %}
+
+>
+<!-- {{rider.birthday|date:"Y"}}  --> 
+{{rider.category.0}} <div class="hover-content">{{rider.category.1}}</div> </td>
+
+
+<td align="center">{{rider.bike_type.name}}</td>
+{% comment %}
+<td align="center" rid="{{rider.id}}"> {{rider.start|date:'H:i:s'}} </td>
+{% endcomment %}
+<td align="center" rid="{{rider.id}}"> {{rider__ResultEvent}} </td>
+<td align="center" class="kp1_add" rid="{{rider.id}}"> {{rider.kp1|date:'H:i:s'}} </td>
+<td align="center" class="finish_add" rid="{{rider.id}}"> {{rider.finish|date:'H:i:s'}} </td>
+<td align="center" class="finish_add" rid="{{rider.id}}"> {{rider.get_time_diff}} </td>
+<td align="center">{{rider.sex}}</td>
+{% if user.is_authenticated %}
+	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.status}}</td>
+	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.pay_type}}<div class="hover-content">{{rider.pay_date}}</div></td>
+{% else %}
+	<td align="center">{{rider.status}}</td>
+{% endif %}
+
+{% if user.is_authenticated %}
+	<td class="phone" rid="{{rider.id}}">
+	{{rider.phone}}
+	</td>
+	<td>
+	{{rider.description}}
+	</td>
+	<td class="start_status" rider_id="{{rider.pk}}">
+	{{rider.birthday|date:"d/m/Y"}}
+	{{rider.start_status}}
+	</td>
+{% endif %}
+
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+{% endblock %}
+
+	

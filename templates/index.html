@@ -119,10 +119,14 @@ $( "#button_login" ).click(function() {
 
 </div>
 
-		<div id="search" >
+		<div id="search">
+		{% if user.is_authenticated %}
+			<form method="post" action="/rider/search/">
+		{% else %}
 			<form method="get" action="">
+		{% endif %}				
 				<fieldset>
-				<input type="text" name="s" id="search-text" size="15" />
+				<input type="text" name="rider_s" id="search-text" size="15" />
 				<input type="submit" id="search-submit" value="Пошук" />
 				</fieldset>
 			</form>

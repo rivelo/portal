@@ -40,11 +40,8 @@ def rider_statistic(event, sex):
 
 @register.filter(name='res_statistic')
 def res_statistic(event_res, sex):
-#    ev = Events()
-    ev = event_res
-    #count = ev.r_count(sex)
-    a = str("count")
-    return a
+    count = event_res.get_sex(sex)
+    return count
 
 @register.assignment_tag #(name='minustwo')
 def get_current_event():
@@ -56,3 +53,8 @@ def get_current_event():
 def has_group(user, group_name): 
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
+
+@register.assignment_tag
+def update_variable(value):
+    """Allows to update existing variable in template"""
+    return value

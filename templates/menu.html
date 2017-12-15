@@ -107,6 +107,7 @@
 	{% ifequal sel_menu "calendar" %}				
 				<li class="current-menu-item"><a  href="/calendar/">Заходи {{year}}</a>
 	<ul>
+	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li> 
       {% get_current_event as event_list %}
       {% for event in event_list %}
       	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
@@ -116,6 +117,7 @@
 	{% else %}			
   <li><a  href="/calendar/">Заходи</a>
     <ul>
+      	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li>    
       {% get_current_event as event_list %}
       {% for event in event_list %}
       	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
@@ -123,6 +125,22 @@
     </ul>
   </li>
 	{% endifequal %}				
+
+{% comment %}
+	{% ifequal sel_menu "calendar" %}				
+				<li class="current-menu-item"><a  href="/news/">Новини {{year}}</a>
+	<ul>
+      	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li>
+	</ul>
+				</li>
+	{% else %}			
+  <li><a  href="/news/">Новини</a>
+    <ul>
+      	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li>
+    </ul>
+  </li>
+	{% endifequal %}				
+{% endcomment %}
 	
 	{% ifequal sel_menu "about" %}				
 				<li class="current-menu-item"><a  href="/about/">Про нас</a></li>
@@ -154,6 +172,7 @@
     </ul>
   </li>
 {% endcomment %}
+
 </ul>
 </nav>
 

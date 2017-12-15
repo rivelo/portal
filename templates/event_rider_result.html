@@ -202,17 +202,18 @@ $(document).ready(function(){
 	rtable.column(-7).visible(false);
 {% endif %}
 
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">стать</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">стать</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Старт</a></div>');
 {% if user.is_authenticated %}
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="18">Примітки</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Телефон</a></div>');
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Оплата</a></div>');
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Дія</a></div>');
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Фініш</a></div>');
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Загальний час</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="17">Телефон</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Оплата</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Дія</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Фініш</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Загальний час</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
 {% endif %}	
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
@@ -241,7 +242,7 @@ $(document).ready(function(){
 {% if kp3 %}
 		var engineColumn = parseInt(aData[14]);
 {% else %}
-			var engineColumn = parseInt(aData[12]);
+			var engineColumn = parseInt(aData[13]);
 {% endif %}           
            if (engineColumn == 1)
                return true;
@@ -262,7 +263,7 @@ $(document).ready(function(){
 {% if kp3 %}
  		var engineColumn = parseInt(aData[14]);
 {% else %} 		
- 		var engineColumn = parseInt(aData[12]); 		
+ 		var engineColumn = parseInt(aData[13]); 		
 {% endif %}
            if (engineColumn == 0)
                return true;
@@ -517,9 +518,106 @@ $("#table_cat5_wrapper").hide();
 
 {% load poll_extras %}
 
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load("current", {packages:["corechart"]});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Тип велосипеду', 'Кількість'],
+{% for bike in list.group_bike %}
+  		['{{bike.reg_event__bike_type__name}}',  {{bike.num_bike}}],
+{% endfor %}
+        ]);
+
+    
+        var options = {
+                title: 'Типи велосипедів учасників',
+                legend: {position: 'labeled', textStyle: {color: 'blue', fontSize: 14}, maxLines: 12, labeledValueText: 'both',}, //'none',
+                pieSliceText: 'percentage',
+                slices: {  4: {offset: 0.2},
+                          2: {offset: 0.1},
+                          8: {offset: 0.1},
+                          3: {offset: 0.1},
+                },
+                pieStartAngle: 20,
+                chartArea:{left:0,top:20,width:'2000',height:'2500'},
+                width: '920',
+                height: '500',
+                is3D: 'True',
+                tooltip: { isHtml: true },
+                //legend: { position: 'labeled' },
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
+        chart.draw(data, options);
+      }
+
+      google.charts.setOnLoadCallback(drawChart_city);      
+      function drawChart_city() {
+          var data = google.visualization.arrayToDataTable([
+            ['Місто', 'Кількість'],
+  {% for city in list.group_city %}
+    		['{{city.reg_event__city}}',  {{city.num_city}}],
+  {% endfor %}
+          ]);
+
+          var options = {
+                  title: 'Міста учасників',
+                  //pieHole: 0.5,
+                  pieSliceText: 'both',
+                  pieStartAngle: 140,
+                  legend: {position: 'labeled', textStyle: {color: 'blue', fontSize: 14}, maxLines: 12, labeledValueText: 'both',}, //'none', position: 'labeled'
+                  chartArea:{left:0,top:20,width:'2000',height:'2500'},
+                  width: '920',
+                  height: '500',
+                  //is3D: 'True',
+                  tooltip: { isHtml: true },
+                  //legend: { position: 'labeled' },
+          };
+
+          var chart = new google.visualization.PieChart(document.getElementById('piechart_3d_city'));
+          chart.draw(data, options);
+         
+        }
+
+      
+      google.charts.setOnLoadCallback(drawChart_sex);      
+      function drawChart_sex() {
+          var data = google.visualization.arrayToDataTable([
+            ['Стать', 'Кількість'],
+            ['Жінок ({{ list|res_statistic:"0" }})',  {{ list|res_statistic:"0" }}],
+    		['Чоловіків ({{ list|res_statistic:"1" }})',  {{ list|res_statistic:"1" }}],
+          ]);
+
+          var options = {
+                  title: '',
+                  //pieHole: 0.5,
+                  pieSliceText: 'both',
+                  slices: {  1: {offset: 0.05},
+			            },
+//                  pieStartAngle: 140,
+                  legend: {position: 'left', textStyle: {color: 'blue', fontSize: 14}, maxLines: 12, labeledValueText: 'both',}, //'none', position: 'labeled'
+                  chartArea:{left:0,top:20,width:'2000',height:'2500'},
+                  width: '650',
+                  height: '500',
+                  is3D: 'True',
+                  tooltip: { isHtml: true },
+                  //legend: { position: 'labeled' },
+          };
+
+          var chart = new google.visualization.PieChart(document.getElementById('piechart_3d_sex'));
+          chart.draw(data, options);
+         
+        }
+      
+    	
+    </script>
+
+
+
 {% block content %}
-
-
 
 
 <!-- dialog for client message -->
@@ -744,26 +842,31 @@ style="background-color: white;"
     <li><a href="#tabs-3">Велосипед</a></li>
     <li><a href="#tabs-4">Інше</a></li>
   </ul>
-  <div id="tabs-1">
-    <p>
-    жінок - {{ list|res_statistic:"0" }}
-	<br>
-	чоловіків - {{ event|res_statistic:"1" }}
-    </p>
+  <div id="tabs-1" style="width: 600px; height: 520px;">
+    <div id="piechart_3d_sex" style="width: 100%; height: 100%;">	</div>
   </div>
-  <div id="tabs-2">
+  <div id="tabs-2" style="width: 100%; height: 500px;">
+{% comment %}
 	<p>
-	{% for city in list.riders_city %}
-		{{city.city}} - {{city.num_city}}<br>
-	{% endfor %}
-	</p>
+	{% for city in list.group_city %}
+    		{{city.reg_event__city}} - {{city.num_city}} <br>
+  	{% endfor %}
+  	</p>
+{% endcomment %}  	
+	<div id="piechart_3d_city" style="width: 100%; height: 100%;">	</div>
   </div>
-  <div id="tabs-3">
-    <p>
+  <div id="tabs-3" style="width: 100%; height: 500px;">
+	<div id="piechart_3d" style="width: 100%; height: 100%;">	</div>
+{% comment %}
+    {% for bike in list.group_bike %}
+		{{bike.reg_event__bike_type__name}} - {{bike.num_bike}}<br>
+	{% endfor %}
+    
 	{% for bike in event.riders_bike %}
 		{{bike.bike_type__name}} - {{bike.num_bike}}<br>
 	{% endfor %}
-    </p>
+{% endcomment %}	
+    
   </div>
   <div id="tabs-4">
     <p>
