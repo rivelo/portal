@@ -92,7 +92,7 @@ hr { display: none; }
 
 #menu {
 	float: left;
-	width: 640px;
+	width: 650px;
 	height: 40px;
 }
 
@@ -138,14 +138,14 @@ hr { display: none; }
 
 #search {
 	float: right;
-	width: 305px;
+	width: 255px;
 	height: 40px;
 }
 
 #search form {
 	float: right;
 	margin: 0;
-	padding: 12px 20px 0 0;
+	padding: 12px 12px 0 0;
 }
 
 #search fieldset {

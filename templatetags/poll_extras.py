@@ -49,6 +49,19 @@ def get_current_event():
     event = Events.objects.filter(date__year = c_year)
     return event
 
+@register.assignment_tag #(name='minustwo')
+def get_archive_event():
+    c_year = datetime.datetime.now().year
+    cn = datetime.datetime(c_year, 1, 1)
+     #now-datetime.timedelta(days=360)
+    event = Events.objects.filter(date__lt=cn).order_by('date') # date__year__lte = c_year).order_by('date')
+    return event
+
+@register.assignment_tag #(name='minustwo')
+def get_current_year():
+    c_year = datetime.datetime.now().year
+    return c_year
+
 @register.filter(name='has_group') 
 def has_group(user, group_name): 
     group = Group.objects.get(name=group_name) 

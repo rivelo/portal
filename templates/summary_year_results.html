@@ -297,8 +297,10 @@ $(document).ready(function(){
         } );
     } );
     
-	rtable.column(-1).visible(false); {# phone #} 
+
+    rtable.column(-1).visible(false); {# phone #} 
 	rtable.column(6).visible(false); {# bicycle type #}
+	rtable.column(4).visible(false);
 	
 	
 {% if user.is_authenticated %}
@@ -307,12 +309,12 @@ $(document).ready(function(){
 	rtable.column(-1).visible(false);
 {% endif %}
 
-	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">стать</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="3">Місто</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="1">Нік</a></div>');
-{% if user.is_authenticated %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Команда</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Велосипед</a></div>');
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">стать</a></div>');
+{% if user.is_authenticated %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-1">Телефон</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-3">К-ть Марафонів</a></div>');
 
@@ -555,8 +557,6 @@ $("#table_cat1_wrapper").hide();
 
 
 {% block content %}
-
-
 
 
 <!-- dialog for client message -->

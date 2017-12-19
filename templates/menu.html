@@ -82,6 +82,7 @@
 {
 	display:block
 }
+
 </style>
 
 
@@ -104,10 +105,23 @@
 
 {% load poll_extras %}
 
+{% get_current_year as cur_year %}
 	{% ifequal sel_menu "calendar" %}				
 				<li class="current-menu-item"><a  href="/calendar/">Заходи {{year}}</a>
 	<ul>
-	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li> 
+	<li><a href="{% url 'calendar-year' cur_year|add:"-1" %}">Архів заходів {{cur_year|add:"-1"}}</a>
+	<ul>
+      {% get_archive_event as arch_event_list %}
+      {% for event in arch_event_list %}
+      	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
+      {% endfor %}
+	</ul>
+	
+	</li>
+	
+	<li><a href="{% url 'year-result' cur_year %}">Результати серії марафонів</a></li>
+
+	</li> 
       {% get_current_event as event_list %}
       {% for event in event_list %}
       	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
@@ -115,9 +129,9 @@
 	</ul>
 				</li>
 	{% else %}			
-  <li><a  href="/calendar/">Заходи</a>
+  <li><a  href="/calendar/">Заходи</a> {# {cur_year} #}
     <ul>
-      	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li>    
+      	<li><a href="{% url 'year-result' cur_year %}">Результати серії марафонів</a></li>    
       {% get_current_event as event_list %}
       {% for event in event_list %}
       	<li><a href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
@@ -126,20 +140,23 @@
   </li>
 	{% endifequal %}				
 
-{% comment %}
-	{% ifequal sel_menu "calendar" %}				
-				<li class="current-menu-item"><a  href="/news/">Новини {{year}}</a>
+
+	{% ifequal sel_menu "shop" %}				
+		<li class="current-menu-item"><a  href="/shop/">Магазин</a>
 	<ul>
-      	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li>
+      	<li><a href="{% url 'bicycle-company' %}">Велосипеди</a></li>
+      	<li><a href="{% url 'components-company' %}">Запчастини</a></li>
 	</ul>
 				</li>
 	{% else %}			
-  <li><a  href="/news/">Новини</a>
+  		<li><a  href="/shop/">Магазин</a>
     <ul>
-      	<li><a href="{% url 'year-result' %}">Результати 3 марафонів</a></li>
+      	<li><a href="{% url 'bicycle-company' %}">Велосипеди</a></li>
+      	<li><a href="{% url 'components-company' %}">Запчастини</a></li>
     </ul>
   </li>
 	{% endifequal %}				
+{% comment %}
 {% endcomment %}
 	
 	{% ifequal sel_menu "about" %}				

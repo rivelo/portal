@@ -210,14 +210,14 @@ def embeded_calendar(year=datetime.date.today().year, month = datetime.date.toda
 #            'prev_month': prev_date, 'next_month': next_date, 'month_events': month_events , 'year': year, 'events_date': list}
     
     
-def calendar_page(request):
+def calendar_page(request, year=datetime.datetime.now().year):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     calendar = embeded_calendar()
     vars = {'weblink': 'event_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
     calendar = embeded_calendar()
     vars.update(calendar)    
-    events = Events.objects.all().order_by('date')
+    events = Events.objects.filter(date__year = year).order_by('date') #.all().order_by('date')
     evnt = {'events': events}
     vars.update(evnt)
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -229,6 +229,7 @@ def calendar_filter(request, year, month=None):
     calendar = embeded_calendar()
     vars = {'weblink': 'event_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
     calendar = embeded_calendar()
+    calendar['year'] = year
     vars.update(calendar)    
     if month == None:
         events = Events.objects.filter(date__year = year).order_by('date')
@@ -804,18 +805,6 @@ def register_to_all(request, hash):
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
-def test_func(request):
-    revent = RegEvent.objects.get(pk = 15)
-    everules = revent.event.rules.all()
-    w = None
-    if request.session.get("registration_subject"):
-        pass
-    else:
-        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Ви успішно відредагували свої дані на марафон ', 'event_rules': everules})
-#    send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
-    return w
-
-
 def event_rider_status(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1098,7 +1087,7 @@ def show_client(request, user_name='rivno100'):
     if user_name == 'pol_sich':        
         client = Client.objects.get(pk = 2010) # поліська січ
         c_invoice = ClientInvoice.objects.filter(client__pk = 2010) #2533 - медовий трейл / 2010 - поліська січ
-    if user_name == '100_mile':        
+    if user_name == '100mile':        
         client = Client.objects.get(pk = 2615) # 100 миль
         c_invoice = ClientInvoice.objects.filter(client__pk = 2615) #2533 - медовий трейл / 2010 - поліська січ
     vars = {'weblink': 'shop_client.html', 'sel_menu': 'calendar', 'list': c_invoice, }    
@@ -1231,40 +1220,94 @@ def regevent_edit(request, id=None):
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
 
 
-def shop_bicycle(request):
-    bs = Bicycle_Store.objects.filter(count__gte = 1)
-    return None
+def shop_bicycle_company(request):
+    bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand__logo', 'model__brand', 'model__brand__name', 'model__brand__id').annotate(brand_c = Count('model__brand'))
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_company': bsc, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
-def year_results(request):
+def shop_bicycle_brand(request, id=None):
+    id = id
+    bsb = Bicycle_Store.objects.filter(count__gte = 1, model__brand__pk = id)
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bybrand': bsb, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def shop_bicycle(request, id):
+    id = id
+    bs = Bicycle_Store.objects.get(id = id)
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle': bs, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def shop_components_company(request):
+    scc = Catalog.objects.filter(count__gte = 1) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__name') #annotate(brand_c = Count('manufacturer__id'))
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_company': scc, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def shop_components_brand(request, id):
+    scb = Catalog.objects.filter(count__gte = 1, manufacturer__id = id).order_by('type') #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    #scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__id') #annotate(brand_c = Count('manufacturer__id'))
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_bybrand': scb, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    
+
+def shop_components_type(request, id):
+    sct = Catalog.objects.filter(count__gte = 1, type__id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    #scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__id') #annotate(brand_c = Count('manufacturer__id'))
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_bytype': sct, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def shop_component(request, id):
+    sc = Catalog.objects.get(id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'component': sc, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    
+
+
+def year_results(request, year=2017):
     id = 4
     evt = Events.objects.get(pk=id)
-    events = Events.objects.filter(date__year = 2017, reg_status = True).order_by('date')
+    events = Events.objects.filter(date__year = year, reg_status = True).order_by('date')
     evt_ids = events.values('id')
-
-    kp2 = False
-    kp3 = False
-#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
     revent = ResultEvent.objects.filter(reg_event__event__in = evt_ids, finish__isnull=False).order_by("reg_event__lname", "-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
-
     #stat_res = revent.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', ).order_by('reg_event__phone').distinct() # annotate(cphone = Count('reg_event__phone')) #.distinct('')
     #stat_res = revent.values('reg_event__fname', 'reg_event__lname', 'reg_event__phone', 'reg_event__birthday').annotate(cphone = Count('reg_event__phone')).order_by("-cphone") #.distinct('')
     #stat_res = revent.values('reg_event__lname', 'reg_event__fname', 'reg_event__phone',).annotate(cphone = Count('reg_event')).order_by("-cphone")
     stat_res = revent.order_by('reg_event__phone')#.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', 'reg_event__birthday', 'reg_event__city', 'reg_event__event', 'reg_event__event__name', 'reg_event__club', 'finish')    
-    
-    #revent = RegEvent.objects.filter(event = id, start_status = True).values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list    
     event_date = evt.date
-
-    #curyear = datetime.datetime.now().year
- #   photo1 = Photo.objects.random()
- #   photo2 = Photo.objects.random()
-#    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
-    #kp3 = ResultEvent.dahl_objects.count() 
-    kp2 = revent.get_sex(0) #.count()
-    kp3 = revent.get_sex(1) #.count()
-    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'kp2': kp2, 'kp3': kp3, 'events': events, 'stat_res': stat_res}    
-#    calendar = embeded_calendar()
-#    vars.update(calendar)        
+    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'stat_res': stat_res, 'year': year}    
     evnt = {'event': evt}
     vars.update(evnt)
     try:
