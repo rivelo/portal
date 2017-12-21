@@ -1220,6 +1220,29 @@ def regevent_edit(request, id=None):
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
 
 
+def year_results(request, year=2017):
+    id = 4
+    evt = Events.objects.get(pk=id)
+    events = Events.objects.filter(date__year = year, reg_status = True).order_by('date')
+    evt_ids = events.values('id')
+    revent = ResultEvent.objects.filter(reg_event__event__in = evt_ids, finish__isnull=False).order_by("reg_event__lname", "-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    #stat_res = revent.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', ).order_by('reg_event__phone').distinct() # annotate(cphone = Count('reg_event__phone')) #.distinct('')
+    #stat_res = revent.values('reg_event__fname', 'reg_event__lname', 'reg_event__phone', 'reg_event__birthday').annotate(cphone = Count('reg_event__phone')).order_by("-cphone") #.distinct('')
+    #stat_res = revent.values('reg_event__lname', 'reg_event__fname', 'reg_event__phone',).annotate(cphone = Count('reg_event')).order_by("-cphone")
+    stat_res = revent.order_by('reg_event__phone')#.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', 'reg_event__birthday', 'reg_event__city', 'reg_event__event', 'reg_event__event__name', 'reg_event__club', 'finish')    
+    event_date = evt.date
+    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'stat_res': stat_res, 'year': year}    
+    evnt = {'event': evt}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+#    pass
+#    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')
+
+
 def shop_bicycle_company(request):
     bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand__logo', 'model__brand', 'model__brand__name', 'model__brand__id').annotate(brand_c = Count('model__brand'))
     photo1 = Photo.objects.random()
@@ -1293,28 +1316,26 @@ def shop_component(request, id):
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def shop_components_sale(request):
+    scs = Catalog.objects.filter(count__gt = 0, sale__gt = 0).order_by('-sale')    
+    #sc = Catalog.objects.filter(id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    
+
+def shop_main(request):
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'shop_main.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
     
 
 
-def year_results(request, year=2017):
-    id = 4
-    evt = Events.objects.get(pk=id)
-    events = Events.objects.filter(date__year = year, reg_status = True).order_by('date')
-    evt_ids = events.values('id')
-    revent = ResultEvent.objects.filter(reg_event__event__in = evt_ids, finish__isnull=False).order_by("reg_event__lname", "-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
-    #stat_res = revent.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', ).order_by('reg_event__phone').distinct() # annotate(cphone = Count('reg_event__phone')) #.distinct('')
-    #stat_res = revent.values('reg_event__fname', 'reg_event__lname', 'reg_event__phone', 'reg_event__birthday').annotate(cphone = Count('reg_event__phone')).order_by("-cphone") #.distinct('')
-    #stat_res = revent.values('reg_event__lname', 'reg_event__fname', 'reg_event__phone',).annotate(cphone = Count('reg_event')).order_by("-cphone")
-    stat_res = revent.order_by('reg_event__phone')#.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', 'reg_event__birthday', 'reg_event__city', 'reg_event__event', 'reg_event__event__name', 'reg_event__club', 'finish')    
-    event_date = evt.date
-    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'stat_res': stat_res, 'year': year}    
-    evnt = {'event': evt}
-    vars.update(evnt)
-    try:
-        del request.session['reg_email']
-    except:
-        error = "Параметр reg_email не існує"
-    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
-   
-#    pass
-#    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')

@@ -1,0 +1,59 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<style>
+      #map {
+        height: 60%;
+      }
+</style>
+
+{% block content %}
+
+<div class="post">
+	
+	<h2 class="title">Магазин</h2>
+           
+	<div class="entry">
+	<p align="justify" style="font-size: 110%">
+	<a href="{% url 'components-company' %}" >Велосипеди </a>
+	<br>			
+	<a href="{% url 'bicycle-company' %}" >Запчастини </a>
+	<br>
+	<a href="{% url 'components-sale' %}" >Акційні товари </a>
+	</p>			
+			
+	</div>
+</div>
+
+	<p align="justify" style="font-size: 110%">
+	Фізичний магазин розташований за адресою: м.Рівне Кавказька 6
+	<br>
+	<a href="/about/" >Контакти >>> </a>
+	</p>
+    <div id="map"></div>
+<script>
+
+function initMap() {
+  var myLatLng = {lat: 50.627250, lng: 26.2509700};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 17,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Веломагазин-майстерня Рівело'
+  });
+}
+
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
+  
+ 
+
+{% endblock %}
+
+
+
+

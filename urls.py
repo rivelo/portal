@@ -58,8 +58,9 @@ urlpatterns = patterns('',
     url(r'^rider/search/$', 'portal.event_calendar.views.rider_search', name='rider-search'),
     url(r'^registration/edit/$', 'portal.event_calendar.views.regevent_edit'),
 
-
+    url(r'^shop/$', 'portal.event_calendar.views.shop_main', name='shop-main'),
     url(r'^components/$', 'portal.event_calendar.views.shop_components_company', name='components-company'),
+    url(r'^components/sale/$', 'portal.event_calendar.views.shop_components_sale', name='components-sale'),
     url(r'^components/(?P<id>\d+)/brand/$', 'portal.event_calendar.views.shop_components_brand', name='components-list-bybrand'),
     url(r'^components/(?P<id>\d+)/type/$', 'portal.event_calendar.views.shop_components_type', name='components-list-bytype'),
     url(r'^component/(?P<id>\d+)/$', 'portal.event_calendar.views.shop_component', name='component-show'),

@@ -1,5 +1,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
 {% if component %}
     <script type="text/javascript" src="/media/jssor.slider.mini.js"></script>
     <!-- use jssor.slider.debug.js instead for debug -->
@@ -224,6 +227,20 @@
 {% endif %}
 
 
+{% if components_sale %}
+{% for component in components_sale %}
+	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
+	<img src="/media/{{component.photo}}" width="200px"/>
+	<p align="justify" style="font-size: 100%"> 
+	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} ({{component.get_realshop_count}})</a><br> Ціна {{component.price}} грн.  Знижка {{component.sale}}%
+	<a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a>
+	</p> 
+	</div>
+{#	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} <img src="/media/{{component.photo}}"/> </a> #}
+{% endfor %}	
+{% endif %}
+
+
 {% if components_bytype %}
 {% for component in components_bytype %}
 	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
@@ -244,7 +261,10 @@
 
 
 {% if component %}
-	<div style="background:white; width:240px; float:left;"><p>Рейтинг користувачів: {{component.rating|default_if_none:"-"}}</p></div>
+	<div style="background:white; width:240px; float:left;"><p>Рейтинг користувачів: 
+	<i class="material-icons" style="font-size:14px;">star</i><i class="material-icons" style="font-size:14px;">star_border</i><i class="material-icons" style="font-size:14px;">star_border</i><i class="material-icons" style="font-size:14px;">star_border</i><i class="material-icons" style="font-size:14px;">star_border</i>
+	{{component.rating|default_if_none:"-"}}</p>
+	</div>
 	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.id}}</p></div>
 	<div style="background:#red; clear:left;"> 
 	<div style="background:white; width:500px; float:left;">

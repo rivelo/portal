@@ -520,6 +520,32 @@ def bicycle_del(request, id):
     return HttpResponseRedirect('/bicycle/view/')
 
 
+def bike_photo_url_add(request):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('id') and POST.has_key('url'):
+                pid = request.POST.get('id')
+                p_url = request.POST.get('url')
+                
+                if Photo.objects.filter(url = p_url):
+                    p = Photo.objects.get(url = p_url)
+                    bike = Bicycle.objects.get(id = pid)
+                    bike.photo_url.add(p)
+                    bike.save()
+                    return HttpResponse("This photo is present. Таке фото вже існує", content_type="text/plain;charset=UTF-8")
+                
+                bp = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
+                bp.save()
+                bike = Bicycle.objects.get(id = pid)
+                bike.photo_url.add(bp)
+                bike.save()
+    search = "ok"
+    return HttpResponse(search, content_type="text/plain")
+
+
 def bicycle_list(request, year=None, brand=None, percent=None):
     #yyy = None
     if year == None:
@@ -860,6 +886,8 @@ def bicycle_sale_del(request, id):
 
 def bicycle_sale_list(request, year=False, month=False, id=None):
     list = None
+    if (year != '') & (month == False):
+        list = Bicycle_Sale.objects.filter(date__year=year).order_by('model__model__brand', 'date')
     if (year==False) & (month==False):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
@@ -868,18 +896,25 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
             list = Bicycle_Sale.objects.filter(model=id).order_by('date')
         else:
             list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-    else:
-       list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
+    if (year != False) & (month != False):
+        list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
        
+    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+#     Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
+#     Order.objects.filter().extra({'day':"Extract(day from created)"}).values_list('day').annotate(Count('id'))
     psum = 0
     price_summ = 0
+    profit_summ = 0
     service_summ = 0
     for item in list:
-        price_summ = price_summ + item.price
-        psum = psum + item.sum
+        #price_summ = price_summ + item.price
+        price_summ = price_summ + item.price * ((100-item.sale)*0.01)
+        profit_summ = profit_summ + item.get_profit()[1]
+        if item.sum:
+            psum = psum + item.sum
         if item.service == False:
             service_summ =  service_summ + 1
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'pay_sum':psum, 'service_summ':service_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'header_links':header_bike, 'price_summ':price_summ, 'profit_summ':profit_summ, 'pay_sum':psum, 'service_summ':service_summ, 'month': month, 'year':year, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
@@ -895,16 +930,20 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
     else:
        #list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
        list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
-       
+    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')       
     price_summ = 0
     price_opt = 0
+    profit_summ = 0
     service_summ = 0
     for item in list:
-        price_summ = price_summ + item.price
+        #price_summ = price_summ + item.price
+        price_summ = price_summ + item.price * ((100-item.sale)*0.01)
         price_opt = price_opt + item.model.price
+        profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'price_opt': price_opt, 'service_summ':service_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    brand = list[0].model.model.brand.name
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'header_links':header_bike, 'price_opt': price_opt, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_sale_service(request, id=None):
@@ -1115,9 +1154,9 @@ def bicycle_sale_report(request):
 
 def bicycle_sale_report_by_brand(request):
     #list = Bicycle_Order.objects.annotate(bcount=Count("model")) 
-    list = Bicycle_Sale.objects.annotate(bcount=Count("model__model__model")).order_by("model__model__brand")
+    list = Bicycle_Sale.objects.values('model__model__brand__name', 'model__model__brand', 'model__model__brand__id').annotate(bcount=Count("model__model__model")).order_by('-bcount') #("model__model__brand")
 #    objects.filter(date__year=now.year, date__month=now.month).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()    
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html'})    
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]) )    
 
 
 def bicycle_order_add(request):
@@ -2491,7 +2530,7 @@ def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     #url1=request.META['HTTP_REFERER']
     if request.method == 'POST':
-        form = CatalogForm(request.POST, instance=a)
+        form = CatalogForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
             manufacturer = form.cleaned_data['manufacturer']
             type = form.cleaned_data['type']
@@ -3220,6 +3259,8 @@ def client_invoice_delete(request, id=None):
 
 
 def client_invoice_view(request, month=None, year=None, day=None, id=None):
+    # upd = ClientInvoice.objects.filter(sale = None).update(sale=0) # update recors with sale = 0
+    
     if year == None:
         year = datetime.datetime.now().year
     if month == None:
@@ -3227,19 +3268,25 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None):
 
     if day == None:
         day = datetime.datetime.now().day
-        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+#        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id")
     else:
         if day == 'all':
-            list = ClientInvoice.objects.filter(date__year=year, date__month=month).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+#            list = ClientInvoice.objects.filter(date__year=year, date__month=month).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+            list = ClientInvoice.objects.filter(date__year=year, date__month=month).order_by("-date", "-id")            
         else:
-            list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+#            list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+            list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id")            
             day = int(day)
             
     psum = 0
     scount = 0
+    sprofit = 0
     for item in list:
-        psum = psum + item['sum']
-        scount = scount + item['count']
+#        scount = scount + item['count']
+        psum = psum + item.sum
+        scount = scount + item.count
+        sprofit = sprofit + item.get_profit()[1]        
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     
     paginator = Paginator(list, 15)
@@ -3255,7 +3302,7 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None):
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
             
-    return render_to_response('index.html', {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_invoice_lookup(request, client_id):

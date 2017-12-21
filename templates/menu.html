@@ -146,6 +146,7 @@
 	<ul>
       	<li><a href="{% url 'bicycle-company' %}">Велосипеди</a></li>
       	<li><a href="{% url 'components-company' %}">Запчастини</a></li>
+      	<li><a href="{% url 'components-sale' %}" >Акційні товари </a></li>
 	</ul>
 				</li>
 	{% else %}			
@@ -153,6 +154,7 @@
     <ul>
       	<li><a href="{% url 'bicycle-company' %}">Велосипеди</a></li>
       	<li><a href="{% url 'components-company' %}">Запчастини</a></li>
+      	<li><a href="{% url 'components-sale' %}" >Акційні товари </a></li>
     </ul>
   </li>
 	{% endifequal %}				
