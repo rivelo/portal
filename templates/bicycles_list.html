@@ -298,10 +298,20 @@
 {% if bicycle.model.price != bicycle.get_saleprice %}	
 	<p align="left" style="font-size: 110%; font-weight: bold;"> Нова ціна: {{bicycle.get_saleprice|floatformat:"0"}} грн. </p>
 {% endif %} 
+
 	</div>
 	</div>
+	
 {#	<div style="background:#36E065; clear:left;"> #}
 	<div style="clear:left;">
+	
+	{% if bicycle.model.youtube_url %}
+{#	YOUTUBE = 	{{bicycle.model.youtube_url.all}} <br> #}
+	{% for item in bicycle.model.youtube_val %}
+	<iframe width="325" height="215" src="https://www.youtube.com/embed/{{item}}?rel=0&amp;start=21" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+	{% endfor %}
+	{% endif %}
+		
 	<p align="justify" style="font-size: 135%; font-weight: bold;">Характеристики</p>
 	<p align="justify" style="font-size: 120%">
 	{{bicycle.model.description}}

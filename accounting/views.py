@@ -15,7 +15,7 @@ from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, C
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
-from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay
+from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
@@ -374,79 +374,81 @@ def processUploadedImage(file, dir=''):
     destination.close()        
     return upload_suffix
 
-
-def image_view(request):
-    a = Bicycle()
-    if request.method == 'POST':
-        form = BicycleForm(request.POST, instance=a)
-        if form.is_valid():
-#            name = form.cleaned_data['name']
-#            cm = form.cleaned_data['cm']
-#            inch = form.cleaned_data['inch']
-            Bicycle(name=name, cm=cm, inch=inch).save()
-    
-            return HttpResponseRedirect('/bicycle/view/list/')
-    else:
-        form = BicycleForm(instance=a)
-    
-    items = Bicycle.objects.all()
-    return render_to_response('bicycle.html', {'bicycles':items, 'form': form})
-
-
-def multiuploader(request):
-    if request.method == 'POST':
-        if request.FILES == None:
-            return HttpResponseBadRequest('Must have files attached!')
-
-        #getting file data for farther manipulations
-        file = request.FILES[u'files[]']
-        wrapped_file = UploadedFile(file)
-        filename = wrapped_file.name
-        file_size = wrapped_file.file.size
-
-        #writing file manually into model
-        #because we don't need form of any type.
-        image = Bicycle()
-        image.title=str(filename)
-        image.photo=file
-        image.save()
-
-        #getting url for photo deletion
-        file_delete_url = '/delete/'
-        
-        #getting file url here
-        file_url = '/'
-
-        #getting thumbnail url using sorl-thumbnail
-        im = get_thumbnail(image, "80x80", quality=50)
-        thumb_url = im.url
-
-        #generating json response array
-        result = []
-        result.append({"name":filename, 
-                       "size":file_size, 
-                       "url":file_url, 
-                       "thumbnail_url":thumb_url,
-                       "delete_url":file_delete_url+str(image.pk)+'/', 
-                       "delete_type":"POST",})
-        response_data = simplejson.dumps(result)
-        return HttpResponse(response_data, mimetype='application/json')
-    else: #GET
-        return render_to_response('bicycle.html', 
-                                  {'static_url':settings.MEDIA_URL,
-                                   'open_tv':u'{{',
-                                   'close_tv':u'}}'}, 
-                                  )
-        
-
-def multiuploader_delete(request, pk):
-    if request.method == 'POST':
-        image = get_object_or_404(Bicycle, pk=pk)
-        image.delete()
-        return HttpResponse(str(pk))
-    else:
-        return HttpResponseBadRequest('Only POST accepted')
-    
+#===============================================================================
+# 
+# def image_view(request):
+#     a = Bicycle()
+#     if request.method == 'POST':
+#         form = BicycleForm(request.POST, instance=a)
+#         if form.is_valid():
+# #            name = form.cleaned_data['name']
+# #            cm = form.cleaned_data['cm']
+# #            inch = form.cleaned_data['inch']
+#             Bicycle(name=name, cm=cm, inch=inch).save()
+#     
+#             return HttpResponseRedirect('/bicycle/view/list/')
+#     else:
+#         form = BicycleForm(instance=a)
+#     
+#     items = Bicycle.objects.all()
+#     return render_to_response('bicycle.html', {'bicycles':items, 'form': form})
+# 
+# 
+# def multiuploader(request):
+#     if request.method == 'POST':
+#         if request.FILES == None:
+#             return HttpResponseBadRequest('Must have files attached!')
+# 
+#         #getting file data for farther manipulations
+#         file = request.FILES[u'files[]']
+#         wrapped_file = UploadedFile(file)
+#         filename = wrapped_file.name
+#         file_size = wrapped_file.file.size
+# 
+#         #writing file manually into model
+#         #because we don't need form of any type.
+#         image = Bicycle()
+#         image.title=str(filename)
+#         image.photo=file
+#         image.save()
+# 
+#         #getting url for photo deletion
+#         file_delete_url = '/delete/'
+#         
+#         #getting file url here
+#         file_url = '/'
+# 
+#         #getting thumbnail url using sorl-thumbnail
+#         im = get_thumbnail(image, "80x80", quality=50)
+#         thumb_url = im.url
+# 
+#         #generating json response array
+#         result = []
+#         result.append({"name":filename, 
+#                        "size":file_size, 
+#                        "url":file_url, 
+#                        "thumbnail_url":thumb_url,
+#                        "delete_url":file_delete_url+str(image.pk)+'/', 
+#                        "delete_type":"POST",})
+#         response_data = simplejson.dumps(result)
+#         return HttpResponse(response_data, mimetype='application/json')
+#     else: #GET
+#         return render_to_response('bicycle.html', 
+#                                   {'static_url':settings.MEDIA_URL,
+#                                    'open_tv':u'{{',
+#                                    'close_tv':u'}}'}, 
+#                                   )
+#         
+# 
+# def multiuploader_delete(request, pk):
+#     if request.method == 'POST':
+#         image = get_object_or_404(Bicycle, pk=pk)
+#         image.delete()
+#         return HttpResponse(str(pk))
+#     else:
+#         return HttpResponseBadRequest('Only POST accepted')
+#     
+#===============================================================================
 
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
@@ -1449,7 +1451,7 @@ def dealer_edit(request, id):
             return HttpResponseRedirect('/dealer/view/')
     else:
         form = DealerForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
  
 def dealer_del(request, id):
@@ -1462,7 +1464,7 @@ def dealer_del(request, id):
 def dealer_list(request):
     list = Dealer.objects.all()
     #return render_to_response('dealer_list.html', {'dealers': list.values_list()})
-    return render_to_response('index.html', {'dealers': list, 'weblink': 'dealer_list.html'})
+    return render_to_response('index.html', {'dealers': list, 'weblink': 'dealer_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_manager_add(request):
@@ -1480,7 +1482,7 @@ def dealer_manager_add(request):
     else:
         form = DealerManagerForm(instance = a)
     #return render_to_response('dealer-manager.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer-manager.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'dealer-manager.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_manager_edit(request, id):
@@ -1492,7 +1494,7 @@ def dealer_manager_edit(request, id):
             return HttpResponseRedirect('/dealer-manager/view/')
     else:
         form = DealerManagerForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer-manager.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'dealer-manager.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
  
 def dealer_manager_del(request, id):
@@ -1503,9 +1505,9 @@ def dealer_manager_del(request, id):
  
  
 def dealer_manager_list(request):
-    list = DealerManager.objects.all()
+    list = DealerManager.objects.all().order_by('company')
     #return render_to_response('dealer-manager_list.html', {'dealer_managers': list.values_list()})
-    return render_to_response('index.html', {'dealer_managers': list, 'weblink': 'dealer-manager_list.html'})
+    return render_to_response('index.html', {'dealer_managers': list, 'weblink': 'dealer-manager_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_payment_add(request):
@@ -1573,7 +1575,7 @@ def dealer_payment_del(request, id):
  
 def dealer_payment_list(request):
     list = DealerPayment.objects.all()
-    return render_to_response('index.html', {'dealer_payment': list, 'weblink': 'dealer_payment_list.html'})
+    return render_to_response('index.html', {'dealer_payment': list, 'weblink': 'dealer_payment_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_invoice_add(request):
@@ -1811,18 +1813,18 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name']
-        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
     elif  'id' in request.GET and request.GET['id']:
         id = request.GET['id']
-        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
-        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         company_name = Manufacturer.objects.get(id=mid)
     if cid:
-        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         cat_name = type_list.get(id=cid)
     if isale == True:
-        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
 
     
     if limit == 0:
@@ -1831,7 +1833,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         except:
             list = InvoiceComponentList.objects.none()        
     else:
-        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
 #        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         list = list[:limit]
     
@@ -2087,7 +2089,7 @@ def invoice_report(request):
     
     return render_to_response('index.html', {'list': list, 'company_list':company_list, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+# товар в накладній
 def invoice_id_list(request, id=None, limit=0):
 #    query = "select id, count(*) as ccount, invoice_id as invoice, sum(price*count) as suma from accounting_invoicecomponentlist group by invoice_id;"
     query = '''select accounting_invoicecomponentlist.id, count(*) as ccount, accounting_invoicecomponentlist.invoice_id as invoice, sum(accounting_invoicecomponentlist.price*accounting_invoicecomponentlist.count) as suma, accounting_dealerinvoice.origin_id
@@ -2107,17 +2109,19 @@ def invoice_id_list(request, id=None, limit=0):
 
     list = None
     if limit == 0:
-        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id').values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
+        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')#.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
     else:
-        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id').values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')[:limit]
+        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')#.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')[:limit]
     psum = 0
     optsum = 0
     scount = 0
     for item in list:
-        psum = psum + (item['catalog__price'] * item['count'])
-        #psum = psum + (item.catalog.price * item.count)
-        optsum = optsum + (item['count'] * item['price'])
-        scount = scount + item['count']
+        #psum = psum + (item['catalog__price'] * item['count'])
+        psum = psum + (item.catalog.price * item.count)
+        #optsum = optsum + (item['count'] * item['price'])
+        optsum = optsum + (item.get_uaprice() * item.count)
+        #scount = scount + item['count']
+        scount = scount + item.count
     dinvoice = DealerInvoice.objects.get(id=id)    
     
     #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
@@ -2125,16 +2129,17 @@ def invoice_id_list(request, id=None, limit=0):
 
 
 def invoice_cat_id_list(request, cid=None, limit=0):
-    list = InvoiceComponentList.objects.filter(catalog=cid).order_by('-id').values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
+    list = InvoiceComponentList.objects.filter(catalog=cid).order_by('-id') #.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
     psum = 0
     scount = 0
+    optsum = 0
     for item in list:
-        psum = psum + (item['catalog__price'] * item['count'])
-        scount = scount + item['count']
-        #psum = psum + (item.catalog.price * item.count)
-        #scount = scount + item.count
-        
-    return render_to_response('index.html', {'list': list, 'allpricesum':psum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#        psum = psum + (item['catalog__price'] * item['count'])
+#        scount = scount + item['count']
+        psum = psum + (item.catalog.price * item.count)
+        scount = scount + item.count
+        optsum = optsum + (item.get_uaprice() * item.count)
+    return render_to_response('index.html', {'list': list, 'allpricesum':psum, 'countsum': scount, 'alloptsum':optsum, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoice_import_form(request):
@@ -3323,12 +3328,16 @@ def client_invoice_lookup(request, client_id):
 
 
 def client_invoice_id(request, id):
-    list = ClientInvoice.objects.filter(catalog__id=id).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
+    list = ClientInvoice.objects.filter(catalog__id=id).order_by("-date", "-id") #.values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
     psum = 0
     scount = 0
+    sprofit = 0
     for item in list:
-        psum = psum + item['sum']
-        scount = scount + item['count']
+#        psum = psum + item['sum']
+#        scount = scount + item['count']
+        psum = psum + item.sum
+        scount = scount + item.count
+        sprofit = sprofit + item.get_profit()[1]  
     
     paginator = Paginator(list, 15)
     page = request.GET.get('page')
@@ -3343,7 +3352,7 @@ def client_invoice_id(request, id):
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
     
-    return render_to_response('index.html', {'buycomponents': cinvoices, 'sumall':psum, 'countall':scount, 'weblink': 'clientinvoice_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'buycomponents': cinvoices, 'sumall':psum, 'countall':scount, 'sum_profit':sprofit, 'weblink': 'clientinvoice_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_invoice_check(request, param=None):
@@ -3890,6 +3899,22 @@ def workstatus_list(request):
     return render_to_response('index.html', {'workstatus': list.values_list(), 'weblink': 'workstatus_list.html'})
 
 
+def phonestatus_list(request):
+    search = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                q = request.POST.get( 'id' )
+        search = dict ((o.pk, o.name) for o in PhoneStatus.objects.all())
+        return HttpResponse(simplejson.dumps(search), content_type="application/json")
+    else:
+        message = "Error"
+        return message
+ #   list = PhoneStatus.objects.all()
+#    return render_to_response('index.html', {'phonestatus': list.values_list(), 'weblink': 'workstatus_list.html'})
+
+
 def workstatus_delete(request, id):
     obj = WorkStatus.objects.get(id=id)
     del_logging(obj)
@@ -3912,11 +3937,12 @@ def workticket_add(request, id=None):
             date = form.cleaned_data['date']
             end_date = form.cleaned_data['end_date']
             status = form.cleaned_data['status']
+            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
             user = form.cleaned_data['user']
             if user == '' or user == None:
                 user = request.user 
-            WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+            WorkTicket(client=client, date=date, end_date=end_date, status=status, phone_status=phone_status, description=description, user=user).save()
             return HttpResponseRedirect('/workticket/view/')
     else:
         #form = WorkTicketForm()
@@ -3925,7 +3951,6 @@ def workticket_add(request, id=None):
             form = WorkTicketForm(initial={'client': client.id, 'status': 1})
         else:
             form = WorkTicketForm(initial={'date': datetime.datetime.today(), 'status': 1, 'end_date': datetime.datetime.now()+datetime.timedelta(3)})
-        
         
     return render_to_response('index.html', {'form': form, 'weblink': 'workticket.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -3943,6 +3968,14 @@ def workticket_edit(request, id=None):
                 obj.status = WorkStatus.objects.get(pk = p)
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('status__name', flat=True)
+                return HttpResponse(c)
+            if POST.has_key('id_wp'):
+                id = request.POST.get('id_wp')
+                p = request.POST.get('value')
+                obj = WorkTicket.objects.get(pk = id)
+                obj.phone_status = PhoneStatus.objects.get(pk = p)
+                obj.save() 
+                c = WorkTicket.objects.filter(pk = id).values_list('phone_status__name', flat=True)
                 return HttpResponse(c)
             if POST.has_key('desc_w'):
                 id = request.POST.get('desc_w')
@@ -3963,11 +3996,12 @@ def workticket_edit(request, id=None):
             date = form.cleaned_data['date']
             end_date = form.cleaned_data['end_date']
             status = form.cleaned_data['status']
+            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
             user = form.cleaned_data['user']
             if request.user.is_authenticated():
                 user = request.user
-            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, phone_status=phone_status, description=description, user=user).save()
             return HttpResponseRedirect('/workticket/view/')
     else:
         form = WorkTicketForm(instance=a)

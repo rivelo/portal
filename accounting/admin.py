@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from portal.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size
+from portal.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube , PhoneStatus
 
 
 
@@ -85,7 +85,34 @@ class Wheel_SizeAdmin(admin.ModelAdmin):
 admin.site.register(Wheel_Size, Wheel_SizeAdmin)
 
 
+class Bicycle_StorageAdmin(admin.ModelAdmin):
+    pass
 
+admin.site.register(Bicycle_Storage, Bicycle_StorageAdmin)
+
+
+class Bicycle_PhotoAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Bicycle_Photo, Bicycle_PhotoAdmin)
+
+
+class GroupTypeAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(GroupType, GroupTypeAdmin)
+
+
+class YouTubeAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(YouTube, YouTubeAdmin)
+
+
+class PhoneStatusAdmin(admin.ModelAdmin):
+    pass 
+
+admin.site.register(PhoneStatus, PhoneStatusAdmin)
 
 
 

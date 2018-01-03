@@ -525,8 +525,8 @@ $("#table_cat1_wrapper").hide();
       function drawChart_sex() {
           var data = google.visualization.arrayToDataTable([
             ['Стать', 'Кількість'],
-            ['Жінок ({{ list|res_statistic:"0" }})',  {{ list|res_statistic:"0" }}],
-    		['Чоловіків ({{ list|res_statistic:"1" }})',  {{ list|res_statistic:"1" }}],
+            ['Жінок ({{female}} {# list|res_statistic:"0" #})', {#female#} {{ list|res_statistic:"0" }}],
+    		['Чоловіків ({{male}} {# list|res_statistic:"1" #})', {{male}} {# list|res_statistic:"1" #}],
           ]);
 
           var options = {

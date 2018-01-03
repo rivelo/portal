@@ -1231,7 +1231,11 @@ def year_results(request, year=2017):
     #stat_res = revent.values('reg_event__lname', 'reg_event__fname', 'reg_event__phone',).annotate(cphone = Count('reg_event')).order_by("-cphone")
     stat_res = revent.order_by('reg_event__phone')#.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', 'reg_event__birthday', 'reg_event__city', 'reg_event__event', 'reg_event__event__name', 'reg_event__club', 'finish')    
     event_date = evt.date
-    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'stat_res': stat_res, 'year': year}    
+    #male = ResultEvent.male_objects.all()
+    male = revent.active_for_account(1).count()
+    #female = ResultEvent.female_objects.all()
+    female = revent.active_for_account(0).count()
+    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'male':male, 'female':female, 'stat_res': stat_res, 'year': year}    
     evnt = {'event': evt}
     vars.update(evnt)
     try:

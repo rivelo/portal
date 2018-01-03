@@ -258,13 +258,13 @@ class SexManager(models.Manager):
         count = r.count()
         return count
 
-class DahlBookManager(models.Manager):
-    def get_queryset(self):
-        return super(DahlBookManager, self).get_queryset().filter(reg_event__sex=1)
-
 class MaleManager(models.Manager):
     def get_queryset(self):
-        return super(MaleManager, self).get_queryset().filter(reg_event__sex=0)
+        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1).count()
+
+class FemaleManager(models.Manager):
+    def get_queryset(self):
+        return super(FemaleManager, self).get_queryset().filter(reg_event__sex=0).count()
 
 class CustomQuerySet(models.query.QuerySet):
     def get_sex(self, sex=0):
@@ -275,7 +275,37 @@ class CustomQuerySet(models.query.QuerySet):
 
     def group_bike(self):
         return self.values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
+
+class CustomManager(models.Manager):
+    def get_query_set(self):
+        model = models.get_model(self.model._meta.app_label, self.model._meta.object_name)
+        return CustomQuerySet(model)
+
+    def __getattr__(self, attr, *args):
+        try:
+            return getattr(self.__class__, attr, *args)
+        except AttributeError:
+            return getattr(self.get_query_set(), attr, *args)
+
+class CustomQuerySetManager(models.Manager):
+    """A re-usable Manager to access a custom QuerySet"""
+    def __getattr__(self, attr, *args):
+        try:
+            return getattr(self.__class__, attr, *args)
+        except AttributeError:
+            # don't delegate internal methods to the queryset
+            if attr.startswith('__') and attr.endswith('__'):
+                raise
+            return getattr(self.get_query_set(), attr, *args)
+
+    def get_query_set(self):
+        return self.model.QuerySet(self.model, using=self._db)
     
+class filterManager(models.Manager):
+  def get_query_set(self):
+    return super(filterManager, self).get_query_set().all()#filter(name='troy')
+
+from django.db.models.query import QuerySet
     
 class ResultEvent (models.Model):
     reg_event = models.ForeignKey(RegEvent, blank=True, null=True, on_delete=models.SET_NULL)    
@@ -286,11 +316,14 @@ class ResultEvent (models.Model):
     kp3 = models.DateTimeField(blank = True, null = True)
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
-    objects = models.Manager() # The default manager.
+#    objects = filterManager()
+    objects = CustomQuerySetManager()
+    #objects = models.Manager() # The default manager.
     male_objects = MaleManager() # The specific manager.
-    dahl_objects = DahlBookManager() 
+    female_objects = FemaleManager() 
+    #people = CustomManager()
     #people = CustomQuerySet.as_manager()
-    objects = CustomQuerySet.as_manager()
+    #objects = CustomQuerySet.as_manager()
 
     def get_time_diff(self):
         if self.start == None:
@@ -299,7 +332,6 @@ class ResultEvent (models.Model):
             return "DNF"
         res = self.finish - self.start
         return str(res)   # Assuming dt2 is the more recent time
- 
    
     def riders_city(self):
         r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
@@ -312,6 +344,23 @@ class ResultEvent (models.Model):
  
     def __unicode__(self):
         return u"%s - [%s]" % (self.reg_event, self.finish)
+
+    class QuerySet(QuerySet):
+        def active_for_account(self, sex, *args, **kwargs):
+            return self.filter(reg_event__sex=sex) #filter(account=account, deleted=False, *args, **kwargs)
+ 
+        def get_sex(self, sex=0, *args, **kwargs):
+            return self.filter(reg_event__sex=sex).count()
+
+        def group_city(self, *args, **kwargs):
+            return self.values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
+
+        def group_bike(self, *args, **kwargs):
+            return self.values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
+
+ 
+    class Admin:
+        manager = filterManager()
  
     class Meta:
         ordering = ["reg_event", "finish"]    
