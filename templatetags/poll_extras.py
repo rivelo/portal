@@ -40,7 +40,7 @@ def rider_statistic(event, sex):
 
 @register.filter(name='res_statistic')
 def res_statistic(event_res, sex):
-    count = event_res.riders_count(sex)
+    count = event_res.get_sex(sex)
     return count
 
 @register.assignment_tag #(name='minustwo')
