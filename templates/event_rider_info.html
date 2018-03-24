@@ -52,7 +52,7 @@ label {float:left; padding-right:10px;}
 
 .urlcss a:hover, .urlcss a:active {
     background-color: #00dd37;
-
+}
 
 </style>
 
@@ -79,7 +79,7 @@ label {float:left; padding-right:10px;}
 </div>
 {% endif %}
 {% if reg_ok %}
-<h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}"</h2>
+<h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}" [{{rider.event.date}}]</h2>
 </div>	
 	{% if rider.event.icon %}
 	<div style="float:right;">
@@ -98,10 +98,11 @@ label {float:left; padding-right:10px;}
 	{% endif %}
 {% endif %}
 	
+<div style="clear:left;">
 <ul style="font-size:14; padding: 0px 0 0 20px;">
 <h3>Оплату марафону можна здійснити:</h3>
 <li>
- на картку приватбанку (4323 3552 0025 8937 - Панчук Ігор)
+ на картку А-банку (4323 3552 0025 8937 - Панчук Ігор)
 </li>
 <li> 
 оплатити в магазині <a href="http://www.rivelo.com.ua/about/" >Рівело </a> (місто Рівне, вул.Кавказька 6 ) </h3>
@@ -118,7 +119,7 @@ label {float:left; padding-right:10px;}
 {% endfor %}
 * можливість вибрати стартовий номер <b>+5грн</b>
 </ul>
-
+</div>
 
 <br>
 
@@ -128,7 +129,7 @@ label {float:left; padding-right:10px;}
 {% for reg_evnt in reg_event_list %}
 <h3><img src="/media/{{reg_evnt.icon}}"> {{reg_evnt.name}} <input type="checkbox" name="{{reg_evnt.pk}}" value="Bike"></h3>  
 {% endfor %}
-  <input type="submit" value="Submit">
+<input type="submit" value="Submit">
 </form>
 </div>
 {% endif %}
@@ -212,23 +213,23 @@ label {float:left; padding-right:10px;}
 {% if thismail or add_pay %}
 <div class="urlcss" style="float:none; clear:both;">
 <h4>Ви можете виконати наступні дії:</h4> 
-<a href="{{ default_domain }}{% url 'portal.event_calendar.views.edit_reg'  rider.pk rider.reg_code %}">Змінити дані</a><br>
-<a href="{{ default_domain }}{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %}" >Список зареєстрованих учасників</a><br>
+<a href="{{ default_domain }}{% url 'event-registration-edit'  rider.pk rider.reg_code %}">Змінити дані</a><br>
+<a href="{{ default_domain }}{% url 'event-rider-list'  rider.event.pk %}" >Список зареєстрованих учасників</a><br>
 <a href="{{ default_domain }}{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
 <a href="{{ default_domain }}{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a>
 </div>
 {% endif %}
 {% if reg_ok %}         
 <div class="urlcss" style="float:none;">
-<a href="{% url 'portal.event_calendar.views.edit_reg'  rider.pk rider.reg_code %}">Змінити дані</a><br>
-<a href="{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %} " >Список зареєстрованих учасників</a><br>
+<a href="{% url 'event-registration-edit'  rider.pk rider.reg_code %}">Змінити дані</a><br>
+<a href="{% url 'event-rider-list'  rider.event.pk %} " >Список зареєстрованих учасників</a><br>
 <a href="{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
 <a href="{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a>
 </div>
 {% endif %}
 {% if register_all %}
 <div class="urlcss" style="float:none;">
-<a href="{{ default_domain }}{% url 'portal.event_calendar.views.event_reg_list'  rider.event.pk %}" >Зареєструватись</a><br>
+<a href="{{ default_domain }}{% url 'event-rider-list'  rider.event.pk %}" >Зареєструватись</a><br>
 </div>
 {% endif %}
 

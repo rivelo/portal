@@ -73,12 +73,15 @@ class Events (models.Model):
     name = models.CharField(max_length=255)
     type = models.ManyToManyField(EventType, blank=True) # ForeignKey(Type, blank=True, null=True, on_delete=models.SET_NULL)
     text = models.TextField()
+    #evnt_rules = models.TextField()
+    #text_invite = models.TextField()
     url = models.URLField(max_length=255, blank=True)
     reg_url = models.CharField(max_length=255, blank=True) # registration url
     reg_status = models.BooleanField(default=False)
     photo = models.ImageField(upload_to = 'upload/events/', max_length=255, blank=True, null=True) # poster
     icon = models.ImageField(upload_to = 'upload/events/', max_length=255, blank=True, null=True)
     forum_url = models.URLField(max_length=255, blank=True, null=True)
+    #facebook_url = models.URLField(max_length=255, blank=True, null=True)
     gps_track = models.CharField(max_length=255, blank=True) # url to gps   
     #    coordinates
     lat = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
@@ -98,6 +101,11 @@ class Events (models.Model):
             return ldays
         else:
             return 0
+
+    def real_day_left(self):
+        today = datetime.datetime.today()
+        ldays = (self.date - today).days + 1
+        return ldays
 
     def riders_count(self, sex=None):
         if sex != None:
@@ -131,9 +139,22 @@ class Events (models.Model):
 
     def cur_reg_sum(self, today=datetime.date.today()):
         #today = datetime.date.today()
-        rule = self.rules.get(date_in__lte = today, date_out__gte = today)
+        try:
+            rule = self.rules.get(date_in__lte = today, date_out__gte = today)
+        except:
+            today=datetime.date.today()
+            rule = self.rules.get(date_in__lte = today, date_out__gte = today)
+            #rule = 0
+        #    return 0
 #        if (today >= self.date_in) and (today <= self.date_out):
         return rule.sum
+
+    def result_present(self):
+        res = ResultEvent.objects.filter(reg_event__event = self.pk)
+        if res:
+            return True
+        else: 
+            return False
     
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:
@@ -248,7 +269,7 @@ class RegEvent (models.Model):
 #         ordering = ["name"]        
 #     
 #===============================================================================
-class SexManager(models.Manager):
+'''class SexManager(models.Manager):
      def riders_count(self):
         sex = 1
         if sex != None:
@@ -257,35 +278,43 @@ class SexManager(models.Manager):
             r = self.regevent_set.all()
         count = r.count()
         return count
-
+'''
 class MaleManager(models.Manager):
     def get_queryset(self):
         return super(MaleManager, self).get_queryset().filter(reg_event__sex=1).count()
+
+    def get_male(self, event):
+        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1, reg_event__event__pk=event).count()
+
+    def get_male_byyear(self, year):
+        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1, reg_event__event__date__year = year).count()
 
 class FemaleManager(models.Manager):
     def get_queryset(self):
         return super(FemaleManager, self).get_queryset().filter(reg_event__sex=0).count()
 
-class CustomQuerySet(models.query.QuerySet):
-    def get_sex(self, sex=0):
-        return self.filter(reg_event__sex=sex).count()
+    def get_female(self, event):
+        return super(FemaleManager, self).get_queryset().filter(reg_event__sex=0, reg_event__event__pk=event).count()
 
-    def group_city(self):
-        return self.values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
+    def get_female_byyear(self, year):
+        return super(FemaleManager, self).get_queryset().filter(reg_event__sex=0, reg_event__event__date__year = year).count()
 
-    def group_bike(self):
-        return self.values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
 
-class CustomManager(models.Manager):
-    def get_query_set(self):
-        model = models.get_model(self.model._meta.app_label, self.model._meta.object_name)
-        return CustomQuerySet(model)
+class CityManager(models.Manager):
+    def get_citys(self, event):
+        return super(CityManager, self).get_queryset().filter(reg_event__event__pk = event).values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
 
-    def __getattr__(self, attr, *args):
-        try:
-            return getattr(self.__class__, attr, *args)
-        except AttributeError:
-            return getattr(self.get_query_set(), attr, *args)
+    def get_citys_byyear(self, year):
+        return super(CityManager, self).get_queryset().filter(reg_event__event__date__year = year).values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
+
+
+class BikesManager(models.Manager):
+    def get_bikes(self, event):
+        return super(BikesManager, self).get_queryset().filter(reg_event__event__pk = event).values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
+
+    def get_bikes_byyear(self, year):
+        return super(BikesManager, self).get_queryset().filter(reg_event__event__date__year = year).exclude(finish__isnull=True).values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
+
 
 class CustomQuerySetManager(models.Manager):
     """A re-usable Manager to access a custom QuerySet"""
@@ -302,10 +331,24 @@ class CustomQuerySetManager(models.Manager):
         return self.model.QuerySet(self.model, using=self._db)
     
 class filterManager(models.Manager):
-  def get_query_set(self):
-    return super(filterManager, self).get_query_set().all()#filter(name='troy')
+  def get_queryset(self):
+      return super(filterManager, self).get_query_set().all()#filter(name='troy')
 
 from django.db.models.query import QuerySet
+
+#    class QuerySet(QuerySet):
+class GroupQuerySet(QuerySet):        
+    def active_for_account(self, sex, *args, **kwargs):
+        return self.filter(reg_event__sex=sex) #filter(account=account, deleted=False, *args, **kwargs)
+ 
+    def get_sex(self, sex=0, *args, **kwargs):
+        return self.filter(reg_event__sex=sex).count()
+
+    def group_city(self, *args, **kwargs):
+        return self.values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
+
+    def group_bike(self, *args, **kwargs):
+        return self.values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
     
 class ResultEvent (models.Model):
     reg_event = models.ForeignKey(RegEvent, blank=True, null=True, on_delete=models.SET_NULL)    
@@ -317,13 +360,14 @@ class ResultEvent (models.Model):
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
 #    objects = filterManager()
-    objects = CustomQuerySetManager()
-    #objects = models.Manager() # The default manager.
+    #objects = CustomQuerySetManager()
+    objects = models.Manager() # The default manager.
     male_objects = MaleManager() # The specific manager.
     female_objects = FemaleManager() 
-    #people = CustomManager()
-    #people = CustomQuerySet.as_manager()
-    #objects = CustomQuerySet.as_manager()
+    group_city = CityManager()
+#    people = CustomManager()
+    group_bikes = BikesManager()
+    #p_groups = GroupQuerySet.as_manager()
 
     def get_time_diff(self):
         if self.start == None:
@@ -333,9 +377,9 @@ class ResultEvent (models.Model):
         res = self.finish - self.start
         return str(res)   # Assuming dt2 is the more recent time
    
-    def riders_city(self):
-        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
-        return r
+#    def riders_city(self):
+#        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
+#        return r
  
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:
@@ -346,6 +390,7 @@ class ResultEvent (models.Model):
         return u"%s - [%s]" % (self.reg_event, self.finish)
 
     class QuerySet(QuerySet):
+    #class GroupQuerySet(QuerySet):        
         def active_for_account(self, sex, *args, **kwargs):
             return self.filter(reg_event__sex=sex) #filter(account=account, deleted=False, *args, **kwargs)
  

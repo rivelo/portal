@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Count, Sum
 from django.db.models.aggregates import Avg
+from datetime import datetime
+from django.db.models import F
 
 
 # Group Type = Group for Component category 
@@ -214,6 +216,31 @@ class Catalog(models.Model):
         #values('price', 'currency')
         return r
 
+    def invoice_price(self): #UA price
+        percent = 0
+        profit = 0
+        dn = datetime.datetime.now()
+        month = dn.month
+        year = dn.year
+        ua = 0
+        cc = self.invoicecomponentlist_set.filter(price__gt = 0) #.aggregate(isum = Sum('price'), )
+        if not cc:
+            return (0, 0)
+        #ic_count = cc.count() #aggregate(icount = Count('price'))['icount']
+        ic_count = 0
+        sum = 0
+        for item in cc:
+            sum = sum + item.get_uaprice() * item.count
+            ic_count = ic_count + item.count
+        if ic_count != 0:
+            ua = sum / ic_count
+        if (self.currency.ids_char == 'UAH'):
+            percent_sale = (100-self.sale)*0.01
+            profit = self.price * percent_sale - ua 
+            percent = (self.price * percent_sale) / (ua / 100) - 100
+        #return cur_exchange1
+        return (ua, profit, round(percent))
+
     def get_clientinvoice_count(self):
         cc = self.clientinvoice_set.filter().aggregate(cicount = Sum('count'))
         return cc['cicount']
@@ -228,6 +255,31 @@ class Catalog(models.Model):
         res = int(ic['icount'] or 0) - int(ci['cicount'] or 0)
         return res
 
+    def get_cur_invent(self):
+        nday = 360
+        cur_date = datetime.datetime.now()
+        inv_list = self.inventorylist_set.filter(date__gt = cur_date-datetime.timedelta(days=int(nday)), real_count = F('count')).order_by('-date')
+        #inv_list = self.inventorylist_set.filter(date__gt = cur_date-datetime.timedelta(days=int(nday)), check_all = True, real_count = F('count')).order_by('-date')
+        #if (self.check_all == True) and ( self.date > cur_date-datetime.timedelta(days=int(nday)) ):
+        return inv_list
+
+    def new_arrival(self):
+        count = 0
+        days = 0
+        nday = 14
+        cur_date = datetime.datetime.now()
+        dtdelta = cur_date-datetime.timedelta(days=int(nday))
+        icl = self.invoicecomponentlist_set.filter(date__gt = dtdelta, rcount = None).aggregate(icount = Sum('count'), adate = Avg('date'))
+        count = icl['icount']
+        if icl and count > 0:
+            res = cur_date - datetime.datetime.strptime(str(icl['adate']).split('.')[0], "%Y%m%d") 
+            days = 5 - res.days
+            if days <= 1:
+                return "через (%s) день має приїхати - %s шт." % (days, count)
+            else:
+                return "через 1-%s дні має приїхати - %s шт." % (days, count)
+        return False
+        
     def _get_full_name(self):
         p = self.inv_price()
         cprice = p[0]['sum_p']/p[0]['count_s']
@@ -235,6 +287,7 @@ class Catalog(models.Model):
             return "Ahtung!!!"
         return 'Price OK = ' + str(cprice)
     chk_price = property(_get_full_name)
+
     
     def __unicode__(self):
         return "[%s] %s - %s" % (self.ids, self.manufacturer, self.name)
@@ -332,6 +385,14 @@ class InventoryList(models.Model):
     real_count = models.IntegerField()
     check_all = models.BooleanField(default=False, verbose_name="Загальна кількість?")
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")
+
+    def get_last_year_check(self):
+        nday = 360
+        cur_date = datetime.datetime.now()
+        if (self.check_all == True) and ( self.date > cur_date-datetime.timedelta(days=int(nday)) ):
+             return True
+
+        return False 
             
     def __unicode__(self):
         return "[%s] - %s (%s) ***%s***" % (self.date, self.count, self.description, self.user) 
@@ -430,6 +491,7 @@ class ClientDebts(models.Model):
         return u"[%s] - %s (%s)" % (self.date, self.client, self.description)
 
     class Meta:
+        unique_together = ["client", "date", "price", "cash", "description"]
         ordering = ["client", "date"]    
 
 #клієнтські проплати
@@ -631,11 +693,16 @@ class Bicycle(models.Model):
             qs = self.youtube_url.all()
 #            q = qs.all()
             for i in qs:
-               res.append(i.url.split('/')[3])
+               #res.append(i.url.split('/')[3])
+               res.append(i.url.split('?v=')[1])
             return res 
             return qs #self.youtube_url.split('/') #[3]
         except:
             return 'test None'
+        
+    @property
+    def photo_count(self):
+        return self.photo_url.count()        
 
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)
@@ -873,8 +940,8 @@ class WorkShop(models.Model):
     work_type = models.ForeignKey(WorkType)
     price = models.FloatField()
     pay = models.BooleanField(default = False, verbose_name="Оплачено?")
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     
     def __unicode__(self):
         return self.description
@@ -910,6 +977,7 @@ class WorkTicket(models.Model):
     date = models.DateField()
     end_date = models.DateField()
     status = models.ForeignKey(WorkStatus)
+#    status_date = models.DateTimeFieldField()
     description = models.TextField(blank=True, null=True)
     phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    

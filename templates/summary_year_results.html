@@ -464,9 +464,11 @@ $("#table_cat1_wrapper").hide();
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
           ['Тип велосипеду', 'Кількість'],
-{% for bike in list.group_bike %}
+{% with the_bikes=year|res_stat_bikes_byyear %}          
+{% for bike in the_bikes %}
   		['{{bike.reg_event__bike_type__name}}',  {{bike.num_bike}}],
 {% endfor %}
+{% endwith %}  		
         ]);
 
     
@@ -496,9 +498,11 @@ $("#table_cat1_wrapper").hide();
       function drawChart_city() {
           var data = google.visualization.arrayToDataTable([
             ['Місто', 'Кількість'],
-  {% for city in list.group_city %}
+{% with the_citys=year|res_stat_city_byyear %}                         
+  {% for city in the_citys %}
     		['{{city.reg_event__city}}',  {{city.num_city}}],
   {% endfor %}
+{% endwith %}    		
           ]);
 
           var options = {
@@ -525,8 +529,8 @@ $("#table_cat1_wrapper").hide();
       function drawChart_sex() {
           var data = google.visualization.arrayToDataTable([
             ['Стать', 'Кількість'],
-            ['Жінок ({{female}} {# list|res_statistic:"0" #})', {#female#} {{ list|res_statistic:"0" }}],
-    		['Чоловіків ({{male}} {# list|res_statistic:"1" #})', {{male}} {# list|res_statistic:"1" #}],
+            ['Жінок ({{female}} {# list|res_statistic:"0" #})', {{female}} {# list|res_statistic:"0" #} ],
+    		['Чоловіків ({{male}} {# list|res_statistic:"1" #})', {{male}} {# list|res_statistic:"1" #} ],
           ]);
 
           var options = {
@@ -724,7 +728,7 @@ $("#table_cat1_wrapper").hide();
     <td> {{total.reg_event.lname}} {{total.reg_event.fname}} </td>
     <td> {{ total.reg_event.nickname }}</td>
 <td align="center">
-{% if total.reg_event.sex = 1 %}
+{% if total.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -735,14 +739,14 @@ $("#table_cat1_wrapper").hide();
     
 <td align="center" class="category"
 {% if total.reg_event.category.0 == 1 %} 
-{% if total.reg_event.sex = 1 %}
+{% if total.reg_event.sex == 1 %}
 	style="background-color: yellow;"
 {% else %}
 	style="background-color: pink;"
 {% endif %}
 {% endif %}
 {% if total.reg_event.category.0 == 2 %} 
-{% if total.reg_event.sex = 1 %}
+{% if total.reg_event.sex == 1 %}
 style="background-color: blue;"
 {% else %}
 	style="background-color: purple;"

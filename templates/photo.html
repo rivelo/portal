@@ -1,7 +1,35 @@
-﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+﻿{#<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />#}
 
 {% block content %}
 
+<div class="post">
+<h2 class="title">Список фотоальбомів:</h2>
+</div>
+
+<div class="container  bg-faded">
+<div class="card-columns">
+{% for album in albums %}
+{% if album.numphotos > 0 %}
+<div class="card border-success">
+    <a href="/photo/album/{{album.album_id}}"><img class="card-img-top" src="{{album.get_album_photo.url}}" alt="Card image cap {{album.url}}" ></a>
+    <div class="card-block">
+    	<div class="card-body"> 
+      <a  class="card-title text-success" href="/photo/album/{{album.album_id}}" ><h5 class="card-title text-center">{{album.title}}</h5></a>
+{#      <p class="card-text">This is a Альбом { {{album.title}} } - {{album.numphotos}} фото</p> #}
+{#      <h3>{{album}}</h3> #}
+		</div> 
+    </div>
+    <div class="card-footer">
+      <small class="text-muted">{{album.numphotos}} фото</small>
+    </div>
+  </div>
+{% endif %}  
+{% endfor %}
+</div>
+</div>
+
+
+{% comment %}
 <div class="post">
 <!-- Create image list -->
 {% if album_name %}
@@ -21,7 +49,7 @@
 {% endfor %}
 </div>>
 
-
+{% endcomment %}
 	
 {% endblock %}
 

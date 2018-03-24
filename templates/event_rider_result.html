@@ -526,9 +526,11 @@ $("#table_cat5_wrapper").hide();
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
           ['Тип велосипеду', 'Кількість'],
-{% for bike in list.group_bike %}
+{% with the_bikes=list.0.reg_event.event.pk|res_stat_bikes %}            
+{% for bike in the_bikes %}
   		['{{bike.reg_event__bike_type__name}}',  {{bike.num_bike}}],
 {% endfor %}
+{% endwith %}  		
         ]);
 
     
@@ -558,9 +560,11 @@ $("#table_cat5_wrapper").hide();
       function drawChart_city() {
           var data = google.visualization.arrayToDataTable([
             ['Місто', 'Кількість'],
-  {% for city in list.group_city %}
+  {% with the_citys=list.0.reg_event.event.pk|res_stat_city %}            
+  {% for city in the_citys %}
     		['{{city.reg_event__city}}',  {{city.num_city}}],
   {% endfor %}
+  {% endwith %}    		
           ]);
 
           var options = {
@@ -587,8 +591,8 @@ $("#table_cat5_wrapper").hide();
       function drawChart_sex() {
           var data = google.visualization.arrayToDataTable([
             ['Стать', 'Кількість'],
-            ['Жінок ({{ list|res_statistic:"0" }})',  {{ list|res_statistic:"0" }}],
-    		['Чоловіків ({{ list|res_statistic:"1" }})',  {{ list|res_statistic:"1" }}],
+            ['Жінок ({{ list.0.reg_event.event.pk|res_statistic:"0" }})',  {{ list.0.reg_event.event.pk|res_statistic:"0" }} ],
+    		['Чоловіків ({{ list.0.reg_event.event.pk|res_statistic:"1" }})',  {{ list.0.reg_event.event.pk|res_statistic:"1" }}],            
           ]);
 
           var options = {
@@ -749,7 +753,7 @@ $("#table_cat5_wrapper").hide();
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -760,14 +764,14 @@ $("#table_cat5_wrapper").hide();
 
 <td align="center" class="category"
 {% if rider.reg_event.category.0 == 1 %} 
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	style="background-color: yellow;"
 {% else %}
 	style="background-color: pink;"
 {% endif %}
 {% endif %}
 {% if rider.reg_event.category.0 == 2 %} 
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 style="background-color: blue;"
 {% else %}
 	style="background-color: purple;"
@@ -847,11 +851,15 @@ style="background-color: white;"
   </div>
   <div id="tabs-2" style="width: 100%; height: 500px;">
 {% comment %}
-	<p>
-	{% for city in list.group_city %}
-    		{{city.reg_event__city}} - {{city.num_city}} <br>
+	<p>CITY: 
+	{% with the_citys=list.0.reg_event.event.pk|res_stat_city %} 
+{#	{{list.0.reg_event.event.pk|res_stat_city}}<br> #}
+	{% for city in the_citys %}
+    		{{city.reg_event__city}} - {{city.num_city}}<br>
   	{% endfor %}
+  	{% endwith %}
   	</p>
+  	
 {% endcomment %}  	
 	<div id="piechart_3d_city" style="width: 100%; height: 100%;">	</div>
   </div>
@@ -912,7 +920,7 @@ style="background-color: white;"
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -957,7 +965,7 @@ style="background-color: white;"
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -1003,7 +1011,7 @@ style="background-color: white;"
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -1048,7 +1056,7 @@ style="background-color: white;"
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -1093,7 +1101,7 @@ style="background-color: white;"
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -1138,7 +1146,7 @@ style="background-color: white;"
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>

@@ -277,14 +277,14 @@ $("body").on("click", ".n_riders", function(e){
 {% for rider in list %}
 <div class="n_riders" rid="{{rider.reg_event.id}}" number="{{rider.reg_event.start_number}}" style="width:240px; height:135px; color: black;
 {% if rider.reg_event.category.0 == 1 %} 
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	background-color: yellow;"
 {% else %}
 	background-color: pink;"
 {% endif %}
 {% endif %}
 {% if rider.reg_event.category.0 == 2 %} 
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	background-color: blue;"
 {% else %}
 	background-color: purple;"
@@ -354,7 +354,7 @@ $("body").on("click", ".n_riders", function(e){
 <td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center">
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -364,14 +364,14 @@ $("body").on("click", ".n_riders", function(e){
 
 <td align="center" class="category"
 {% if rider.reg_event.category.0 == 1 %} 
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 	style="background-color: yellow;"
 {% else %}
 	style="background-color: pink;"
 {% endif %}
 {% endif %}
 {% if rider.reg_event.category.0 == 2 %} 
-{% if rider.reg_event.sex = 1 %}
+{% if rider.reg_event.sex == 1 %}
 style="background-color: blue;"
 {% else %}
 	style="background-color: purple;"
@@ -426,9 +426,9 @@ style="background-color: white;"
   </ul>
   <div id="tabs-1">
     <p>
-    жінок - {{ event|res_statistic:"0" }}
+    жінок - {{ event.pk|res_statistic:"0" }}
 	<br>
-	чоловіків - {{ event|res_statistic:"1" }}
+	чоловіків - {{ event.pk|res_statistic:"1" }}
     </p>
   </div>
   <div id="tabs-2">

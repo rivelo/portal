@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+#from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
@@ -49,8 +50,9 @@ def albums_page(request):
     albums = Album.objects.all() 
     vars = {'weblink': 'photo.html', 'sel_menu': 'photo', 'photo1': photo1, 'photo2': photo2, 'albums': albums, 'entry': get_funn()}
     calendar = embeded_calendar()
-    vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    vars.update(calendar)
+    return render(request, 'index.html', vars)        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def album_page(request, id):
@@ -62,7 +64,8 @@ def album_page(request, id):
     vars = {'weblink': 'photo_album.html', 'sel_menu': 'photo', 'photo1': photo1, 'photo2': photo2, 'album_name': album_name, 'photos': photos, 'entry': get_funn()}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
 
 
 def gallery_page(request):
@@ -74,10 +77,10 @@ def gallery_page(request):
     vars = {'weblink': 'photo.html', 'sel_menu': 'photo', 'photo_list': p_list[:10], 'photo1': photo1, 'photo2': photo2, 'albums': albums}
     calendar = embeded_calendar()
     vars.update(calendar)
-    
     #p_list = p_list[:10]
 #    return render_to_response('index.html', {'weblink': 'photo.html', 'sel_menu': 'photo', 'photo_list': p_list[:10], 'albums': albums}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
 
 
 def create_db(request):

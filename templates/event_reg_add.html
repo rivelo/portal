@@ -14,7 +14,7 @@ $("#id_country").parents("li").attr("style", "display: none");
 $("#id_pay_time").parents("li").insertAfter($("#pay_datepicker").parents("li"));
 
 if (!navigator.cookieEnabled) {
-  alert( 'Включите cookie для комфортной работы с этим сайтом' );
+  alert( 'Увімкніть cookie для комфортної роботи з цим сайтом' );
 }
      
     //var autocomplete = new google.maps.places.Autocomplete(document.getElementById('city_google'), {types: ['(regions)'], componentRestrictions: {country: 'ua'}, language : 'ua', location : ['50.627250', '26.2509700'], radius: '1000000' });
@@ -36,7 +36,35 @@ var currentDate = new Date();
     });
 {% endif %}    
 
+
+$( "#serch_rider" ).click(function() {
+		$.ajax({
+        type: "POST",
+        url: "/rider/registration/search/",
+        data: {email:  $('#email').val(), phone: $('#phone').val() },
+        //dataType: "json",
+        success:function(data){
+        	$("#search_footer").show()
+        	$("#res_footer").empty();
+        	if (data[0] == '0') {
+        		$("#res_footer").html("" + data[1]);
+        	}
+        	else {
+        		$("#res_footer").html("Знайдено email учасника " + data[1][1] + " - <span class='badge badge-info'><h6>" + data[1][0] + "</h6></span>");
+        		$("#reg_rider").show()
+        	}
+//        	console.log("Результат = " + data);
+        },
+        error:function(data){
+            alert("Виникла помилка:" + data[1]);
+        }
+    	});
+
 });
+
+
+
+}); 
 
 var placeSearch, autocomplete;
 
@@ -130,13 +158,59 @@ ul.rules {
 
 {% block content %}
 
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Реєстрація на {{event.name}} для учасників минулорічних заходів</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+<div class="modal-body">
+  <form action="/rider/registration/{{event.pk}}/send/" method="post" id="rsearch_form">
+  	{% csrf_token %}
+
+  <div class="form-group">
+    <label for="exampleInputEmail1">E-mail користувача</label>
+    <input type="text" class="form-control" name="email" id="email" aria-describedby="LoginHelp" placeholder="Введіть E-mail користувача">
+    <small id="emailHelp" class="form-text text-muted">Введіть адресу електронної пошти з якою ви реєструвались на минулі заходи rivelo.com.ua</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Телефон користувача</label>
+    <input type="text" class="form-control" name="phone" id="phone" aria-describedby="LoginHelp" placeholder="Введіть телефон користувача у форматі +380XX1234567">
+    <small id="emailHelp" class="form-text text-muted">Введіть у міжародному форматі з яким ви реєструвались на минулі заходи rivelo.com.ua</small>
+  </div>
+  <button type="button" class="btn btn-success" id="serch_rider">Пошук</button>
+    <input type="hidden" name="next" value="{{ next|escape }}" />
+
+</div> 
+<div class="modal-footer" id="search_footer" style="display: none;">
+<p id="res_footer" style="font-weight: bold;">
+</p>
+<button type="submit" class="btn btn-success" id="reg_rider" style="display: none;">Зареєструватись на <br> {{event.name}}</button>
+</div>
+	</form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="post">
 
 <div>
-<h2 class="title" >Реєстрація на марафон "{{event.name}}" 
+<h2 class="title" >Реєстрація на {{event.name}}
 	{% if event.icon %}
 	<img src="/media/{{event.icon}}" style="float:right; object-fit: contain;" />
-	{% endif %} 
+	{% endif %}
+{% if google_city_off == false %}
+<button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModalCenter">
+  Я приймав участь в минулорічних заходах
+</button>
+{% endif %}	 
 </h2>
 {% if google_city_off %} 
 <h3 class="title" style="color:black; font-size: 18; float:left;">Заповніть дані про оплату</h3>
@@ -146,6 +220,7 @@ ul.rules {
 
 <div style="width:100%; float:none; clear:both;">
 <form action="" method="POST" enctype="multipart/form-data" class="form-style-1">
+{% csrf_token %}
 		<ul>
 {% if rider_name %}
 <li>

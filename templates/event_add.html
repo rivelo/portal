@@ -159,6 +159,7 @@ tinymce.init({
 <h1>Додати захід</h1>
 
 <form action="" method="POST" class="form-style-1" enctype="multipart/form-data">
+{% csrf_token %}
         <ul>
             {{ form.as_ul }}
         </ul>

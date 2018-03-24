@@ -37,8 +37,11 @@ class News(models.Model):
     link = models.URLField()
     author = models.CharField(max_length=50)
     category = models.ForeignKey(Category)
-    comments = models.ManyToManyField(Comments, blank=True, null=True)
+    comments = models.ManyToManyField(Comments, blank=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    
+    img_url = models.CharField(max_length=255, blank=True, null=True)
+    url_desc = models.TextField(blank=True, null=True)
     
     def __unicode__(self):
         return self.text

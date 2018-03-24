@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
@@ -15,6 +15,16 @@ from portal.gallery.models import Album, Photo
 import datetime
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from django.template import loader, Context
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AdminPasswordChangeForm, PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
+
+from social_django.models import UserSocialAuth
+
+'''
 def custom_proc(request):
 # "A context processor that provides 'app', 'user' and 'ip_address'."
     return {
@@ -22,7 +32,58 @@ def custom_proc(request):
         'user': request.user,
         'ip_address': request.META['REMOTE_ADDR']
     }
+'''
+    
+@login_required
+def settings(request):
+    user = request.user
 
+    try:
+        twitter_login = user.social_auth.get(provider='twitter')
+    except UserSocialAuth.DoesNotExist:
+        twitter_login = None
+
+    try:
+        facebook_login = user.social_auth.get(provider='facebook')
+    except UserSocialAuth.DoesNotExist:
+        facebook_login = None
+
+    try:
+        github_login = user.social_auth.get(provider='google-oauth2')
+    except UserSocialAuth.DoesNotExist:
+        github_login = None
+
+    can_disconnect = (user.social_auth.count() > 1 or user.has_usable_password())
+
+    github_login = user.social_auth
+
+    return render(request, 'settings.html', {
+        'github_login': github_login,
+        'twitter_login': twitter_login,
+        'facebook_login': facebook_login,
+        'can_disconnect': can_disconnect
+    })
+
+@login_required
+def password(request):
+    if request.user.has_usable_password():
+        PasswordForm = PasswordChangeForm
+    else:
+        PasswordForm = AdminPasswordChangeForm
+
+    if request.method == 'POST':
+        form = PasswordForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordForm(request.user)
+    return render(request, 'password.html', {'form': form})
+    
     
 def auth_group(user, group):
     return True if user.groups.filter(name=group) else False
@@ -37,7 +98,7 @@ def main_page(request):
     calendar = embeded_calendar()
     vars.update(calendar)
     
-    paginator = Paginator(news, 3)
+    paginator = Paginator(news, 4)
     page = request.GET.get('page')
     if page == None:
         page = 1
@@ -52,9 +113,13 @@ def main_page(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         news = paginator.page(paginator.num_pages)
     vars.update({'news': news})
-    
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = vars
 
+    t = loader.get_template('index.html')
+
+    return render(request, 'index.html', context)
+
+    
 
 def add_news(request):
     if request.user.is_authenticated()==False:
@@ -83,7 +148,8 @@ def add_news(request):
     vars = {'weblink': 'news_add.html', 'sel_menu': 'main', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'form': form}
     calendar = embeded_calendar()
     vars.update(calendar)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+#    return render('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
 
 
 def edit_news(request, id):
@@ -116,7 +182,8 @@ def edit_news(request, id):
     vars = {'weblink': 'news_add.html', 'sel_menu': 'main', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'form': form}
     calendar = embeded_calendar()
     vars.update(calendar)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+    return render( request, 'index.html', vars)
 
 
 def delete_news(request, id):
@@ -136,7 +203,7 @@ def contact_page(request):
     calendar = embeded_calendar()
     vars.update(calendar)
     
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
 
 
 def about_page(request):
@@ -146,7 +213,7 @@ def about_page(request):
     calendar = embeded_calendar()
     vars.update(calendar)
     
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
     
     
 from django.views.decorators.csrf import csrf_protect

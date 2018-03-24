@@ -16,6 +16,10 @@ class Album(models.Model):
     def get_absolute_url(self):
         return self.url
 
+    def get_album_photo(self):
+        r = self.photo_set.filter(album = self.pk).order_by('?').first() #.values("url")
+        return r
+
     class Meta:
         ordering = ('title',)
 
@@ -44,6 +48,15 @@ class Photo(models.Model):
 
     def get_absolute_url(self):
         return self.url
+    
+    def get_full_image(self):
+        n_url = self.image.replace('/s288/', '/s1600/')
+        return n_url
+
+    def get_s800_image(self):
+        n_url = self.image.replace('/s288/', '/s800/')
+        return n_url
+
 
     class Meta:
         ordering = ('album', 'title')

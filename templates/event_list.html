@@ -1,5 +1,24 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
 <style>
+
+.event_title {
+/*    content: "";
+    clear: both;
+    display: table; */
+    background: #ededed /* #eeeee5 */ ; 
+	border: 1px dashed #abab9a; 
+	padding: 5px; 
+	/* width: 100%; */ 
+	box-sizing: border-box;
+}
+
+</style>
+
+{% comment %}
 #map {
      height: 60%;
 }
@@ -148,7 +167,7 @@
     background-color: #3e8e41;
 }
 </style>
-
+{% endcomment %}
 
 <script>
 $(document).ready(function(){
@@ -158,12 +177,12 @@ $(document).ready(function(){
     $("div.poster").click(function(){
     	var div_p = $(this)
     	var id = $(this).attr("ids")
-    	if ($(this).find("b").html() == "Показати афішу") {
-    		$(this).find("b").html("Приховати афішу");
-    		$(this).find("div.poster_content").html('<img src="'+ div_p.attr("img") + '" width="660px" class="img_poster" id="pimg_'+ id +'">')
+    	if ($(this).find("h5").html() == "Показати афішу") {
+    		$(this).find("h5").html("Приховати афішу");
+    		$(this).find("div.poster_content").html('<img src="'+ div_p.attr("img") + '" class="img_poster" id="pimg_'+ id +'">')
     	}
     	else {
-    		$(this).find("b").html("Показати афішу")
+    		$(this).find("h5").html("Показати афішу")
     		$(this).find("div.poster_content").empty();
     	}
         // $("#pimg_"+id).toggle();
@@ -172,17 +191,17 @@ $(document).ready(function(){
 
     $("div.gps").click(function(){
     	var gps_c = $(this).find(".gps_content")
-    	if ($(this).find("b").html() == "Показати маршрут") {
-    		$(this).find("b").html("Приховати маршрут");    	
+    	if ($(this).find("h5").html() == "Показати маршрут") {
+    		$(this).find("h5").html("Приховати маршрут");    	
             $.ajax({
                 type: "POST",
                 url: "/event/gps/get/",
                 data: { eid: $(this).attr("ids") },
                 dataType: "json",
                 success:function(msg){
-//                	$(this).find("div.gps_content").empty();
                 	$.each(msg,function(index,item){
 						gps_c.html(item['gps_track'])
+						console.log("GPS TRACK = " + item['gps_track'])
                     });
                 },
                 error:function(xhr, ajaxOptions, thrownError){
@@ -191,12 +210,13 @@ $(document).ready(function(){
             });
          }
          else {
-         	$(this).find("b").html("Показати маршрут")
+         	$(this).find("h5").html("Показати маршрут")
     	 	gps_c.empty();
          }
     })
 
 	$("div.map").click(function(){
+		console.log("MAP click")
 		$(this).find("div.map_content").html($("#map"));
 		$("#map").show();
 //		initMap($(this).attr("lat"), $(this).attr("lng"));
@@ -229,88 +249,120 @@ function initMap(x,y) {
 
 </script>
 
+{% load poll_extras %}
+
 {% block content %}
 
-{% if user.is_authenticated %}
-<div>
-		<ul id="nav">
-		<li>
-			<h1 class="title"><a href="#">Календар заходів на {{year}} рік</a></h2>
-		<ul>
-			<li><a href="/event/add/">Створити</a></li>
-		</ul>
-		</li>
-		</ul>
-</div>
-		<br>
-		<br>
-		<br>
-{% else %}
-			<h1 class="title"> Календар заходів на {{year}} рік</h1>
+<div class="post">
+<h1 class="title">Календар заходів на {{year}} рік
+{% if user.is_authenticated and user|has_group:"moder" %}
+			<a href="/event/add/" title="Створити"><i class="material-icons">add_circle</i></a>
 {% endif %}
+</h1>
+</div>
+
 
 
 {% for item in events %}
-<div class="clearfix">
+<div class="container-fluid " >
+<div class="row  event_title h-100" >
+<div class="col-2 my-auto" style="padding-left: 0px;">
 {% if item.icon %}
-  <div class="column menu">	<img src="/media/{{item.icon}}" ></img> </div>	
-{% endif %}
-
-<div class="column content">
-{% if user.is_authenticated %}
-<div class="dropdown">
-  <span>
-<h2><a href="{% url 'event-show' item.pk %}">{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2>
-  </span>
-  <div class="dropdown-content">
-	<a href="/event/{{item.pk}}/edit/">Редагувати</a>
-   <a href="{% url 'event-show' item.pk %}">Перейти</a>
-  </div>
-</div>
- 
-{% else %}
-	<h2><a href="{% url 'event-show' item.pk %}" >{{item.name}} [{{item.date|date:"d.m.Y"}}] ({{item.city}})</a></h2>
+  <img class="img-thumbnail" src="/media/{{item.icon}}" height="120px" width="120px"></img>	
 {% endif %}
 </div>
+
+<div class="col-10 my-auto">
+<h2><a href="{% url 'event-show' item.pk %}">{{item.name}} [{{item.date|date:"d.m.Y"}}] 
+{% if item.city %}
+({{item.city}})
+{% endif %}
+</a> 
+
+{% if user.is_authenticated and user|has_group:"moder" %}
+<a href="/event/{{item.pk}}/edit/" title="Редагувати" style="color:gray;"> <i class="material-icons">create</i></a> 
+{% endif %}
+</h2>
 </div>
 
-<div> 
+</div>
+
+<div class="row h-100" >
+<div class="col-12"> 
 {% autoescape off %}
 {{item.text}}
 {% endautoescape %} 
 </div>
+</div>
+
+
+<div class="row h-100" >
+{# <div class="col-12"> #} 
 
 {% if item.forum_url %}
-<br>
-<p style="font-weight:bold;">Посилання на форум:  
-<a href="{{item.forum_url}}">{{item.forum_url}}</a>
-</p>
+<h5>Посилання на форум:
+<small> <a href="{{item.forum_url}}">{{item.forum_url}}</a> </small>
+</h5>
 {% endif %}
+
+{#</div>#}
+</div>
+
 
 {% if item.photo %}
-<div class="poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
-<!-- 	<button class="poster" ids="{{item.id}}">Показати афішу</button>  -->
-	<img src="/media/images/poster-icon.png" alt="" title="Показати афішу" width="48px" style="vertical-align:middle;" ></img>
-	<b> Показати афішу </b>
-	<div class="poster_content"></div>
-</div>
+        <div class="row align-items-center poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
+            <div class="col-xs-10" ><h5>Показати афішу</h5></div>
+            <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/poster-icon.png" class="img-responsive" alt="Афіша" width="48px"></div>            
+            <div class="col-xs-12 poster_content"></div>
+        </div>
 {% endif %} 
 
+
+
+
+{# [start-custom format='Ymd\\THi00\\Z']/[end-custom format='Ymd\\THi00\\Z'] #}
+
+
+<div class="row align-items-center poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
+<h5> Додати подію в календар
+<a href="http://www.google.com/calendar/event?
+action=TEMPLATE
+&text=Рівно100
+&dates=20180513/20180514
+&details=Веломарафон+Рівно100
+&location=Рівне+Рівненська+область
+&sprop=rivelo.com.ua
+&trp=false&sprop=&sprop=name:
+"
+target="_blank" rel="nofollow">Add to Calendar</a>
+</h5>
+</div>
+
+
 {% if item.gps_track %}
-<div class="gps" ids="{{item.pk}}">
-<img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img>
-<b> Показати маршрут </b>
+<div class="row align-items-center gps" ids="{{item.pk}}">
+<div class="col-xs-10" ><h5>Показати маршрут</h5></div>
+<div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img></div>
 <br>
-<div class="gps_content"> </div>
+<div class="col-xs-12 gps_content"></div>
 </div>
 {% endif %}
 
-<h4> Дата та час: {{item.date|date:"d-m-Yр. H:i"}}</h4>
+<div class="row h-100" >
+<h5> Дата та час: {{item.date|date:"d-m-Yр. H:i"}} <small class="text-danger"> (До заходу залишилось {{item.days_left}} днів)</small></h5>
+</div>
+
+
+</div> {# end container #}
 
 {% if item.reg_status == True %}
-<h4>Реєстрація:  
-<a href="{% url 'event-registration' item.pk %}">Перейти до реєстрації</a>
-</h4>
+<h5>Реєстрація:  
+{% if item.days_left == 0 %}
+<a href="{% url 'event-registration' item.pk %}" class="btn btn-success btn-lg disabled"><h4> Перейти до реєстрації </h4><span class="text-white">Реєстрацію завершено</span></a>
+{% else %}
+<a href="{% url 'event-registration' item.pk %}" class="btn btn-success btn-lg"><h4> Перейти до реєстрації </h4></a>
+{% endif %}
+</h5>
 <ul class="rules">
 <b>Вартість реєстрації:</b>
 {% for rule in item.rules.all %}
@@ -322,36 +374,55 @@ function initMap(x,y) {
 {% endfor %}
 * можливість вибрати стартовий номер <b>+5грн</b>
 </ul>
-<h4>Учасники:  
-<a href="/event/{{item.pk}}/registration/list/">Список зареєстрованих учасників >>> ({{item.riders_count}} чоловік)</a> 
-</h4>
+
+<h5>Учасники:  
+<a href="/event/{{item.pk}}/registration/list/" type="button" class="btn btn-success btn-lg" style="font-size: 14px">
+  Список зареєстрованих учасників: <span class="badge badge-light btn-lg" style="font-size: 20px">{{item.riders_count}}</span> чоловік
+</a>
+</h5>
+
 {% endif %}
 
 {% if item.reg_url != '' %}
-<h4>Реєстрація:  
+<h5>Реєстрація:  
 <a href="{{item.reg_url}}">Перейти до реєстрації</a>
-</h4>
+</h5>
 {% else %}
 {% endif %}
 
-<h4>Результати:  
+{% if item.result_present %} 
+<h5>Результати:  
 <a href="{% url 'event-result' item.pk %}">Результати</a>
-</h4>
+</h5>
+{% endif %}
 
 
-<div class="map" lat="{{item.lat}}" lng="{{item.lng}}">
+<div class="container-fluid " >
+{# <div class="row align-items-center gps" ids="{{item.pk}}"> #}
+<div class="row map align-items-center" lat="{{item.lat}}" lng="{{item.lng}}">
+<div class="col-xs-10" ><h5>Показати місце старту</h5></div>
+<div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img></div>
+<br>
+<div class="col-xs-12 map_content"></div>
+</div>
+
+</div>
+
+{% comment %}
+<div class="map row align-items-center" lat="{{item.lat}}" lng="{{item.lng}}">
 <img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
 <b> Показати місце старту </b>
 <br>
 <div class="map_content"> </div>
 </div>
+{% endcomment %}
 
 <p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.pub_date}} }</em></p>
 {% endfor %}
 
 
 <div id="map"></div>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
+{# <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> #}
   
 	
 {% endblock %}

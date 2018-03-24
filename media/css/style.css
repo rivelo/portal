@@ -1,9 +1,4 @@
-
-/*
-Design by Free CSS Templates
-http://www.freecsstemplates.org
-Released for free under a Creative Commons Attribution 2.5 License
-*/
+body { padding-top: 100px; }
 
 body.main-Page {
 	margin: 0;
@@ -12,8 +7,61 @@ body.main-Page {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 	font-size: 13px;
 	color: #837669;
+	padding-top: 75px;
+	padding-left: 0px;
 }
 
+
+@media (min-width: 544px) {
+  .card-columns {
+    -moz-column-count: 3;
+    column-count: 3;
+    -moz-column-gap: 1.25rem;
+    column-gap: 1.25rem;
+  }
+}
+/*
+  @media (min-width:576px) {
+      .card-columns {
+        column-count: 2;
+      }
+  }
+*/  
+    @media (min-width:768px) {
+      .card-columns {
+        column-count: 3;
+      }
+  }
+  @media (min-width:992px) {
+      .card-columns {
+        column-count: 4;
+      }
+  }
+  @media (min-width:1200px) {
+      .card-columns {
+        column-count: 6;
+      }
+  }
+
+
+.column {
+    float: left;
+    padding: 1px;
+    box-sizing: border-box;
+}
+.clearfix {
+    content: "";
+    clear: both;
+    display: table;
+    background: #eeeee5; 
+	border: 1px dashed #abab9a; 
+	padding: 5px; 
+	width: 100%;
+	box-sizing: border-box;
+}
+
+
+/*
 h1, h2, h3 {
 	margin: 0;
 	font-family: Georgia, "Times New Roman", Times, serif;
@@ -26,7 +74,7 @@ h1 { font-size: 44px; }
 h2 { font-size: 26px; }
 
 h3 { }
-
+*/
 p, ul, ol {
 	margin-top: 0;
 	line-height: 200%;
@@ -35,6 +83,7 @@ p, ul, ol {
 	font-size: 11px;
 }
 
+/*
 ul, ol { }
 
 blockquote { }
@@ -74,7 +123,7 @@ hr { display: none; }
 .list1 li.alt img {
 	margin-right: 0;
 }
-
+*/
 /* Header */
 
 #header-wrapper {
@@ -88,8 +137,39 @@ hr { display: none; }
 	border-bottom: 1px solid #2D4516;
 }
 
-/* Menu */
 
+.nav-link {
+	font-size: 16px !important;
+}
+
+.active > .nav-link{
+	font-size: 22px !important;
+	font-weight: bold !important; 
+}
+
+a.active {
+	font-size: 22px !important;
+	font-weight: bold !important; 
+}
+
+.dropdown-item:hover  { 
+	background: #93C54B;
+	color: #FFFFFF;
+}
+
+.card-deck {
+	margin-left: -20px !important;
+    margin-right: -20px !important;
+}
+
+#dropdownMenuEditButton {
+	/* background: url(/media/images/img01.jpg) repeat-x left top; */
+	// background: linear-gradient(45deg, #eeeeee 0%,#cccccc 100%);
+	background: linear-gradient(to right, #f3f3f3 0%,#dbdbdb 100%);
+}
+
+/* Menu */
+/*
 #menu {
 	float: left;
 	width: 650px;
@@ -133,6 +213,7 @@ hr { display: none; }
 	line-height: normal;	
 	color: #FFFFFF;
 }
+*/
 
 /* Search */
 
@@ -198,7 +279,9 @@ hr { display: none; }
 /** LOGO */
 
 #logo {
-	height: 148px;
+	/* height: 148px; */
+	padding-left: 0px;
+	background: url(/media/images/img01.jpg) repeat-x left top;
 }
 
 #logo h1, #logo p {
@@ -253,7 +336,7 @@ hr { display: none; }
 	margin: 0 0 3px 0;
 	padding: 2px 30px 2px 0px;
 	font: italic 13px Georgia, "Times New Roman", Times, serif;
-	color: #B6ACA2;
+	color: #C3BFBB /*#B6ACA2*/;
 }
 
 .post .meta a { color: #B6ACA2; }
@@ -276,12 +359,13 @@ hr { display: none; }
 
 /* Sidebar */
 
+/*
 #sidebar {
 	float: right;
 	width: 240px;
 	margin-top: -100px;
 }
-
+*/
 #sidebar ul {
 	margin: 0;
 	padding: 0;
@@ -364,7 +448,7 @@ hr { display: none; }
 
 
 /* Footer */
-
+/*
 #footer {
 	width: 1000px;
 	margin: 0 auto;
@@ -383,7 +467,7 @@ hr { display: none; }
 #footer a {
 	color: #B5ADA5;
 }
-
+*/
 .center { 
     text-align: center;
 	background: #eeeee5; 
@@ -393,6 +477,7 @@ hr { display: none; }
 	color: #2c2c2c;    
 	font-weight: bold;
 }
+
 
 .helptext {
 	color: #658453;
@@ -424,4 +509,10 @@ background-image: url('/media/images/attention.png');
 color: #D8000C;
 background-color: #FFBABA;
 background-image: url('/media/images/cancel.png');
+}
+
+#main img {
+  display: block;
+  height: auto;
+  max-width: 100%;
 }

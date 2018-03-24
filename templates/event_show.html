@@ -1,93 +1,25 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+{% load poll_extras %}
+
 <style>
-#map {
-     height: 60%;
-}
 
-/*------------------------------------*\
-	НАВИГАЦИЯ
-\*------------------------------------*/
-#nav{
-	float:left;
-	width:100%;
-	list-style:none;
-	font-weight:bold;
-	margin-bottom:10px;
-}
-#nav li{
-	float:left;
-	margin-right:0px;
-	position:relative;
-	display:block;
-}
-#nav li a{
-	display:block;
-	padding:5px;
-	color:#fff;
-	background:#333;
-	text-decoration:none;
-	
-	text-shadow:1px 1px 1px rgba(0,0,0,0.75); /* Тень текста, чтобы приподнять его на немного */
-	-moz-border-radius:2px;
-	-webkit-border-radius:2px;
-	border-radius:2px;
-}
-#nav li a:hover{
-	color:#fff;
-	background:#6b0c36;
-	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
-	text-decoration:underline;
-}
-
-/*--- ВЫПАДАЮЩИЕ ПУНКТЫ ---*/
-#nav ul{
-	list-style:none;
-	position:absolute;
-	left:-9999px; /* Скрываем за экраном, когда не нужно (данный метод лучше, чем display:none;) */
-	opacity:0; /* Устанавливаем начальное состояние прозрачности */
-	-webkit-transition:0.25s linear opacity; /* В Webkit выпадающие пункты будут проявляться */
-}
-#nav ul li{
-	padding-top:1px; /* Вводим отступ между li чтобы создать иллюзию разделенных пунктов меню */
-	float:none;
-//	background:url(dot.gif);
-}
-#nav ul a{
-	white-space:nowrap; /* Останавливаем перенос текста и создаем многострочный выпадающий пункт */
-	display:block;
-}
-#nav li:hover ul{ /* Выводим выпадающий пункт при наведении курсора */
-	left:0; /* Приносим его обратно на экран, когда нужно */
-	opacity:1; /* Делаем непрозрачным */
-}
-#nav li:hover a{ /* Устанавливаем стили для верхнего уровня, когда выводится выпадающий список */
-	background:#6b0c36;
-	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
-	text-decoration:underline;
-}
-#nav li:hover ul a{ /* Изменяем некоторые стили верхнего уровня при выводе выпадающего пункта */
-	text-decoration:none;
-	-webkit-transition:-webkit-transform 0.075s linear;
-}
-#nav li:hover ul li a:hover{ /* Устанавливаем стили для выпадающих пунктов, когда курсор наводится на конкретный пункт */
-	background:#333;
-	background:rgba(51,51,51,0.75); /* Будет полупрозрачным */
-	text-decoration:underline;
-	-moz-transform:scale(1.05);
-	-webkit-transform:scale(1.05);
-}
-
-.eventcenter {
-border: 1px solid;
-margin: 10px 0px;
-padding:15px 10px 15px 50px;
-background-repeat: no-repeat;
-background-position: 10px center;
-height: auto;
+.event_title {
+/*    content: "";
+    clear: both;
+    display: table; */
+    background: #ededed /* #eeeee5 */ ; 
+	border: 1px dashed #abab9a; 
+	padding: 5px; 
+/*	width: 100%; */ 
+	box-sizing: border-box;
 }
 
 </style>
 
+{% comment %}
 
 <script>
 $(document).ready(function(){
@@ -169,33 +101,257 @@ function initMap(x,y) {
 
 </script>
 
-<style>
-.column {
-    float: left;
-    padding: 1px;
-    box-sizing: border-box;
+{% endcomment %}
+
+<script>
+$(document).ready(function(){
+//    $("img.poster").hide();
+	$("#map").hide();
+
+    $("div.poster").click(function(){
+    	var div_p = $(this)
+    	var id = $(this).attr("ids")
+    	if ($(this).find("h5").html() == "Показати афішу") {
+    		$(this).find("h5").html("Приховати афішу");
+    		$(this).find("div.poster_content").html('<img src="'+ div_p.attr("img") + '" class="img_poster" id="pimg_'+ id +'">')
+    	}
+    	else {
+    		$(this).find("h5").html("Показати афішу")
+    		$(this).find("div.poster_content").empty();
+    	}
+        // $("#pimg_"+id).toggle();
+    });
+
+
+    $("div.gps").click(function(){
+    	var gps_c = $(this).find(".gps_content")
+    	if ($(this).find("h5").html() == "Показати маршрут") {
+    		$(this).find("h5").html("Приховати маршрут");    	
+            $.ajax({
+                type: "POST",
+                url: "/event/gps/get/",
+                data: { eid: $(this).attr("ids") },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+						gps_c.html(item['gps_track'])
+						console.log("GPS TRACK = " + item['gps_track'])
+                    });
+                },
+                error:function(xhr, ajaxOptions, thrownError){
+                    alert( xhr.responseText );
+                }
+            });
+         }
+         else {
+         	$(this).find("h5").html("Показати маршрут")
+    	 	gps_c.empty();
+         }
+    })
+
+	$("div.map").click(function(){
+		console.log("MAP click")
+		$(this).find("div.map_content").html($("#map"));
+		$("#map").show();
+//		initMap($(this).attr("lat"), $(this).attr("lng"));
+		initMap();
+	})
+
+});
+
+function initMap(x,y) {
+	if (x == null){
+		x = 50.627250;
+	} 
+	if (y == null) {
+		y = 26.2509700
+	}
+  var myLatLng = {lat: x, lng: y};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 17,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Веломагазин-майстерня Рівело'
+  });
 }
-.clearfix {
-    content: "";
-    clear: both;
-    display: table;
-    background: #eeeee5; 
-	border: 1px dashed #abab9a; 
-	padding: 5px; 
-	width: 100%;
-	box-sizing: border-box;
-}
-.menu {
-    width: 18%;
-}
-.content {
-    width: 82%;
-}
-</style>
+
+
+</script>
 
 {% block content %}
 
 
+<div class="container-fluid " >
+<div class="row event_title align-items-center poster" >
+<div class="col-2 my-auto" style="padding-left: 0px;">
+{% if event.icon %}
+  <img class="img-thumbnail" src="/media/{{event.icon}}" height="120px" width="120px"></img>	
+{% endif %}
+</div>
+
+<div class="col-10">
+<h2>
+{% if user.is_authenticated and user|has_group:"moder" %}
+<a href="{% url 'event-show' event.pk %}">
+{% else %}
+<a href="#" style="pointer-events: none; ">
+{% endif %}
+{{event.name}} [{{event.date|date:"d.m.Y"}}] 
+{% if event.city %}
+({{event.city}})
+{% endif %}
+</a> 
+
+{% if user.is_authenticated and user|has_group:"moder" %}
+<a href="/event/{{event.pk}}/edit/" title="Редагувати" style="color:gray;"> <i class="material-icons">create</i></a> 
+{% endif %}
+</h2>
+</div>
+
+</div>
+
+<div class="row h-100" >
+<div class="col-12"> 
+{% autoescape off %}
+{{event.text}}
+{% endautoescape %} 
+</div>
+</div>
+
+
+<div class="row h-100" >
+{# <div class="col-12"> #} 
+
+{% if event.forum_url %}
+<h5>Посилання на форум:
+<small> <a href="{{event.forum_url}}">{{event.forum_url}}</a> </small>
+</h5>
+{% endif %}
+
+{#</div>#}
+</div>
+
+
+{% if event.photo %}
+        <div class="row align-items-center poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
+            <div class="col-xs-10" ><h5>Показати афішу</h5></div>
+            <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/poster-icon.png" class="img-responsive" alt="Афіша" width="48px"></div>            
+            <div class="col-xs-12 poster_content"></div>
+        </div>
+{% endif %} 
+
+
+
+
+{# [start-custom format='Ymd\\THi00\\Z']/[end-custom format='Ymd\\THi00\\Z'] #}
+
+
+<div class="row align-items-center poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
+<h5> Додати подію в календар
+<a href="http://www.google.com/calendar/event?
+action=TEMPLATE
+&text=Рівно100
+&dates=20180513/20180514
+&details=Веломарафон+Рівно100
+&location=Рівне+Рівненська+область
+&sprop=rivelo.com.ua
+&trp=false&sprop=&sprop=name:
+"
+target="_blank" rel="nofollow">Add to Calendar</a>
+</h5>
+</div>
+
+
+{% if event.gps_track %}
+<div class="row align-items-center gps" ids="{{event.pk}}">
+<div class="col-xs-10" ><h5>Показати маршрут</h5></div>
+<div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img></div>
+<br>
+<div class="col-xs-12 gps_content"></div>
+</div>
+{% endif %}
+
+<div class="row h-100" >
+<h5> Дата та час: {{event.date|date:"d-m-Yр. H:i"}} <small class="text-danger"> (До заходу залишилось {{event.days_left}} днів)</small></h5>
+</div>
+
+
+</div> {# end container #}
+
+{% if event.reg_status == True %}
+<h5>Реєстрація:  
+{% if event.days_left == 0 %}
+<a href="{% url 'event-registration' event.pk %}" class="btn btn-success btn-lg disabled"><h4> Перейти до реєстрації </h4><span class="text-white">Реєстрацію завершено</span></a>
+{% else %}
+<a href="{% url 'event-registration' event.pk %}" class="btn btn-success btn-lg"><h4> Перейти до реєстрації </h4></a>
+{% endif %}
+</h5>
+<ul class="rules">
+<b>Вартість реєстрації:</b>
+{% for rule in event.rules.all %}
+<li> - {{rule}}
+{% if  rule.cur_date_rule %}
+<b style="color: red;">*{{rule.cur_date_rule}}</b>
+{% endif %}
+</li> 
+{% endfor %}
+* можливість вибрати стартовий номер <b>+5грн</b>
+</ul>
+
+<h5>Учасники:  
+<a href="/event/{{event.pk}}/registration/list/" type="button" class="btn btn-success btn-lg" style="font-size: 14px">
+  Список зареєстрованих учасників: <span class="badge badge-light btn-lg" style="font-size: 20px">{{event.riders_count}}</span> чоловік
+</a>
+</h5>
+
+{% endif %}
+
+{% if event.reg_url != '' %}
+<h5>Реєстрація:  
+<a href="{{event.reg_url}}">Перейти до реєстрації</a>
+</h5>
+{% else %}
+{% endif %}
+
+{% if event.result_present %} 
+<h5>Результати:  
+<a href="{% url 'event-result' event.pk %}">Результати</a>
+</h5>
+{% endif %}
+
+
+<div class="container-fluid " >
+<div class="row map align-items-center" lat="{{event.lat}}" lng="{{event.lng}}">
+<div class="col-xs-10" ><h5>Показати місце старту</h5></div>
+<div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img></div>
+<br>
+<div class="col-xs-12 map_content"></div>
+</div>
+
+</div>
+
+{% comment %}
+<div class="map row align-items-center" lat="{{item.lat}}" lng="{{item.lng}}">
+<img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
+<b> Показати місце старту </b>
+<br>
+<div class="map_content"> </div>
+</div>
+{% endcomment %}
+
+<p class="meta"><em>{ Опубліковано <a href="#"> {{event.user.username}} </a>, {{event.pub_date}} }</em></p>
+
+
+<div id="map"></div>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> 
+  
+
+{% comment %}
 <br>
  
 <div class="clearfix"> 
@@ -294,7 +450,7 @@ function initMap(x,y) {
 
 <div id="map"></div>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
-  
+{% endcomment %}  
 	
 {% endblock %}
 

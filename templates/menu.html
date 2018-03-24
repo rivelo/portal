@@ -1,4 +1,9 @@
 ﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+
+
+{% comment %}
 <style>
 #primary_nav_wrap
 {
@@ -84,8 +89,119 @@
 }
 
 </style>
+{% endcomment %}
 
 
+<a class="navbar-brand d-md-none" href="#">Меню</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item
+      {% ifequal sel_menu "main" %} 
+      active
+      {% endifequal %}
+      ">
+      	<a class="nav-link" href="/">Головна</a>
+      </li>
+	
+	<li class="nav-item
+	{% ifequal sel_menu "photo" %}
+      active
+	{% endifequal %}
+	">
+		<a class="nav-link" href="/photo/">Фото
+    </a></li>
+
+      <li class="nav-item">
+      	<a class="nav-link" href="/forum/index.php">Форум
+      </a></li>
+
+    
+{% load mytags %}
+
+{% get_current_year as cur_year %}
+	
+	
+	<li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle 
+        {% ifequal sel_menu "calendar" %}
+        active
+        {% endifequal %}
+        " href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Заходи
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+{#        <a class="dropdown-item" href="{% url 'calendar-year' cur_year|add:"-1" %}">Архів заходів {{cur_year|add:"-1"}}</a> #}
+
+<a class="dropdown-item" href="/calendar/">Календар {{year}}</a>
+<a class="dropdown-item" href="{% url 'year-result' cur_year %}">Результати серії марафонів</a>    
+
+                
+      <div class="dropdown-divider"></div>
+      {% get_current_event as event_list %}
+      {% for event in event_list %}
+      	<a class="dropdown-item" href="{% url 'event-show' event.pk %}">{{ event.name }}</a>
+      {% endfor %}
+		
+	<div class="dropdown-divider"></div>
+	
+	<a class="dropdown-item dropdown-toggle" href="#">
+          Архів заходів {{cur_year|add:"-1"}}
+	</a>
+     <ul class="dropdown-menu">
+      {% get_archive_event as arch_event_list %}
+      {% for event in arch_event_list %}
+      	<li><a class="dropdown-item" href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
+      {% endfor %}
+        <div class="dropdown-divider"></div>
+		<li><a class="dropdown-item" href="{% url 'year-result' cur_year|add:"-1" %}">Результати серії марафонів {{cur_year|add:"-1"}}</a></li>    
+     </ul>        
+
+		
+        </div>
+      </li>
+      
+
+      <li class="nav-item dropdown
+         {% ifequal sel_menu "shop" %}
+      		active
+         {% endifequal %}
+      ">      
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         Магазин
+         </a>
+         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	      	<a class="dropdown-item" href="{% url 'bicycle-company' %}">Велосипеди</a>
+    	  	<a class="dropdown-item" href="{% url 'components-company' %}">Запчастини</a>
+      		<a class="dropdown-item" href="{% url 'components-sale' %}" >Акційні товари </a>
+         </div>
+       </li>
+       				
+
+      
+{% comment %}      
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">Disabled</a>
+      </li>
+{% endcomment %}
+
+      <li class="nav-item
+      		{% ifequal sel_menu "about" %}
+        	active
+        {% endifequal %}
+      ">
+      	<a class="nav-link" href="/about/">Про нас
+      </a></li>
+      
+
+      
+    </ul>
+  </div>
+
+{% comment %}
 <div id="menu">
 <nav id="primary_nav_wrap">
 <ul>
@@ -103,7 +219,7 @@
 								
 				<li><a href="/forum/index.php">Форум</a></li>
 
-{% load poll_extras %}
+{% load mytags %}
 
 {% get_current_year as cur_year %}
 	{% ifequal sel_menu "calendar" %}				
@@ -158,8 +274,7 @@
     </ul>
   </li>
 	{% endifequal %}				
-{% comment %}
-{% endcomment %}
+
 	
 	{% ifequal sel_menu "about" %}				
 				<li class="current-menu-item"><a  href="/about/">Про нас</a></li>
@@ -167,32 +282,8 @@
 				<li><a  href="/about/">Про нас</a></li>
 	{% endifequal %}
 	
-{% comment %}
-  <li class="current-menu-item"><a href="#">Home</a></li>
-  <li><a href="#">Menu 1</a>
-    <ul>
-      <li><a href="#">Sub Menu 1</a></li>
-      <li><a href="#">Sub Menu 2</a></li>
-      <li><a href="#">Sub Menu 3</a></li>
-      <li><a href="#">Sub Menu 4</a>
-        <ul>
-          <li><a href="#">Deep Menu 1</a>
-            <ul>
-              <li><a href="#">Sub Deep 1</a></li>
-              <li><a href="#">Sub Deep 2</a></li>
-              <li><a href="#">Sub Deep 3</a></li>
-                <li><a href="#">Sub Deep 4</a></li>
-            </ul>
-          </li>
-          <li><a href="#">Deep Menu 2</a></li>
-        </ul>
-      </li>
-      <li><a href="#">Sub Menu 5</a></li>
-    </ul>
-  </li>
-{% endcomment %}
-
 </ul>
 </nav>
 
 </div>
+{% endcomment %}

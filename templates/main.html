@@ -1,4 +1,67 @@
 ﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+{% load poll_extras %}
+
+<div class="container-fluid">
+    <div class="card-deck">
+
+{% for item in news.object_list %}
+        <div class="card m-2">
+
+	{% if user|has_group:"moder" %}
+<div class="dropdown">
+		<div class="card-header dropdown-toggle" id="dropdownMenuEditButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ><h4 class="card-title">{{item.title}}</h4></div>
+
+<div class="dropdown-menu" aria-labelledby="dropdownMenuEditButton">
+	<a class="dropdown-item" href="/news/{{item.pk}}/edit/">Редагувати</a>
+	<a class="dropdown-item" href="/news/add/">Створити</a>
+	<a class="dropdown-item" href="/news/{{item.pk}}/delete/">Видалити</a>
+</div>
+</div>
+	{% else %}
+					<div class="card-header" id="dropdownMenuEditButton"><h4 class="card-title">{{item.title}}</h4></div>
+	{% endif %}
+	
+    {% if item.img_url %}
+            <img class="card-img-top img-fluid" src="{{item.img_url}}" alt="Card image cap">
+	{% endif %}            
+
+
+        <div class="card-body">
+
+{#			<h4 class="card-title">{{item.title}}</h4> #}		
+                <p class="card-text">
+                {% autoescape off %}
+				{{item.text}}
+				{% endautoescape %}
+				</p>			
+				
+            </div>
+			<div class="card-footer">
+      			<p class="links"><a href="#" class="comments">Comments (0)</a> &nbsp;&nbsp;&nbsp; <a href="{{item.link}}" class="permalink">Посилання на форум/facebook</a> &nbsp;&nbsp;&nbsp; Категорія: <a href="#" class="permalink">{{item.category}}</a>
+      			<br>
+                { Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.date}} }</p>
+    		</div>            
+        </div>
+
+
+    <div class="w-100 d-none d-sm-block d-md-none"><!-- wrap every 2 on sm--></div>
+	<div class="w-100 d-none d-md-block d-lg-none"><!-- wrap every 3 on md--></div>
+	<div class="w-100 d-none d-lg-block d-xl-none"><!-- wrap every 4 on lg--></div>
+	        
+{% if forloop.counter|divisibleby:"2" %}
+	<div class="w-100 d-none d-xl-block"><!-- wrap every 5 on xl--></div>
+{% endif %}
+{% endfor %}
+
+       
+    </div>
+</div>
+
+{% comment %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
 <style>
 /*------------------------------------*\
 	НАВИГАЦИЯ
@@ -76,6 +139,8 @@
 
 </style>
 
+
+
 {% for item in news.object_list %}
 		<div class="post">
 		{% if user.is_authenticated %}
@@ -102,6 +167,8 @@
 		</div>
 {% endfor %}
 
+{% endcomment %}
+
 <div class="pagination">
   <ul>
   	{% if news.has_previous %}
@@ -116,6 +183,7 @@
     
 <!--     <li class="disabled"><a href="">Page {{ news.number }} of {{ news.paginator.num_pages }}.</a></li>
  -->
+
     {% for i in news.paginator.page_range %}
     {% ifequal i  news.number%}
     <li class="active"><a href="">{{ i }}.</a></li>

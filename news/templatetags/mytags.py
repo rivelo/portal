@@ -1,6 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
 from django import template
-import MySQLdb
 from portal.event_calendar.models import Events, ResultEvent
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
@@ -39,41 +38,18 @@ def rider_statistic(event, sex):
     return a
 
 @register.filter(name='res_statistic')
-def res_statistic(event, sex):
-    if sex == '1':
-        return ResultEvent.male_objects.get_male(event)
-    if sex == '0':
-        return ResultEvent.female_objects.get_female(event)
-#    count = event_res.get_sex(sex)
-#    return count
+def res_statistic(event_res, sex):
+    count = event_res.get_sex(sex)
+    return count
 
-@register.filter(name='res_stat_city')
-def res_stat_city(event):
-        #return ResultEvent.group_city.get_citys(event)
-        return ResultEvent.group_city.get_citys(event)
-
-@register.filter(name='res_stat_city_byyear')
-def res_stat_city_byyear(year):
-        #return ResultEvent.group_city.get_citys(event)
-        return ResultEvent.group_city.get_citys_byyear(year)
-
-@register.filter(name='res_stat_bikes')
-def res_stat_bikes(event):
-        #return ResultEvent.group_city.get_citys(event)
-        return ResultEvent.group_bikes.get_bikes(event)
-
-@register.filter(name='res_stat_bikes_byyear')
-def res_stat_bikes_byyear(year):
-        #return ResultEvent.group_city.get_citys(event)
-        return ResultEvent.group_bikes.get_bikes_byyear(year)
-
-@register.assignment_tag #(name='minustwo')
+@register.simple_tag #(name='minustwo')
 def get_current_event():
     c_year = datetime.datetime.now().year
     event = Events.objects.filter(date__year = c_year)
     return event
 
-@register.assignment_tag #(name='minustwo')
+#@register.simple_tag #(name='minustwo')
+@register.simple_tag
 def get_archive_event():
     c_year = datetime.datetime.now().year
     cn = datetime.datetime(c_year, 1, 1)
@@ -81,7 +57,7 @@ def get_archive_event():
     event = Events.objects.filter(date__lt=cn).order_by('date') # date__year__lte = c_year).order_by('date')
     return event
 
-@register.assignment_tag #(name='minustwo')
+@register.simple_tag #(name='minustwo')
 def get_current_year():
     c_year = datetime.datetime.now().year
     return c_year
@@ -91,7 +67,7 @@ def has_group(user, group_name):
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
 
-@register.assignment_tag
+@register.simple_tag
 def update_variable(value):
     """Allows to update existing variable in template"""
     return value

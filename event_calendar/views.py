@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+#from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.conf import settings
@@ -32,11 +33,12 @@ from portal.mysql_portal import get_month_event, get_month_events, get_day_event
 
 from django.core.mail import send_mail
 from datetime import date
-from django.core.context_processors import request
+#from django.core.context_processors import request
 from django.utils.translation.trans_real import catalog
 
 from django.db.models import Sum, Count, Max
 from django.db.models import Q
+from pyasn1.compat.octets import null
 
 def admin_sendmail(request, id):
     photo1 = Photo.objects.random()
@@ -54,48 +56,72 @@ def admin_sendmail(request, id):
     Оплату марафону можна здійснити: \n
     - на картку приватбанку (4323 3552 0025 8937 - Панчук Ігор) \n
     - оплатити в магазині Рівело (місто Рівне, вул.Кавказька 6) [http://www.rivelo.com.ua/about/] \n
+    Внесіть будь-ласка дані про онлайн оплату за наступним посиланням http://rivelo.com.ua/event/rider/%s/pay/%s/ \n
     Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/%s/show/ \n
     Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/%s/registration/list/ \n
     Гарних покатеньок і до зустрічі на старті.
-    """ % (dleft, csum, revent.pk, revent.pk)
+    """ % (dleft, csum, id, revent.reg_code, revent.event.pk, revent.event.pk)
     
     #res = send_mail('Нагадування про оплату', message, revent.email, ['rivelo@ymail.com'], fail_silently=False)
     res = send_mail('Нагадування про оплату', message, revent.email, [revent.email], fail_silently=False)
         
     if res == 1:
-        return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response("index.html", {'success_data': "Щось пішло не так. Пошта " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+        vars = {'success_data': "Лист відправлено на пошту " + revent.email, 'reglist': reverse('event-rider-list' , kwargs={'id':revent.event.pk})}
+        #return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render(request, 'index.html', vars)
+    #return render_to_response("index.html", {'success_data': "Щось пішло не так. Пошта " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+    vars = {'success_data': "Щось пішло не так. Пошта " + revent.email}
+    return render(request, 'index.html', vars)
 
 
-def admin_invite_mail(request, id):
+def html_content_right():
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     calendar = embeded_calendar()
+    vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
+    return vars    
+
+
+def admin_invite_mail(request, id, evnt=None):
+    vars = html_content_right()
+#    photo1 = Photo.objects.random()
+#    photo2 = Photo.objects.random()
+#    calendar = embeded_calendar()
     if auth_group(request.user, 'admin')==False:
-        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'У вас не вистачає повноважень!'}
+        vars.update({'error_data': 'У вас не вистачає повноважень!'})
         return render(request, 'index.html', vars)
     revent = RegEvent.objects.get(pk = id)
-    csum = revent.event.cur_reg_sum()
-    dleft = revent.event.days_left()
-    dleft = 4
+    ev = None
+    #vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}    
+    try:
+        ev = Events.objects.get(pk=evnt)
+    except:
+        vars.update({'success_data': "Щось пішло не так. Пошта " + revent.email})
+        return render(request, 'index.html', vars)
+
+#    csum = revent.event.cur_reg_sum()
+    dleft = ev.days_left()
+
     
-    message = """Запрошуємо Вас на наш грунтовий марафон Медовий трейл який відбудеться в неділю 16 липня. \n
-    Новий грунтовий марафон для початківців. які мріють проїхати свої перші 84 км грунтами та для спортсменів-любителів, що хочуть показати на що вони здатні на цій дистанції!
-    Дистанція марафону пролягає лісами, полями, лугами поліського краю. Під час марафону ви побачите торфові ставки, відомий тунель кохання в Клевані, Вишневу гору з якої можна споглядати чудовий краєвид на місто.
-    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/5/show/ \n
-    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/5/registration/list/ \n
+    message = """Запрошуємо Вас на нашу велоподію %s яка відбудеться %s \n
+    %s \n
+    Інформацію по заходу можна знайти за посиланням  %s \n
+    Список зареєстрованих знаходиться за цим посиланням %s \n
     Нагадуємо що до заходу залишилось %s дні. Не забудьте зареєструватись завчасно. \n  
-    Посилання на реєстрацію http://www.rivelo.com.ua/event/5/registration/ \n
-    На даний момент реєстрація коштує 200 гривень. Для учасників марафону 'Рівно100' оплата становить 150 грн до 15 липня включно.\n    
+    Посилання на реєстрацію %s \n
+    На даний момент реєстрація коштує %s гривень\n    
     Гарних покатеньок і до зустрічі на старті.
-    """ % (dleft)
+    """ % (ev.name, ev.date, ev.text, 'http://rivelo.com.ua/event/'+str(ev.pk)+'/show/', 'http://www.rivelo.com.ua/event/'+str(ev.pk)+'/registration/list/', dleft, 'http://www.rivelo.com.ua/event/'+str(ev.pk)+'/registration/', ev.cur_reg_sum())
     
     #res = send_mail('Нагадування про оплату', message, revent.email, ['rivelo@ymail.com'], fail_silently=False)
-    res = send_mail('запрошуємо на веломарафон "Медовий трейл"', message, revent.email, [revent.email], fail_silently=False)
-        
+    res = send_mail('запрошуємо на велоподію "'+ ev.name +'"', message, revent.email, [revent.email], fail_silently=False)
+            
     if res == 1:
-        return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response("index.html", {'success_data': "Щось пішло не так. Пошта " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+        vars.update({'success_data': "Лист відправлено на пошту " + revent.email, 'reglist': 'http://www.rivelo.com.ua/event/'+str(ev.pk)+'/registration/list/'})
+        return render(request, "index.html", vars)
+    vars.update({'success_data': "Щось пішло не так. Пошта " + revent.email, 'reglist': 'http://www.rivelo.com.ua/event/'+str(ev.pk)+'/registration/list/'})
+    return render(request, "index.html", vars)
 
 #===============================================================================
 #    from_mail = settings.EMAIL_HOST_USER #settings.DEFAULT_FROM_EMAIL  
@@ -122,9 +148,11 @@ def send_reg_mail(request, rid, mto, subject='Реєстрація'):
     everules = revent.event.rules.all()
     w = None
     if request.session.get("registration_subject"):
-        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Ви успішно відредагували свої дані на марафон ', 'event_rules': everules})
+#        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Ви успішно відредагували свої дані на марафон ', 'event_rules': everules})
+        w = render(request, 'event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Ви успішно відредагували свої дані на марафон ', 'event_rules': everules}, content_type='application/xhtml+xml')
     else:
-        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Вітаємо ви успішно зареєструвались на марафон ', 'event_rules': everules })
+#        w = render_to_response('event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Вітаємо ви успішно зареєструвались на марафон ', 'event_rules': everules })
+        w = render(request, 'event_rider_info.html', {'rider': revent, 'thismail' : True, 'default_domain': settings.DEFAULT_DOMAIN, 'main_text': 'Вітаємо ви успішно зареєструвались на марафон ', 'event_rules': everules }, content_type='application/xhtml+xml')
     from_email = 'rivno100@gmail.com' 
     to = mto
     text_content = 'www.rivelo.com.ua'
@@ -132,7 +160,7 @@ def send_reg_mail(request, rid, mto, subject='Реєстрація'):
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
-    return render_to_response("index.html", {'success_data': "Лист відправлено на пошту" + to}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, "index.html", {'success_data': "Лист відправлено на пошту" + to})
 
 
 def email_two(rid, mto):
@@ -220,7 +248,8 @@ def calendar_page(request, year=datetime.datetime.now().year):
     events = Events.objects.filter(date__year = year).order_by('date') #.all().order_by('date')
     evnt = {'events': events}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def calendar_filter(request, year, month=None):
@@ -237,7 +266,8 @@ def calendar_filter(request, year, month=None):
         events = Events.objects.filter(date__year = year, date__month = month).order_by('date')
     evnt = {'events': events}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def google_location(request):
@@ -274,7 +304,8 @@ def get_event(request):
 #from django.contrib.auth.models import User
 
 def add_event(request):
-    if request.user.is_authenticated()==False:
+    if auth_group(request.user, 'moder')==False:
+    #if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
     a = Events()
     if request.method == 'POST':
@@ -329,12 +360,14 @@ def add_event(request):
     events = Events.objects.all().order_by('date')
     evnt = {'events': events}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
     
 
 
 def edit_event(request, id):
-    if request.user.is_authenticated()==False:
+    if auth_group(request.user, 'moder')==False:
+    #if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
     a = Events.objects.get(pk=id)
     if request.method == 'POST':
@@ -407,7 +440,8 @@ def edit_event(request, id):
     events = Events.objects.all().order_by('date')
     evnt = {'events': events}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 def show_event(request, id):
@@ -419,9 +453,11 @@ def show_event(request, id):
     event = Events.objects.get(pk = id)
     evnt = {'event': event}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
     
-
+from django.views.decorators.csrf import csrf_exempt    
+@csrf_exempt
 def get_event_gps(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -472,6 +508,7 @@ def add_reg(request, id):
         if (auth_group(request.user, 'admin')==False):
             return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції " + str(a.days_left()), content_type="text/plain")
 #    r = RegEvent()
+    vars = None
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     calendar = embeded_calendar()
@@ -535,7 +572,8 @@ def add_reg(request, id):
     vars.update(calendar)        
     evnt = {'event': a}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
 def edit_reg(request, id, hash):
@@ -590,7 +628,8 @@ def edit_reg(request, id, hash):
     vars.update(calendar)        
     evnt = {'event': a}
     vars.update(evnt)
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
 def event_reg_list(request, id, start=False):
@@ -605,43 +644,44 @@ def event_reg_list(request, id, start=False):
     cat0_b = event_date.replace(year = event_date.year-12)
     cat0_e = event_date.replace(year = event_date.year-18)
     if start == True:
-        revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date, start_status = True).order_by("date") #all rider list
+        revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b.date(), birthday__gte = cat0_e.date(), start_status = True).order_by("date") #all rider list
     else:
-        revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b, birthday__gte = cat0_e.date).order_by("date") #all rider list
+        revent_cat0 = RegEvent.objects.filter(event = id, birthday__lte = cat0_b.date(), birthday__gte = cat0_e.date()).order_by("date") #all rider list
     cat1_b = event_date.replace(year = event_date.year-18)
     cat1_e = event_date.replace(year = event_date.year-30)
     #revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = datetime.date(1999, 1, 5), birthday__gte = datetime.date(1987, 1, 5)).order_by("date") #all rider list
     if start == True:
-        revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date, start_status = True).order_by("date") #all rider list
+        revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b.date(), birthday__gte = cat1_e.date(), start_status = True).order_by("date") #all rider list
     else:
-        revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b, birthday__gte = cat1_e.date).order_by("date") #all rider list
+        revent_cat1 = RegEvent.objects.filter(event = id, birthday__lte = cat1_b.date(), birthday__gte = cat1_e.date()).order_by("date") #all rider list
     #RegEvent.objects.filter(event = id, birthday__range=[cat1_e, cat1_b])
     cat2_b = event_date.replace(year = event_date.year-30)
     cat2_e = event_date.replace(year = event_date.year-40)
     if start == True:    
-        revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e, start_status = True).order_by("date") #all rider list
+        revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b.date(), birthday__gte = cat2_e.date(), start_status = True).order_by("date") #all rider list
     else:
-        revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b, birthday__gte = cat2_e).order_by("date") #all rider list
+        revent_cat2 = RegEvent.objects.filter(event = id, birthday__lte = cat2_b.date(), birthday__gte = cat2_e.date()).order_by("date") #all rider list
     cat3_b = event_date.replace(year = event_date.year-40)
     cat3_e = event_date.replace(year = event_date.year-50)
     if start == True: 
-        revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e, start_status = True).order_by("date") #all rider list
+        revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b.date(), birthday__gte = cat3_e.date(), start_status = True).order_by("date") #all rider list
     else:
-        revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b, birthday__gte = cat3_e).order_by("date") #all rider list
+        revent_cat3 = RegEvent.objects.filter(event = id, birthday__lte = cat3_b.date(), birthday__gte = cat3_e.date()).order_by("date") #all rider list
     cat4_b = event_date.replace(year = event_date.year-50)
     cat4_e = event_date.replace(year = event_date.year-60)
     if start == True: 
-        revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e, start_status = True).order_by("date") #all rider list
+        revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b.date(), birthday__gte = cat4_e.date(), start_status = True).order_by("date") #all rider list
     else:
-        revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b, birthday__gte = cat4_e).order_by("date") #all rider list
+        revent_cat4 = RegEvent.objects.filter(event = id, birthday__lte = cat4_b.date(), birthday__gte = cat4_e.date()).order_by("date") #all rider list
     cat5_b = event_date.replace(year = event_date.year-60)
     if start == True:
-        revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b, start_status = True).order_by("date") #all rider list
+        revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b.date(), start_status = True).order_by("date") #all rider list
     else:
-        revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
+        revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b.date()).order_by("date") #all rider list
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
+    evnt_reg = Events.objects.filter(reg_status = True)
+    vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'evnt_reg': evnt_reg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
     calendar = embeded_calendar()
     vars.update(calendar)        
 
@@ -651,7 +691,8 @@ def event_reg_list(request, id, start=False):
         del request.session['reg_email']
     except:
         error = "Параметр reg_email не існує"
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    return render(request, 'index.html', vars)        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
     
     
 def event_reg_edit(request, id):
@@ -686,6 +727,7 @@ def get_event_rider(request, id):
     
     revent = RegEvent.objects.get(pk = id)
     code = request.session.get("registrationcode")
+    print "CODE#1 = ", revent.pk
     if not code and auth_group(request.user, 'admin')==False:
 #    if "registrationcode" in request.session : 
         return HttpResponse("Ваше посилання вже не є актуальним! model = " + revent.reg_code, content_type="text/plain")
@@ -700,18 +742,22 @@ def get_event_rider(request, id):
     vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent, 'reg_ok': True, 'event_rules': everules}
     calendar = embeded_calendar()
     vars.update(calendar)        
+    
     regmail = request.session.get("reg_email")
     if (not regmail) and (regmail != True):
         if request.session.get("registration_subject"):
             #request.session.get["registration_subject"]
-            send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
+            #send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
+            print "Email reg_subj = ", revent.email
         else:
-            send_reg_mail(request, revent.pk, revent.email)
+            print "Email = ", revent.email
+            #send_reg_mail(request, revent.pk, revent.email)
         res_data = "EMail надіслано"
         request.session['reg_email'] = True
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
-
+# внесення даних про оплату
 def add_rider_pay(request, id, hash=None):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -774,7 +820,7 @@ def add_rider_pay(request, id, hash=None):
     rules = {'event_rules': evrules}
     vars.update(rules)
     
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
+    return render(request, 'index.html', vars)    
 
 
 def register_to_all(request, hash):
@@ -786,6 +832,10 @@ def register_to_all(request, hash):
     except RegEvent.DoesNotExist:
         revent = None
         vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним! У разі питань зверніться до адміністрації за адресою rivno100@gmail.com'}
+        return render(request, 'index.html', vars)
+    except RegEvent.MultipleObjectsReturned:
+        revent = RegEvent.objects.filter(reg_code = hash)
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'reg_data':revent, 'error_data': 'Вас зареєстровано декілька разів! У разі питань зверніться до адміністрації за адресою rivno100@gmail.com'}
         return render(request, 'index.html', vars)
 
     if hash != revent.reg_code:
@@ -802,7 +852,8 @@ def register_to_all(request, hash):
         send_reg_mail(request, revent.pk, revent.email)
         res_data = "EMail надіслано"
         request.session['reg_email'] = True
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    return render(request, 'index.html', vars)
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
 def event_rider_status(request):
@@ -854,25 +905,31 @@ def event_result(request, id):
     #curyear = datetime.datetime.now().year
     cat0_b = event_date.replace(year = event_date.year-12)
     cat0_e = event_date.replace(year = event_date.year-18)
-    revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b, reg_event__birthday__gte = cat0_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
+    #revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b, reg_event__birthday__gte = cat0_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
+    revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b.date(), reg_event__birthday__gte = cat0_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list    
     cat1_b = event_date.replace(year = event_date.year-18)
     cat1_e = event_date.replace(year = event_date.year-30)
-    revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b, reg_event__birthday__gte = cat1_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
+    #revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b, reg_event__birthday__gte = cat1_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
+    revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b.date(), reg_event__birthday__gte = cat1_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
     cat2_b = event_date.replace(year = event_date.year-30)
     cat2_e = event_date.replace(year = event_date.year-40)
-    revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b, reg_event__birthday__gte = cat2_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    #revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b, reg_event__birthday__gte = cat2_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b.date(), reg_event__birthday__gte = cat2_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
     cat3_b = event_date.replace(year = event_date.year-40)
     cat3_e = event_date.replace(year = event_date.year-50)
-    revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b, reg_event__birthday__gte = cat3_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    #revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b, reg_event__birthday__gte = cat3_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b.date(), reg_event__birthday__gte = cat3_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
     cat4_b = event_date.replace(year = event_date.year-50)
     cat4_e = event_date.replace(year = event_date.year-60)
-    revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b, reg_event__birthday__gte = cat4_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b.date(), reg_event__birthday__gte = cat4_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+    #revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b, reg_event__birthday__gte = cat4_e, reg_event__start_status = True).order_by("-finish") #all rider list
     cat5_b = event_date.replace(year = event_date.year-60)
-    revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b, reg_event__start_status = True).order_by("-finish") #all rider list
+    #revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b, reg_event__start_status = True).order_by("-finish") #all rider list
+    revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b.date(), reg_event__start_status = True).order_by("-finish") #all rider list
  #   photo1 = Photo.objects.random()
  #   photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
-    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3}    
+    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3}    
 #    calendar = embeded_calendar()
 #    vars.update(calendar)        
     evnt = {'event': evt}
@@ -881,10 +938,12 @@ def event_result(request, id):
         del request.session['reg_email']
     except:
         error = "Параметр reg_email не існує"
-    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    return render(request, 'index_result.html', vars)
+    #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
 def event_result_simple(request, id, point=None):
+    revent_res = None
     evt = Events.objects.get(pk=id)
     username = request.user.username
     if point <> None:
@@ -906,8 +965,8 @@ def event_result_simple(request, id, point=None):
     vars = {'weblink': 'event_simple_result.html', 'sel_menu': 'calendar', 'list': revent, 'list_res': revent_res, 'uname': username}
     evnt = {'event': evt}
     vars.update(evnt)
-    
-    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index_result.html', vars)
+    #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
             
 
 def result_add(request):
@@ -1097,7 +1156,8 @@ def show_client(request, user_name='rivno100'):
         del request.session['reg_email']
     except:
         error = "Параметр reg_email не існує"
-    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    return render(request, 'index_result.html', vars)
+    #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 #    return HttpResponse("Клієнт << " + cl.name, content_type='text/plain')
 
@@ -1133,20 +1193,47 @@ def client_sale(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')
 
 
-def event_rider_copy(request, id):
-    if auth_group(request.user, 'admin')==False:
-        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
-    revent = RegEvent.objects.get(pk = id)
-    evt = Events.objects.get(pk = 5)    
-    new_object = RegEvent(event = evt, fname=revent.fname, lname=revent.lname, sex=revent.sex, nickname=revent.nickname, email=revent.email, phone=revent.phone, country=revent.country, city=revent.city, club=revent.club, bike_type=revent.bike_type, birthday=revent.birthday)
-    new_object.save()
+def event_rider_copy(request, id, evnt=None):
+    if auth_group(request.user, 'moder')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції")
+    res = RegEvent.objects.filter(pk = id)
+#    evt = Events.objects.get(pk = evnt)    
+#    new_object = RegEvent(event = evt, fname=revent.fname, lname=revent.lname, sex=revent.sex, nickname=revent.nickname, email=revent.email, phone=revent.phone, country=revent.country, city=revent.city, club=revent.club, bike_type=revent.bike_type, birthday=revent.birthday)
+#    new_object.save()
+    vars = html_content_right()
+    
+    if res.filter(event__pk = evnt) :
+        message = "Ви вже зареєстровані на даний захід"
+        #return HttpResponse(message)
+        vars.update({'success_data': message, 'reglist': reverse('event-rider-list' , kwargs={'id':evnt})})
+        return render(request, 'index.html', vars)
+    
+    if res:
+        clone = res[0]  
+        clone.pk = None
+        clone.event = Events.objects.get(pk = evnt)
+        clone.date = datetime.datetime.now()
+        clone.start_number = 0
+        clone.description = ""
+        clone.pay_type = null
+        clone.pay = 0
+        clone.pay_date = null
+        clone.status = False
+        clone.start_status = False
+        clone.save()
+        reg_code = hashlib.sha256(str(clone.pk)).hexdigest()
+        clone.reg_code = reg_code
+        send_reg_mail(request, clone.pk, clone.email, "Редагування даних")
+    else:
+        message = "Поштової адреси та телефону не знайдено"
+        return HttpResponse(message, content_type='text/plain')
    
 #    return HttpResponse("Щось пішло не так :(", content_type='text/plain')            
-    return HttpResponseRedirect(reverse('event-rider-list', args=[new_object.event.pk]))
+    return HttpResponseRedirect(reverse('event-rider-list', args=[evnt]))
 
 
 def rider_search(request):
-    if request.user.is_authenticated()==False:
+    if request.user.is_authenticated()==False and auth_group(request.user, 'admin')==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
     message = "Шукаємо текст "
     if request.method == 'POST':  
@@ -1158,9 +1245,88 @@ def rider_search(request):
             message = message + rider_s
             #return HttpResponse(message, content_type="text/plain;charset=utf-8")
             vars = {'weblink': 'regevent_search_edit_table.html', 'sel_menu': 'calendar', 'list': list, 'search_str': rider_s}
-            return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+            #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+            return render(request, 'index_result.html', vars)
         
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
+
+@csrf_exempt
+def rider_reg_search(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            POST = request.POST
+            res = None
+            if POST.has_key('email') or POST.has_key('phone'):
+                mail = request.POST.get('email')
+                p = request.POST.get('phone')
+                if mail:
+                    res = RegEvent.objects.filter(email__iregex=r'^'+mail+'$' ).values_list('email', 'event__name')
+                if p:
+                    res = RegEvent.objects.filter(phone__iregex=r'^'+'\\' + p + '$').values_list('email', 'event__name')
+                if res:
+                    json = list([1, res[0]])
+                    return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                    #return HttpResponse(res[0])
+                else:
+                    message = "Поштової адреси та телефону не знайдено"
+                    json = list([0, message]) 
+                    return HttpResponse(simplejson.dumps(json), content_type='application/json')                    
+#                    return HttpResponse(message, content_type="text/plain;charset=utf-8")
+    message = "Щось пішло не так"
+    json = list([0, message]) 
+    return HttpResponse(simplejson.dumps(json), content_type='application/json')    
+    #return HttpResponse(message, content_type="text/plain;charset=utf-8")
+
+
+def rider_reg_copy(request, id):
+    res = None
+    vars = html_content_right()
+    if request.method == 'POST':
+        POST = request.POST
+
+        if POST.has_key('email') or POST.has_key('phone'):
+            mail = request.POST.get('email')
+            p = request.POST.get('phone')
+            if mail:
+                res = RegEvent.objects.filter(email__iregex=r'^'+mail+'$' )
+            if p:
+                res = RegEvent.objects.filter(phone__iregex=r'^'+'\\' + p + '$')
+            if res.filter(event__pk = id) :
+                message = "Ви вже зареєстровані на даний захід"
+                #return HttpResponse(message)
+                vars.update({'success_data': message, 'reglist': reverse('event-rider-list' , kwargs={'id':id})})
+                return render(request, 'index.html', vars)
+            
+            if res:
+                clone = res[0]  
+                clone.pk = None
+                clone.event = Events.objects.get(pk = id)
+                clone.date = datetime.datetime.now()
+                clone.start_number = 0
+                clone.description = ""
+                reg_code = hashlib.sha256(str(regevt.pk)).hexdigest()
+                clone.reg_code = reg_code
+                clone.pay_type = null
+                clone.pay = 0
+                clone.pay_date = null
+                clone.status = False
+                clone.start_status = False
+                 
+                clone.save()
+                send_reg_mail(request, clone.pk, clone.email, "Редагування даних")
+            else:
+                message = "Поштової адреси та телефону не знайдено"
+                return HttpResponse(message)
+    return HttpResponse('Ви зареєструвались на ' + res[0].event.name)
+
+
+def rider_reg_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+    rider = RegEvent.objects.get(pk = id)
+    ev = rider.event.pk
+    rider.delete()
+    return HttpResponseRedirect(reverse('event-rider-list' , kwargs={'id':ev}))
 
 
 def regevent_edit(request, id=None):
@@ -1231,10 +1397,11 @@ def year_results(request, year=2017):
     #stat_res = revent.values('reg_event__lname', 'reg_event__fname', 'reg_event__phone',).annotate(cphone = Count('reg_event')).order_by("-cphone")
     stat_res = revent.order_by('reg_event__phone')#.values('reg_event__phone', 'reg_event__fname', 'reg_event__lname', 'reg_event__birthday', 'reg_event__city', 'reg_event__event', 'reg_event__event__name', 'reg_event__club', 'finish')    
     event_date = evt.date
-    #male = ResultEvent.male_objects.all()
-    male = revent.active_for_account(1).count()
-    #female = ResultEvent.female_objects.all()
-    female = revent.active_for_account(0).count()
+    male = ResultEvent.male_objects.get_male_byyear(year)
+    #male = revent.active_for_account(1).count()
+    female = ResultEvent.female_objects.get_female_byyear(year)
+    print "FEMALE  = ", female
+    #female = revent.active_for_account(0).count()
     vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'male':male, 'female':female, 'stat_res': stat_res, 'year': year}    
     evnt = {'event': evt}
     vars.update(evnt)
@@ -1242,7 +1409,8 @@ def year_results(request, year=2017):
         del request.session['reg_email']
     except:
         error = "Параметр reg_email не існує"
-    return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index_result.html', vars)        
 #    pass
 #    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')
 
@@ -1254,7 +1422,8 @@ def shop_bicycle_company(request):
     vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_company': bsc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
 
 def shop_bicycle_brand(request, id=None):
@@ -1265,7 +1434,8 @@ def shop_bicycle_brand(request, id=None):
     vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bybrand': bsb, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
 
 def shop_bicycle(request, id):
@@ -1276,7 +1446,8 @@ def shop_bicycle(request, id):
     vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle': bs, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
 
 def shop_components_company(request):
@@ -1287,7 +1458,8 @@ def shop_components_company(request):
     vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_company': scc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
 
 def shop_components_brand(request, id):
@@ -1298,7 +1470,8 @@ def shop_components_brand(request, id):
     vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_bybrand': scb, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
     
 
 def shop_components_type(request, id):
@@ -1309,7 +1482,8 @@ def shop_components_type(request, id):
     vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_bytype': sct, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
 
 def shop_component(request, id):
@@ -1319,7 +1493,8 @@ def shop_component(request, id):
     vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'component': sc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
 
 
 def shop_components_sale(request):
@@ -1330,7 +1505,8 @@ def shop_components_sale(request):
     vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
     
 
 def shop_main(request):
@@ -1339,7 +1515,8 @@ def shop_main(request):
     vars = {'weblink': 'shop_main.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
     
 
 

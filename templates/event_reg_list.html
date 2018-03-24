@@ -1,8 +1,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 <link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <script src="/media/jquery.dataTables.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
 
 
 <style>
@@ -411,7 +414,7 @@ $("#table_cat5_wrapper").hide();
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -455,17 +458,34 @@ style="background-color: white;"
 {% endif %}
 {% if user.is_authenticated %}
 	<td align="center" >
-<div class="dropdown">
-  <span>
-<a href="{% url 'rider-pay-submit-admin' rider.pk %}"><img src="/media/images/menu_navigation_40.png" height="25"></a>
-  </span>
-  <div class="dropdown-content">
-	<a href="{% url 'rider-pay-submit-admin' rider.pk %}">Внести оплату</a>
-	<a href="{% url 'rider-reminder-mail' rider.pk %}">Відправити лист</a>
-	<a href="{% url 'rider-invite-mail' rider.pk %}">Лист запрошення</a>
-	<a href="{% url 'rider-reg-copy' rider.pk %}">Зареєструвати на Медовий трейл</a>
+
+<!-- drop MENU for Administrator -->
+<div class="btn-group">
+  <button type="button" class="btn btn-secondary " data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <i class="material-icons">arrow_drop_down_circle</i>
+  </button>
+  <div class="dropdown-menu dropdown-menu-right">
+	<a href="{% url 'rider-pay-submit-admin' rider.pk %}" class="dropdown-item" type="button">Внести оплату</a>
+	<a href="{% url 'rider-reminder-mail' rider.pk %}" class="dropdown-item" type="button">Відправити лист ще раз</a>
+	<div class="dropdown-divider"></div>
+{% for evn in evnt_reg %}
+	{% if evn.days_left > 0 %}
+		<a href="{% url 'rider-invite-mail-to' rider.pk evn.pk %}" class="dropdown-item" type="button">Лист запрошення на {{evn.name}}</a>
+	{% endif %}
+{% endfor %}	
+	<div class="dropdown-divider"></div>
+{% for evn in evnt_reg %}
+	{% if evn.real_day_left > -7 %}
+		<a href="{% url 'rider-reg-copy-to' rider.pk evn.pk %}" class="dropdown-item" type="button">Зареєструвати на {{evn.name}}</a>
+	{% endif %}
+{% endfor %}
+{% if user.is_authenticated and user|has_group:"moder" %}
+	<div class="dropdown-divider"></div>
+	<a href="{% url 'rider-reg-delete' rider.pk %}" class="dropdown-item" type="button" onclick="return confirm('Ви впевненні що хочете видалити запис {{rider.fname}} {{rider.lname}}?')">Видалити реєстрацію</a>
+{% endif %}	
   </div>
 </div>
+
 	</td>
 	<td>
 	{{rider.phone}}
@@ -529,7 +549,6 @@ style="background-color: white;"
 </div>
 
 
-
 <br>
 <h2 id="event_cat0" class="cat_showhide">Категорія до 18 років <<Показати>></h2> 
 <table id="table_cat0" class="display" cellspacing="0" width="100%">
@@ -559,7 +578,7 @@ style="background-color: white;"
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -602,7 +621,7 @@ style="background-color: white;"
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -646,7 +665,7 @@ style="background-color: white;"
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -689,7 +708,7 @@ style="background-color: white;"
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -732,7 +751,7 @@ style="background-color: white;"
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
@@ -775,7 +794,7 @@ style="background-color: white;"
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>
 <td align="center">
-{% if rider.sex = 1 %}
+{% if rider.sex == 1 %}
 	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
 {% else %}
 	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>

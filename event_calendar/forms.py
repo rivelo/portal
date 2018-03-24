@@ -69,7 +69,7 @@ class RegEventsForm(forms.ModelForm):
     class Meta:
         model = RegEvent
         fields = '__all__'
-        exclude = ['user', 'status', 'pay', 'pay_date', 'pay_type', 'reg_code', 'start_number']
+        exclude = ['user', 'status', 'pay', 'pay_date', 'pay_type', 'reg_code', 'start_number', 'start_status']
         
 
 def auth_group(user, group):
@@ -115,7 +115,7 @@ class PayRegEventsForm(forms.ModelForm):
 
             #raise forms.ValidationError("Ваша оплата менша за стартовий внесок %s гривень на %s " % (chk_event.cur_reg_sum(pdate), pdate.strftime('%d.%m.%Y')))             
         #res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).order_by('start_number')
-        res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).values_list('start_number', flat=True).order_by('start_number')
+        res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).exclude(pk = self.instance.pk).values_list('start_number', flat=True).order_by('start_number')
         if len(res) > 0 :
             nlist = ', '.join(map(str, res))
             if chk_number in res:
@@ -128,5 +128,5 @@ class PayRegEventsForm(forms.ModelForm):
     class Meta:
         model = RegEvent
         fields = '__all__'
-        exclude = ['user', 'status', 'reg_code', 'event', 'fname', 'lname', 'sex', 'nickname', 'email', 'phone', 'country', 'city', 'club', 'bike_type', 'birthday', 'date']
+        exclude = ['user', 'status', 'reg_code', 'event', 'fname', 'lname', 'sex', 'nickname', 'email', 'phone', 'country', 'city', 'club', 'bike_type', 'birthday', 'date', 'start_status']
                     
