@@ -10,12 +10,13 @@ import datetime
 
 class NewsForm(forms.ModelForm):
     title = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': '100'}))
-    text = forms.CharField(label='NEWS', widget=forms.Textarea(), required=True)
-#    date = forms.DateTimeField(initial = datetime.date.today, label='Дата', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
+#    text = forms.CharField(label='NEWS', widget=forms.Textarea(), required=True)
+    date = forms.DateTimeField(initial = datetime.date.today, label='Дата', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
     link = forms.URLField(widget = widgets.URLInput())
     author = forms.CharField(label='Автор', max_length=50)
     category = forms.ModelChoiceField(queryset = Category.objects.all(), required=False) 
     comments = forms.ModelChoiceField(queryset = Comments.objects.all(), required=False)
+#    url_desc = forms.CharField(label='Положення', widget=forms.Textarea())
 
     class Meta:
         model = News

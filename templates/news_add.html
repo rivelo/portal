@@ -2,9 +2,13 @@
 
 <script src="http://cdn.tinymce.com/4/tinymce.min.js"></script>
 
+{% comment %}
+{% endcomment %}
+
 <script>
 tinymce.init({
-  selector: 'textarea',
+  selector: 'textarea#editable',
+//  selector: 'textarea',
   height: 500,
   menubar: false,
   plugins: [
@@ -22,10 +26,9 @@ tinymce.init({
 <h1>Додати/Редагувати новину</h1>
  <form action="" method="POST" enctype="multipart/form-data">
  {% csrf_token %}
-        <table>
+
             {{ form.as_ul }}
-        </table>
-        <input type="submit" value="Save">
+<input type="submit" value="Save">
 </form>
 
 <!-- 

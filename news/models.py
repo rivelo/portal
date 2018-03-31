@@ -41,7 +41,7 @@ class News(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     
     img_url = models.CharField(max_length=255, blank=True, null=True)
-    url_desc = models.TextField(blank=True, null=True)
+    #url_desc = models.TextField(blank=True, null=True) # положення до заходу
     
     def __unicode__(self):
         return self.text

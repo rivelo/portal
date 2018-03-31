@@ -694,7 +694,8 @@ def event_reg_list(request, id, start=False):
     return render(request, 'index.html', vars)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
     
-    
+
+@csrf_exempt    
 def event_reg_edit(request, id):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -707,7 +708,7 @@ def event_reg_edit(request, id):
                 rider = RegEvent.objects.get(pk = rid)
                 chk_event = rider.event
                 #res = RegEvent.objects.filter(event = chk_event, start_number = number).values_list('start_number', flat=True).order_by('start_number')
-                res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).values_list('start_number', flat=True).order_by('start_number')
+                res = RegEvent.objects.filter(event = chk_event, start_number__gt=0).exclude(id = rid).values_list('start_number', flat=True).order_by('start_number')
                 if len(res) > 0 :
                     nlist = ', '.join(map(str, res))
                     #return HttpResponse("Номер %s вже вибраний. Виберіть інший окрім (%s)" % (number, nlist))
@@ -719,7 +720,7 @@ def event_reg_edit(request, id):
     
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
-    
+   
 def get_event_rider(request, id):
     if request.session.test_cookie_worked():
         request.session.delete_test_cookie()
@@ -747,11 +748,11 @@ def get_event_rider(request, id):
     if (not regmail) and (regmail != True):
         if request.session.get("registration_subject"):
             #request.session.get["registration_subject"]
-            #send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
+            send_reg_mail(request, revent.pk, revent.email, "Редагування даних")
             print "Email reg_subj = ", revent.email
         else:
             print "Email = ", revent.email
-            #send_reg_mail(request, revent.pk, revent.email)
+            send_reg_mail(request, revent.pk, revent.email)
         res_data = "EMail надіслано"
         request.session['reg_email'] = True
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -856,6 +857,7 @@ def register_to_all(request, hash):
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
+@csrf_exempt
 def event_rider_status(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -873,6 +875,7 @@ def event_rider_status(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
 
+@csrf_exempt
 def rider_start_status(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1250,6 +1253,7 @@ def rider_search(request):
         
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
 
+
 @csrf_exempt
 def rider_reg_search(request):
     if request.is_ajax():
@@ -1300,15 +1304,16 @@ def rider_reg_copy(request, id):
             if res:
                 clone = res[0]  
                 clone.pk = None
+                clone.save()
                 clone.event = Events.objects.get(pk = id)
                 clone.date = datetime.datetime.now()
                 clone.start_number = 0
                 clone.description = ""
-                reg_code = hashlib.sha256(str(regevt.pk)).hexdigest()
+                reg_code = hashlib.sha256(str(clone.pk)).hexdigest()
                 clone.reg_code = reg_code
                 clone.pay_type = null
                 clone.pay = 0
-                clone.pay_date = null
+                clone.pay_date = None
                 clone.status = False
                 clone.start_status = False
                  
@@ -1317,7 +1322,11 @@ def rider_reg_copy(request, id):
             else:
                 message = "Поштової адреси та телефону не знайдено"
                 return HttpResponse(message)
-    return HttpResponse('Ви зареєструвались на ' + res[0].event.name)
+
+    message = 'Ви зареєструвались на ' + res[0].event.name
+    vars.update({'success_data': message, 'reglist': reverse('event-rider-list' , kwargs={'id':id})})
+    return render(request, 'index.html', vars)
+#    return HttpResponse('Ви зареєструвались на ' + res[0].event.name)
 
 
 def rider_reg_delete(request, id):
@@ -1328,7 +1337,7 @@ def rider_reg_delete(request, id):
     rider.delete()
     return HttpResponseRedirect(reverse('event-rider-list' , kwargs={'id':ev}))
 
-
+@csrf_exempt
 def regevent_edit(request, id=None):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
@@ -1380,6 +1389,15 @@ def regevent_edit(request, id=None):
                 obj.phone = d
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('phone', flat=True)
+                return HttpResponse(c)
+
+            if POST.has_key('rid') and POST.has_key('email'):
+                id = request.POST.get('rid')
+                d = request.POST.get('email')
+                obj = RegEvent.objects.get(id = id)
+                obj.email = d
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('email', flat=True)
                 return HttpResponse(c)
 
     message = "Щось пішло не так" 

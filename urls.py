@@ -74,6 +74,8 @@ urlpatterns = [ #patterns('',
     url(r'^registration/edit/$', event_calendar_views.regevent_edit),
     url(r'^rider/registration/(?P<id>\d+)/send/$', event_calendar_views.rider_reg_copy), #copy old registration by rider
     url(r'^rider/registration/(?P<id>\d+)/delete/$', event_calendar_views.rider_reg_delete, name='rider-reg-delete'), # delete registratiion
+    url(r'^rider/edit/email/$', event_calendar_views.regevent_edit), # change email
+    
 
     url(r'^shop/$', event_calendar_views.shop_main, name='shop-main'),
     url(r'^components/$', event_calendar_views.shop_components_company, name='components-company'),
