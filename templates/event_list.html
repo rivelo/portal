@@ -287,6 +287,15 @@ function initMap(x,y) {
 
 </div>
 
+{% if item.photo %}
+        <div class="row align-items-center poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
+            <div class="col-xs-10" ><h5>Приховати афішу</h5></div>
+            <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/poster-icon.png" class="img-responsive" alt="Афіша" width="48px"></div>            
+            <div class="col-xs-12 poster_content"><img src="/media/{{item.photo}}" class="img_poster" id="pimg_{{item.pk}}"></div>
+        </div>
+{% endif %} 
+
+
 <div class="row h-100" >
 <div class="col-12"> 
 {% autoescape off %}
@@ -390,9 +399,18 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {% else %}
 {% endif %}
 
+
+
 {% if item.result_present %} 
 <h5>Результати:  
 <a href="{% url 'event-result' item.pk %}">Результати</a>
+</h5>
+{% endif %}
+
+
+{% if user.is_authenticated and user|has_group:"moder" %}
+<h5>Стартовий протокол:  
+<a href="{% url 'event-start-list' item.pk %}">Список учасників на старті</a>
 </h5>
 {% endif %}
 

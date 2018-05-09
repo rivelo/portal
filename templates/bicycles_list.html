@@ -207,9 +207,9 @@
 
 {% if bicycle_company %}			
 {% for bike in bicycle_company %}
-	<img src="/media/{{bike.model__brand__logo}}" width="150px"/>
-	<p align="justify" style="font-size: 120%">
-	<a href="{% url 'bicycle-list-bybrand' bike.model__brand__id %}"> {{bike.model__brand__name}} ({{bike.brand_c}})  {{bike.model__brand__logo}} </a>
+{#	<img src="/media/{{bike.model__brand__logo}}" width="150px"/> #}
+	<p align="justify" style="font-size: 120%"> {{bike}}
+{#	<a href="{% url 'bicycle-list-bybrand' bike.model__brand__id %}"> {{bike.model__brand__name}} ({{bike.brand_c}})  {{bike.model__brand__logo}} </a> #}
 	
 	</p>
 {% endfor %}	

@@ -355,6 +355,39 @@ $("body").on("click", ".email_field", function(e){
  });
 
 
+$( "#img_start" ).click(function() {
+	$( "#dialog_start" ).dialog({
+	resizable: false,
+  	modal: true,
+	width: 380,
+	height:"auto",
+	buttons: {
+"Додати": function() {
+//	$(".ok_button").on('click', function(){
+		$.ajax({
+        type: "POST",
+        url: "/rider/start/edit/",
+        data: {event:  {{ event.pk }}, value: $("#dsedit").val() },
+        //dataType: "json",
+        success:function(data){
+        	$("#img_start").css("opacity", 1);
+        	console.log("Час змінено " + data);
+        },
+        error:function(data){
+            alert("++++ При отправке возникли проблемы" + data);
+        }
+    	});
+    console.log("Натиснуто ОК" + $("#msg_text").val()); 
+   // })
+},
+"Відмінити": function() {
+	$( this ).dialog( "close" );	
+},
+
+}  		
+	});
+});
+
 
 $("#table_cat0_wrapper").hide();
 $("#table_cat1_wrapper").hide();    
@@ -372,6 +405,11 @@ $("#table_cat5_wrapper").hide();
 {% block content %}
 
 <br>
+<!-- dialog for client message -->
+<div id="dialog_start" title="Старт заходу">
+<input type="text" id="dsedit" name="mytext[]" cols="40"> </input>
+</div>
+
 
 <div class="row">
 <div class="col-11">
@@ -390,7 +428,9 @@ $("#table_cat5_wrapper").hide();
 
 <div class="col-1">
 	{% if event.icon %}
-	<img src="/media/{{event.icon}}" />
+{% if user.is_authenticated and user|has_group:"admin" %}	
+	<img id="img_start" src="/media/{{event.icon}}" />
+{% endif %}
 	{% endif %} 
 </div>
 

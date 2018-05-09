@@ -941,7 +941,8 @@ def event_result(request, id):
         del request.session['reg_email']
     except:
         error = "Параметр reg_email не існує"
-    return render(request, 'index_result.html', vars)
+    #return render(request, 'index_result.html', vars)
+    return render(request, 'index.html', vars)
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
@@ -968,10 +969,11 @@ def event_result_simple(request, id, point=None):
     vars = {'weblink': 'event_simple_result.html', 'sel_menu': 'calendar', 'list': revent, 'list_res': revent_res, 'uname': username}
     evnt = {'event': evt}
     vars.update(evnt)
-    return render(request, 'index_result.html', vars)
+    #return render(request, 'index_result.html', vars)
+    return render(request, 'index.html', vars)
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
             
-
+@csrf_exempt
 def result_add(request):
     if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1033,6 +1035,7 @@ def result_add(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
 
 
+@csrf_exempt
 def result_remove(request):
     if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1060,6 +1063,7 @@ def result_remove(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
 
+@csrf_exempt
 def result_clear(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1083,7 +1087,7 @@ def result_clear(request):
                     return HttpResponse("Час не видалено", content_type='text/plain')
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
-
+@csrf_exempt
 def event_start(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1220,7 +1224,7 @@ def event_rider_copy(request, id, evnt=None):
         clone.description = ""
         clone.pay_type = null
         clone.pay = 0
-        clone.pay_date = null
+        clone.pay_date = None
         clone.status = False
         clone.start_status = False
         clone.save()
@@ -1434,7 +1438,10 @@ def year_results(request, year=2017):
 
 
 def shop_bicycle_company(request):
-    bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand__logo', 'model__brand', 'model__brand__name', 'model__brand__id').annotate(brand_c = Count('model__brand'))
+    #bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand__logo', 'model__brand', 'model__brand__name', 'model__brand__id').annotate(brand_c = Count('model__brand'))
+    bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand').annotate(brand_c = Count('model__brand__pk'))
+    
+
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_company': bsc, 'default_domain': settings.DEFAULT_DOMAIN}
