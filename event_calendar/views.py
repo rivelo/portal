@@ -977,7 +977,7 @@ def event_result_simple(request, id, point=None):
 def result_add(request):
 #    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
 #        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
-    if request.is_ajax():
+    if request.is_ajax() or request.method == 'POST':
         if request.method == 'POST':  
             POST = request.POST  
             if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
