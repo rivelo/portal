@@ -360,7 +360,7 @@ $( "#img_start" ).click(function() {
 	resizable: false,
   	modal: true,
 	width: 380,
-	height:"auto",
+	height:200,
 	buttons: {
 "Додати": function() {
 //	$(".ok_button").on('click', function(){
@@ -372,6 +372,7 @@ $( "#img_start" ).click(function() {
         success:function(data){
         	$("#img_start").css("opacity", 1);
         	console.log("Час змінено " + data);
+        	$( "#dialog_start" ).dialog('close');    	
         },
         error:function(data){
             alert("++++ При отправке возникли проблемы" + data);
@@ -400,16 +401,16 @@ $("#table_cat5_wrapper").hide();
 
 </script>
 
+<!-- dialog for client message --> 
+<div id="dialog_start" title="Старт заходу" class="overlay" style="display:none;">
+<input type="text" id="dsedit" name="mytext[]" cols="40"> </input>
+</div>
+
 
 
 {% block content %}
 
 <br>
-<!-- dialog for client message -->
-<div id="dialog_start" title="Старт заходу">
-<input type="text" id="dsedit" name="mytext[]" cols="40"> </input>
-</div>
-
 
 <div class="row">
 <div class="col-11">
@@ -505,6 +506,9 @@ $("#table_cat5_wrapper").hide();
 
 <td>
 {{forloop.counter}}
+{% if user.is_authenticated %}
+ [{{rider.pk}}]
+{% endif %}
 </td>
 <td>{{rider.fname}} {{rider.lname}}</td>
 <td>{{rider.nickname}}</td>

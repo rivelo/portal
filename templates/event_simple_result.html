@@ -214,16 +214,16 @@ $("body").on("click", ".n_riders", function(e){
         type: "POST",
         url: "/rider/result/add/",
 {% if uname == "kp1" %}                
-        data: { rid: $(this).attr("rid"), point: 'kp1', value: ''},
+        data: { rid: $(this).attr("rid"), point: 'kp1', value: '', chkhash: 'Rivelo256haSh+123-2018'},
 {% endif %}
 {% if uname == "kp2" %}                
-        data: { rid: $(this).attr("rid"), point: 'kp2', value: ''},
+        data: { rid: $(this).attr("rid"), point: 'kp2', value: '', chkhash: 'Rivelo256haSh+123-2018'},
 {% endif %}        
 {% if uname == "kp3" %}                
-        data: { rid: $(this).attr("rid"), point: 'kp3', value: ''},
+        data: { rid: $(this).attr("rid"), point: 'kp3', value: '', chkhash: 'Rivelo256haSh+123-2018'},
 {% endif %}        
 {% if uname == "finish" %}                
-        data: { rid: $(this).attr("rid"), point: 'finish', value: ''},
+        data: { rid: $(this).attr("rid"), point: 'finish', value: '', chkhash: 'Rivelo256haSh+123-2018'},
 {% endif %}        
         dataType: "json",
         success:function(){

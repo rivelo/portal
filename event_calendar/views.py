@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 #from django.shortcuts import render_to_response
 from django.shortcuts import render, redirect
 from django.template import RequestContext
@@ -975,15 +975,23 @@ def event_result_simple(request, id, point=None):
             
 @csrf_exempt
 def result_add(request):
-    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
-        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+#    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+#        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
-            if POST.has_key('rid'):
+            if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
                 rid = request.POST['rid']
                 val = request.POST['value']
                 point = request.POST['point']
+                chkhash = None
+                if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+                    chkhash = request.POST['chkhash']
+                else:
+                    chkhash = 'Rivelo256haSh+123-2018'
+                if chkhash <> 'Rivelo256haSh+123-2018':
+                    return HttpResponseBadRequest('hash not found or invalid')
+                
                 rev = RegEvent.objects.get(pk = rid)
                 try:
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
@@ -1003,14 +1011,14 @@ def result_add(request):
                         rider.finish = time_point
                         rider.save()
                         rider = ResultEvent.objects.get(reg_event__pk = rid)                        
-                        message = """Вітаємо вас на фініші марафону Медовий Трейл!\n 
+                        message = """Вітаємо вас на фініші марафону Рівно100!\n 
     Ви подолали маршрут за %s .\n\n
-    Запрошуємо вас 19 серпня відвідати наш марафон 100 миль \n
-    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/4/show/ \n
-    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/4/registration/list/ \n
+    Запрошуємо вас 7 липня відвідати наш грунтовий марафон медовий трейл \n
+    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/19/show/ \n
+    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/19/registration/list/ \n
     Гарних покатеньок і до зустрічі на старті.
     """ % (rider.get_time_diff())
-                        res = send_mail('Медовий Трейл. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                        #res = send_mail('Рівно100. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:

@@ -199,6 +199,7 @@ class RegEvent (models.Model):
     date = models.DateTimeField(auto_now_add = True)
     status = models.BooleanField(default=False)
     start_number = models.IntegerField(help_text="Стартовий номер від 1 до 999", default=0, blank=True) # Стартовий номер; 0 - не вибрано
+    #chip_number = models.CharField IntegerField(help_text="номер чіпа", default=0, blank=True) # Стартовий номер; 0 - не вибрано
     description = models.TextField(blank=True)
     start_status = models.BooleanField(default=False)
 
