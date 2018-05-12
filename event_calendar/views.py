@@ -973,25 +973,6 @@ def event_result_simple(request, id, point=None):
     return render(request, 'index.html', vars)
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
-@csrf_exempt
-def res_test(request):
-    if request.method == 'POST':  
-        POST = request.POST  
-        rid = request.POST['rid']
-        val = request.POST['value']
-        point = request.POST['point']
-        chkhash = None
-        if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
-            chkhash = request.POST['chkhash']
-        else:
-            chkhash = 'Rivelo256haSh+123-2018'
-        if chkhash <> 'Rivelo256haSh+123-2018':
-            return HttpResponseBadRequest('hash not found or invalid')
-        
-        return HttpResponse("Час додано " + val , content_type='text/plain')
-    
-    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
-
             
 @csrf_exempt
 def result_add(request):
@@ -1011,8 +992,11 @@ def result_add(request):
                     chkhash = 'Rivelo256haSh+123-2018'
                 if chkhash <> 'Rivelo256haSh+123-2018':
                     return HttpResponseBadRequest('hash not found or invalid')
-                
-                rev = RegEvent.objects.get(pk = rid)
+                rev = None
+                try:
+                    rev = RegEvent.objects.get(pk = rid)
+                except RegEvent.DoesNotExist:
+                    HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
                 try:
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
                     format = '%Y-%m-%d %H:%M:%S'
@@ -1057,7 +1041,7 @@ def result_add(request):
 #                rider.save()
 #                json = dict(status = rider.start_status)
 #                return HttpResponse(simplejson.dumps(json), content_type='application/json')
-                    return HttpResponse("Час додано" + val, content_type='text/plain')
+                    return HttpResponse("Невірні параметри запиту rid=" + rid + "val=" + val, content_type='text/plain')
                 #else:
                 #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        

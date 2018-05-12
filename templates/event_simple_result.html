@@ -259,7 +259,15 @@ $("body").on("click", ".n_riders", function(e){
 <div id="dialog_start" title="Старт заходу">
 <input type="text" id="dsedit" name="mytext[]" cols="40"> </input>
 </div>	
-
+<!-- 
+<form action="http://192.168.10.197:8001/rider/result/add/" method="post">
+<input type="hidden" name="rid" value="516">
+<input type="hidden" name="point" value="kp1">
+<input type="hidden" name="value" value="15:12:12">
+<input type="hidden" name="chkhash" value="Rivelo256haSh+123-20185">
+<input type="submit" name="submit" onclick="vote()" value="submit"/>
+</form>
+ -->
 <br>
 <div style="width:560px; float:left;">
 <h2 class="title"> Відмітка {{uname}} {% if user.is_authenticated %}<a href="{% url 'event-result' event.pk %}"><<Повні результати>></a> {% endif %} <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a> </h2>
