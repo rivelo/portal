@@ -237,7 +237,7 @@ $("body").on("click", ".n_riders", function(e){
             localStorage.setItem(d.attr("rid"), ['kp1', xhr.split('Час додано ')[1]]);
         },
         error:function(xhr, ajaxOptions, thrownError){
-        	localStorage.setItem($(this).attr("rid"), 'kp1', '22:33');
+            localStorage.setItem(d.attr("rid"), ['kp1', xhr.split('Час додано ')[1]]);
             //alert( xhr.responseText );
             console.log("THIS error = " + d.find('h3:last').html() )
             $('#rtable tr:last').after('<tr><td>error'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td></td></tr>');
