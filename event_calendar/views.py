@@ -1022,7 +1022,7 @@ def result_add(request):
     Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/19/registration/list/ \n
     Гарних покатеньок і до зустрічі на старті.
     """ % (rider.get_time_diff())
-                        #res = send_mail('Рівно100. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                        res = send_mail('Рівно100. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:
@@ -1161,7 +1161,7 @@ def show_client(request, user_name='rivno100'):
         c_invoice = ClientInvoice.objects.filter(client__pk = 2533) #2533 - медовий трейл / 2010 - поліська січ
     if user_name == 'rivno100':        
         client = Client.objects.get(pk = 1943) # rivno100
-        c_invoice = ClientInvoice.objects.filter(client__pk = 1943) #2533 - медовий трейл / 2010 - поліська січ
+        c_invoice = ClientInvoice.objects.filter(client__pk = 1943, date__year = datetime.datetime.today().year) #2533 - медовий трейл / 2010 - поліська січ
     if user_name == 'pol_sich':        
         client = Client.objects.get(pk = 2010) # поліська січ
         c_invoice = ClientInvoice.objects.filter(client__pk = 2010) #2533 - медовий трейл / 2010 - поліська січ
@@ -1175,9 +1175,8 @@ def show_client(request, user_name='rivno100'):
         del request.session['reg_email']
     except:
         error = "Параметр reg_email не існує"
-    return render(request, 'index_result.html', vars)
+    return render(request, 'index.html', vars)
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
-
 #    return HttpResponse("Клієнт << " + cl.name, content_type='text/plain')
 
     
@@ -1556,4 +1555,29 @@ def shop_main(request):
     return render(request, 'index.html', vars)        
     
 
+import csv
+from django.template import loader, Context
+
+def csv_view(request, id, start=True):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для скачування файлу')
+    
+    if start == True:
+        revent = RegEvent.objects.filter(event = id, start_status = True).order_by("date") #all rider list
+    else:
+        revent = RegEvent.objects.filter(event = id).order_by("date") #all rider list
+
+# Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    writer = csv.writer(response)
+#    writer.writerow(['chip', 'prizv', 'Name', 'rid', 'phone'])
+
+    for item in revent:
+        writer.writerow([item.start_number+1000, item.lname, item.fname, item.id, item.phone, item.start_number])
+#    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+#    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+
+    return response
 

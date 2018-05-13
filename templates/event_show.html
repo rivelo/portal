@@ -223,6 +223,11 @@ function initMap(x,y) {
 </div>
 </div>
 
+{% if user.is_authenticated and user|has_group:"moder" %}
+<h5>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'rivno100' %}">Список товарів</a>
+</h5>
+{% endif %}
 
 <div class="row h-100" >
 {# <div class="col-12"> #} 
@@ -309,6 +314,9 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </a>
 {% if user.is_authenticated and user|has_group:"moder" %}
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'event-start-list' event.pk %}">Стартовий протокол</a>
+<br>
+<a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv' event.pk %}">Завантажити CSV файл</a>
+
 {% endif %}
 </h5>
 
@@ -323,7 +331,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 
 {% if event.result_present %} 
 <h5>Результати:  
-<a href="{% url 'event-result' event.pk %}">Результати</a>
+<a class="btn btn-info" style="font-size: 18px" href="{% url 'event-result' event.pk %}">Результати</a>
 </h5>
 {% endif %}
 

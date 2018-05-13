@@ -192,6 +192,7 @@ $(document).ready(function(){
     } );
     
 	rtable.column(7).visible(false);
+	rtable.column(13).visible(false);
 	rtable.column(-1).visible(false);
 	rtable.column(-2).visible(false);
 	
@@ -200,7 +201,7 @@ $(document).ready(function(){
 	rtable.column(-3).visible(false);
 	rtable.column(-5).visible(false);
 	rtable.column(-6).visible(false); 
-	rtable.column(-7).visible(true); //Стать
+	//rtable.column(-7).visible(true); //Стать
 {% endif %}
 
 {% comment %}
@@ -231,14 +232,14 @@ $(document).ready(function(){
 	rtable.column(5).visible(false);
 //	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Підтвердження оплати</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Телефон</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Оплата</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Дія</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Фініш</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Загальний час</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="9">Підтвердження оплати</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="17">Телефон</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Оплата</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Дія</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="18">Фініш</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Загальний час</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Стать</a></div>');	
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Стать</a></div>');	
 {% endif %}	
 	
 	
@@ -261,12 +262,12 @@ $(document).ready(function(){
         function(oSettings, aData, iDataIndex) {
            //Only shows columns with a COUNT > 0
 {% if kp2 %}
-           var engineColumn = parseInt(aData[13]);
+           var engineColumn = parseInt(aData[9]);
 {% endif %}           
 {% if kp3 %}
 		var engineColumn = parseInt(aData[14]);
 {% else %}
-			var engineColumn = parseInt(aData[12]);
+			var engineColumn = parseInt(aData[13]);
 {% endif %}           
            if (engineColumn == 1)
                return true;
@@ -287,7 +288,7 @@ $(document).ready(function(){
 {% if kp3 %}
  		var engineColumn = parseInt(aData[14]);
 {% else %} 		
- 		var engineColumn = parseInt(aData[12]); 		
+ 		var engineColumn = parseInt(aData[13]); 		
 {% endif %}
            if (engineColumn == 0)
                return true;

@@ -55,7 +55,8 @@ urlpatterns = [ #patterns('',
     url(r'^event/(?P<id>\d+)/registration/$', event_calendar_views.add_reg, name='event-registration'),
     url(r'^event/(?P<id>\d+)/registration/list/$', event_calendar_views.event_reg_list, name='event-rider-list'),
     url(r'^event/(?P<id>\d+)/registration/edit/number/$', event_calendar_views.event_reg_edit, name='event-rider-edit-number'),
-    url(r'^event/(?P<id>\d+)/start/list/$', event_calendar_views.event_reg_list, {'start' : True}, name='event-start-list'),
+    url(r'^/(?P<id>\d+)/start/list/$', event_calendar_views.event_reg_list, {'start' : True}, name='event-start-list'),
+    url(r'^event/(?P<id>\d+)/csv/$', event_calendar_views.csv_view, name='download-csv'),
     url(r'^event/gps/get/$', event_calendar_views.get_event_gps),
     url(r'^event/rider/(?P<id>\d+)/info/$', event_calendar_views.get_event_rider, name='event-rider-info'),
     url(r'^event/rider/(?P<id>\d+)/pay/(?P<hash>[A-Fa-f0-9]{64})/$', event_calendar_views.add_rider_pay, name='rider-pay-submit'),
@@ -75,7 +76,6 @@ urlpatterns = [ #patterns('',
     url(r'^rider/registration/(?P<id>\d+)/send/$', event_calendar_views.rider_reg_copy), #copy old registration by rider
     url(r'^rider/registration/(?P<id>\d+)/delete/$', event_calendar_views.rider_reg_delete, name='rider-reg-delete'), # delete registratiion
     url(r'^rider/edit/email/$', event_calendar_views.regevent_edit), # change email
-    
 
     url(r'^shop/$', event_calendar_views.shop_main, name='shop-main'),
     url(r'^components/$', event_calendar_views.shop_components_company, name='components-company'),
@@ -88,7 +88,8 @@ urlpatterns = [ #patterns('',
     url(r'^bicycles/(?P<id>\d+)/model/$', event_calendar_views.shop_bicycle, name='bicycle-show'),
 #    url(r'^client/$', event_calendar_viewsshow_client'),
     url(r'^client/sale/$', event_calendar_views.client_sale),
-    url(r'^client/(?P<user_name>[A-Za-z0-9_]+)/$', event_calendar_views.show_client),
+    url(r'^client/(?P<user_name>[A-Za-z0-9_]+)/$', event_calendar_views.show_client, name='events_sale'),
+    
     
     url(r'^location/$', event_calendar_views.google_location),
 #    url(r'^prod/$', portal.tools.view_product'),

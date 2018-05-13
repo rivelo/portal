@@ -225,17 +225,22 @@ $("body").on("click", ".n_riders", function(e){
 {% if uname == "finish" %}                
         data: { rid: $(this).attr("rid"), point: 'finish', value: '', chkhash: 'Rivelo256haSh+123-2018'},
 {% endif %}        
-        dataType: "json",
-        success:function(){
+        dataType: "text",
+        async: true,
+        success:function(xhr, ajaxOptions, thrownError){
 //        	$(this).find("div.gps_content").empty();
-			console.log("THIS = " + $(this))
-    		$('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>TEST</td></tr>');
-    		$(this).hide();
+//			console.log("THIS = " + $(this))
+//    		$('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>TEST</td></tr>');
+//    		$(this).hide();
+            $('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr+'</td><td></td></tr>');
+            d.hide();
+            localStorage.setItem(d.attr("rid"), ['kp1', xhr.split('Час додано ')[1]]);
         },
         error:function(xhr, ajaxOptions, thrownError){
+        	localStorage.setItem($(this).attr("rid"), 'kp1', '22:33');
             //alert( xhr.responseText );
             console.log("THIS error = " + d.find('h3:last').html() )
-            $('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td></td></tr>');
+            $('#rtable tr:last').after('<tr><td>error'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td></td></tr>');
             d.hide();
         }
     });	
