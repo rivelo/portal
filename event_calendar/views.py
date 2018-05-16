@@ -1005,6 +1005,9 @@ def result_add(request):
                         val = datetime.datetime.now().strftime("%H:%M:%S")
                     time_point = "%s %s" % (tp, val)
                     #rider.kp1 = datetime.strptime(time_kp, format)
+                    if point == 'start':
+                        rider.start = time_point#datetime.datetime.now()
+                        rider.save()
                     if point == 'kp1':
                         rider.kp1 = time_point#datetime.datetime.now()
                         rider.save()
@@ -1022,7 +1025,7 @@ def result_add(request):
     Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/19/registration/list/ \n
     Гарних покатеньок і до зустрічі на старті.
     """ % (rider.get_time_diff())
-                        res = send_mail('Рівно100. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                        #res = send_mail('Рівно100. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:

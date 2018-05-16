@@ -400,20 +400,18 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {% endif %}
 
 
-
-{% if item.result_present %} 
-<h5>Результати:  
-<a href="{% url 'event-result' item.pk %}">Результати</a>
-</h5>
-{% endif %}
-
-
 {% if user.is_authenticated and user|has_group:"moder" %}
 <h5>Стартовий протокол:  
 <a href="{% url 'event-start-list' item.pk %}">Список учасників на старті</a>
 </h5>
 {% endif %}
 
+
+{% if item.result_present %} 
+<h5>Результати:
+<a class="btn btn-info" style="font-size: 18px" href="{% url 'event-result' item.pk %}">Результати</a>  
+</h5>
+{% endif %}
 
 <div class="container-fluid " >
 {# <div class="row align-items-center gps" ids="{{item.pk}}"> #}

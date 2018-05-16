@@ -314,7 +314,6 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </a>
 {% if user.is_authenticated and user|has_group:"moder" %}
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'event-start-list' event.pk %}">Стартовий протокол</a>
-<br>
 <a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv' event.pk %}">Завантажити CSV файл</a>
 
 {% endif %}
@@ -335,6 +334,12 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </h5>
 {% endif %}
 
+{% if user.is_authenticated and user|has_group:"moder" %}
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp3' %}"><<Проста версія КП3>></a>  
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br><br>
+{% endif %} 
 
 <div class="container-fluid " >
 <div class="row map align-items-center" lat="{{event.lat}}" lng="{{event.lng}}">
@@ -447,13 +452,13 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 <a href="{% url 'event-result' event.pk %}">Результати</a>
 </h4>
 
-
 <div class="map" lat="{{event.lat}}" lng="{{event.lng}}">
 <img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
 <b> Показати місце старту </b>
 <br>
 <div class="map_content"> </div>
 </div>
+
 
 <p class="meta"><em>{ Опубліковано <a href="#"> {{event.user.username}} </a>, {{event.pub_date}} }</em></p>
 

@@ -377,6 +377,14 @@ class ResultEvent (models.Model):
             return "DNF"
         res = self.finish - self.start
         return str(res)   # Assuming dt2 is the more recent time
+
+    def get_time_diff_kp1(self):
+        if self.start == None:
+            return "DNS"
+        if self.kp1 == None:
+            return ""
+        res = self.kp1 - self.start
+        return str(res)   # Assuming dt2 is the more recent time
    
 #    def riders_city(self):
 #        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')

@@ -64,16 +64,17 @@ tfoot input {
         box-sizing: border-box;
     }
     
-#event_stat:hover {
+/*#event_stat:hover {
 background-color: yellow;
 cursor: pointer;
-}
+}*/
 
+{% comment %}
 .cat_showhide:hover {
 background-color: yellow;
 cursor: pointer;
 }
-
+{% endcomment %}
 
 .hover-content {
     display:none;
@@ -108,6 +109,19 @@ $(document).ready(function(){
     	$( "#tabs" ).toggle()
 	});
 
+	$(".cat_showhide").click(function() {
+		if ($(this).text().search( 'Показати' ) != -1) {
+			$(this).html($(this).html().replace('Показати', 'Приховати'))
+		}
+		else {
+			$(this).html($(this).html().replace('Приховати', 'Показати'))
+		}
+//		console.log($(this).attr("id"));
+		var cat = $(this).attr("id").split("event_")[1]
+		$("#table_"+cat+"_wrapper").toggle();		
+	})	
+	
+{% comment %}	
 	$( "#event_cat0" ).click(function() {
   		if ($("#event_cat0").html() == "Категорія до 18 років &lt;&lt;Показати&gt;&gt;") {
     		$("#event_cat0").html("Категорія до 18 років <<Приховати>>");	
@@ -117,7 +131,7 @@ $(document).ready(function(){
     	}
     	$("#table_cat0_wrapper").toggle();
 	});
-	
+
 	$( "#event_cat1" ).click(function() {
   		if ($("#event_cat1").html() == "Категорія 18-29 років &lt;&lt;Показати&gt;&gt;") {
     		$("#event_cat1").html("Категорія 18-29 років <<Приховати>>");
@@ -167,7 +181,7 @@ $(document).ready(function(){
     	}
     	$("#table_cat5_wrapper").toggle();
 	});
-
+{% endcomment %}
 	
 	$('#rtable tfoot th').each( function () {
         var title = $(this).text();
@@ -200,9 +214,14 @@ $(document).ready(function(){
 	rtable.column(-4).visible(false);
 	rtable.column(-3).visible(false);
 	rtable.column(-5).visible(false);
-	rtable.column(-6).visible(false); 
+	rtable.column(-6).visible(false);
+	rtable.column(-3).visible(false);
+	rtable.column(-7).visible(false);
 	//rtable.column(-7).visible(true); //Стать
 {% endif %}
+	
+{% comment %}		
+{% endcomment %}
 
 {% comment %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">стать</a></div>');
@@ -223,27 +242,34 @@ $(document).ready(function(){
 {% endcomment %}
 	
 	$('#rtable_length_panel').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Старт</a></div>');
+
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');	
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Рік</a></div>');
-{% if user.is_authenticated and user|has_group:"moder" %}
-	rtable.column(-8).visible(false);
-	rtable.column(5).visible(false);
-//	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="9">Підтвердження оплати</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="17">Телефон</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Оплата</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Дія</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="18">Фініш</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Загальний час</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Стать</a></div>');	
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Старт</a></div>');
+	
+{% if user.is_authenticated and user|has_group:"moder" %}
+	{#	rtable.column(-8).visible(false); #}
+	rtable.column(5).visible(false); 
+
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-9">Фініш</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-8">Загальний час</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">КП2</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="9">КП1</a></div>');
+	
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-1">Підтвердження оплати</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">Примітки</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-3">Телефон</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-4">Дія</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-5">Оплата</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-6">Статус</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-7">Стать</a></div>');
 {% endif %}	
 	
 	
-    
+
     $('a.toggle-vis').on( 'click', function (e) {
         e.preventDefault();
          // Get the column API object
@@ -251,6 +277,24 @@ $(document).ready(function(){
          // Toggle the visibility
         column.visible( ! column.visible() );
     } );
+
+var tcat0 = $('#table_cat0').DataTable({
+	 	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	 	});
+	
+var tcat1 = $('#table_cat1').DataTable({
+	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	    });
+
+{% if user.is_authenticated and user|has_group:"moder" %}
+	tcat0.column(8).visible(true);
+	tcat1.column(8).visible(true);
+{% else %}
+	tcat0.column(8).visible(false);
+	tcat1.column(8).visible(false);
+{% endif %}
+//	$('#table_cat1_length').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Стать</a></div>');	
+	
     
  $("body").on('click', '#sex_rider', function() {
 	var status = $('#sex_rider').attr('val')
@@ -262,18 +306,21 @@ $(document).ready(function(){
         function(oSettings, aData, iDataIndex) {
            //Only shows columns with a COUNT > 0
 {% if kp2 %}
-           var engineColumn = parseInt(aData[9]);
+           var engineColumn = parseInt(aData[13]);
 {% endif %}           
 {% if kp3 %}
 		var engineColumn = parseInt(aData[14]);
 {% else %}
-			var engineColumn = parseInt(aData[13]);
+//		console.log("KP1 = ", aData[12])
+		var engineColumn = parseInt(aData[12]);
 {% endif %}           
            if (engineColumn == 1)
                return true;
            return false;
         });
  		rtable.draw();
+ 		console.log('status = ' + status);
+// 		tcat1.columns( 8 ).search( 1 ).draw();
 	}
 	if ( status == 1) {
 		$('#sex_rider').attr('val', 0);
@@ -288,49 +335,45 @@ $(document).ready(function(){
 {% if kp3 %}
  		var engineColumn = parseInt(aData[14]);
 {% else %} 		
- 		var engineColumn = parseInt(aData[13]); 		
+ 		var engineColumn = parseInt(aData[12]); 		
 {% endif %}
            if (engineColumn == 0)
                return true;
            return false;
         });
  		rtable.draw();
+ 		console.log('status = ' + status)
+// 		tcat1.columns( 8 ).search(0).draw();
 	}
 	if ( status == 0) {
 		$('#sex_rider').attr('val', 2);
 		$('#rwom').show();
 		$('#rman').show();
 		$.fn.dataTableExt.afnFiltering.pop();				
-		$.fn.dataTableExt.afnFiltering.pop();
+		//$.fn.dataTableExt.afnFiltering.pop();
  		rtable.draw();
+ 		console.log('status = ' + status)
+// 		tcat1.columns( 8 ).search(0).draw();
 	}
 	
  });    
 
- 	$('#table_cat0').DataTable({
- 	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
- 	});
 
-    $('#table_cat1').DataTable({
-    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
-    });
+	    $('#table_cat2').DataTable({
+	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	    });
 
-    $('#table_cat2').DataTable({
-    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
-    });
+	    $('#table_cat3').DataTable({
+	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	    });
 
-    $('#table_cat3').DataTable({
-    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
-    });
+	    $('#table_cat4').DataTable({
+	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	    });
 
-    $('#table_cat4').DataTable({
-    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
-    });
-
-    $('#table_cat5').DataTable({
-    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
-    });
- 
+	    $('#table_cat5').DataTable({
+	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	    });
         
 $("body").on("click",".finish_add",function(e){ 	
     $(this).editable('/rider/result/add/', {
@@ -358,6 +401,22 @@ $("body").on("click",".kp1_add",function(e){
      event : "click",
      submitdata : function() {
       	return {rid : $(this).attr('rid'), point: 'kp1'};
+    	 },
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click",".start_edit",function(e){ 	
+	$(this).editable('/rider/result/add/', { 
+	 id: 'point',
+	 
+	 loadtype: 'POST',
+     submit : 'OK',
+     tooltip   : 'Click to add time',
+     style   : 'inherit',
+     event : "click",
+     submitdata : function() {
+      	return {rid : $(this).attr('rid'), point: 'start'};
     	 },
     }).trigger("focus"); 
 });   
@@ -664,21 +723,36 @@ $("#table_cat5_wrapper").hide();
 {% if user.is_authenticated %}
 {% if user|has_group:"admin"%}
 {{request.user}} <br>
-<a href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  <br>
-<a href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  <br>
-<a href="{% url 'event-result-light-admin' id=event.pk point='kp3' %}"><<Проста версія КП3>></a>  <br>
-<a href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br>
+
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}">Проста версія КП1</a>  
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}">Проста версія КП2</a>  
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp3' %}">Проста версія КП3</a>  
+<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='finish' %}">Проста версія Finish</a> <br><br>
+
 {% else %}
 <a href="{% url 'event-result-light' event.pk %}"><<Проста версія>></a> <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a>
 {% endif %} 
 {% endif %}
 </h2>
 
+
+<div class="row">
+  <div class="col-12">
 {% if user|has_group:"admin"%}
+<button type="button" class="btn btn-light" id="clear_kp1_result"  style=" background:#e4e7ea;" > Очистити дані з КП1</button>
+<button type="button" class="btn btn-light" id="clear_kp2_result"  style=" background:#e4e7ea;" > Очистити дані з КП2</button>
+<button type="button" class="btn btn-light" id="clear_kp3_result"  style=" background:#e4e7ea;" > Очистити дані з КП3</button>
+<button type="button" class="btn btn-light" id="clear_finish_result"  style=" background:#e4e7ea;" > Очистити фінішні дані</button>
+{% comment %}
 <div id="clear_kp1_result"  style=" background:#e4e7ea; font-size: 100%; float:left;"><<Очистити дані з КП1>></div> 
 <div id="clear_kp2_result" style="background:#cfd0d0; font-size: 100%; float:left;"><<Очистити дані з КП2>></div> 
 <div id="clear_finish_result" style="background:#a9a9a9; font-size: 100%; float:left;" ><<Очистити фінішні дані>></div>
+{% endcomment %}
 {% endif %}
+
+  </div>
+</div>
+
 
 {% comment %}
 {% if user.is_authenticated %}
@@ -828,8 +902,8 @@ style="background-color: white;"
 
 
 <td align="center">{{rider.reg_event.bike_type.name}}</td>
-<td align="center" rid="{{rider.reg_event.id}}"> {{rider.start|date:'H:i:s'}} </td>
-<td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp1|date:'H:i:s'}} </td>
+<td align="center" class="start_edit" rid="{{rider.reg_event.id}}"> {{rider.start|date:'H:i:s'}} </td>
+<td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp1|date:'H:i:s'}} {% if rider.get_time_diff_kp1 %} <br> {{rider.get_time_diff_kp1}} {% endif %} </td>
 {% if kp2 %}
 <td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp2|date:'H:i:s'}} </td>
 {% endif %}
@@ -876,7 +950,9 @@ style="background-color: white;"
 </div>
 </div>
 
-<h3 style="font-size:16px; font-weight:bold; color: black;" title="Показати статистику" id="event_stat">Cтатистика</h3>
+<h3 style="font-size:18px; font-weight:bold; color: black; width: 100%" title="Показати статистику" id="event_stat" type="button" class="btn btn-info">Cтатистика</h3>
+
+
 <div id="tabs">
   <ul>
     <li><a href="#tabs-1">Стать</a></li>
@@ -929,7 +1005,14 @@ style="background-color: white;"
 
 
 <br>
-<h2 id="event_cat0" class="cat_showhide">Категорія до 18 років <<Показати>></h2> 
+{#<h2 id="event_cat0" class="cat_showhide" >Категорія до 18 років <<Показати>></h2>#}
+
+<h2>
+<button type="button" style="background-color: white; width:100%" id="event_cat0" class="cat_showhide">
+  Категорія до 18 років <<Показати>> <span class="badge badge-light">{{ cat0.count }} учасників</span>
+</button>
+</h2> 
+ 
 <table id="table_cat0" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -941,6 +1024,7 @@ style="background-color: white;"
 <th>Команда</th>
 <th>Рік народження</th>
 <th>Загальний час</th>
+<th>Стать</th>
 </tr>
 </thead>
 <tbody>
@@ -968,13 +1052,20 @@ style="background-color: white;"
 <td>{{rider.reg_event.club}}</td>
 <td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
 <td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex }}</td>
 </tr>
 {% endfor %}
 </tbody>  
 </table>	
 
-<br>
-<h2 id="event_cat1" class="cat_showhide">Категорія 18-29 років <<Показати>></h2> 
+
+{#<h2 id="event_cat1" class="cat_showhide" style="background-color: yellow; ">Категорія 18-29 років <<Показати>></h2>#}
+<h2>
+<button type="button" style="background-color: yellow; width:100%" id="event_cat1" class="cat_showhide">
+  Категорія 18-29 років <<Показати>> <span class="badge badge-light">{{ cat1.count }} учасників</span>
+</button>
+</h2>
+  
 <table id="table_cat1" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -986,6 +1077,7 @@ style="background-color: white;"
 <th>Команда</th>
 <th>Рік народження</th>
 <th>Загальний час</th>
+<th>Стать</th>
 </tr>
 </thead>
 <tbody>
@@ -1013,14 +1105,20 @@ style="background-color: white;"
 <td>{{rider.reg_event.club}}</td>
 <td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
 <td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
 </tr>
 {% endfor %}
 </tbody>  
 </table>	
 
 
-<br>
-<h2 id="event_cat2" class="cat_showhide">Категорія 30-39 років <<Показати>></h2> 
+{#<h2 id="event_cat2" class="cat_showhide" style="background-color: blue;">Категорія 30-39 років <<Показати>></h2>#}
+<h2>
+<button type="button" style="background-color: blue; width:100%" id="event_cat2" class="cat_showhide">
+  Категорія 30-39 років <<Показати>> <span class="badge badge-light">{{ cat2.count }} учасників</span>
+</button>
+</h2> 
+ 
 <table id="table_cat2" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -1064,8 +1162,14 @@ style="background-color: white;"
 </tbody>  
 </table>	
 
-<br>
-<h2 id="event_cat3" class="cat_showhide">Категорія 40-49 років <<Показати>></h2> 
+
+{# <h2 id="event_cat3" class="cat_showhide" style="background-color: green;">Категорія 40-49 років <<Показати>></h2> #}
+<h2>
+<button type="button" style="background-color: green; width:100%" id="event_cat3" class="cat_showhide">
+  Категорія 40-49 років <<Показати>> <span class="badge badge-light">{{ cat3.count }} учасників</span>
+</button>
+</h2> 
+ 
 <table id="table_cat3" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -1109,8 +1213,13 @@ style="background-color: white;"
 </tbody>  
 </table>	
 
-<br>
-<h2 id="event_cat4" class="cat_showhide">Категорія 50-59 років <<Показати>></h2> 
+
+{#<h2 id="event_cat4" class="cat_showhide" style="background-color: red;">Категорія 50-59 років <<Показати>>#}
+<h2>
+<button type="button" style="background-color: red; width:100%" id="event_cat4" class="cat_showhide">
+  Категорія 50-59 років <<Показати>> <span class="badge badge-light">{{ cat4.count }} учасників</span>
+</button>
+</h2> 
 <table id="table_cat4" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
@@ -1154,8 +1263,12 @@ style="background-color: white;"
 </tbody>  
 </table>	
 
-<br>
-<h2 id="event_cat5" class="cat_showhide">Категорія 60+ років <<Показати>></h2> 
+<h2> {# id="event_cat5" class="cat_showhide">Категорія 60+ років <<Показати>></h2> #}
+<button type="button" id="event_cat5" class="cat_showhide" style="width:100%;">
+  Категорія 60+ років <<Показати>> <span class="badge badge-light">{{ cat5.count }} учасників</span>
+</button>
+</h2>
+ 
 <table id="table_cat5" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
