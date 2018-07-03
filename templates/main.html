@@ -38,7 +38,7 @@
 				
             </div>
 			<div class="card-footer">
-      			<p class="links"><a href="#" class="comments">Comments (0)</a> &nbsp;&nbsp;&nbsp; <a href="{{item.link}}" class="permalink">Посилання на форум/facebook</a> &nbsp;&nbsp;&nbsp; Категорія: <a href="#" class="permalink">{{item.category}}</a>
+      			<p class="links"><a href="#" class="comments">Comments (0)</a> &nbsp;&nbsp;&nbsp; <a href="{{item.link}}" class="permalink">Посилання на форум/facebook</a> &nbsp;&nbsp;&nbsp; Категорія: <a href="#" class="permalink">{{item.category}}</a> &nbsp;&nbsp;&nbsp; Новина: <a href="{% url 'news-show' item.pk %}" class="permalink">#{{item.id}}</a>
       			<br>
                 { Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.date}} }</p>
     		</div>            

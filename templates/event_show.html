@@ -225,7 +225,9 @@ function initMap(x,y) {
 
 {% if user.is_authenticated and user|has_group:"moder" %}
 <h5>
-<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'rivno100' %}">Список товарів</a>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'rivno100' %}">Список товарів "Рівно100"</a>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'med' %}">Список товарів "Медовий трейл"</a>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' '100mile' %}">Список товарів "100 миль"</a>
 </h5>
 {% endif %}
 
@@ -314,7 +316,8 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </a>
 {% if user.is_authenticated and user|has_group:"moder" %}
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'event-start-list' event.pk %}">Стартовий протокол</a>
-<a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv' event.pk %}">Завантажити CSV файл</a>
+<a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv' event.pk %}">Завантажити CSV файл Стартовий</a>
+<a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv-numbers' event.pk %}">Завантажити CSV файл з номерками учасників</a>
 
 {% endif %}
 </h5>

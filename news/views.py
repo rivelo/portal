@@ -196,6 +196,35 @@ def delete_news(request, id):
     return HttpResponseRedirect('/')
 
 
+def show_news(request, id):
+    #news = News.objects.get(pk=id)
+    news = News.objects.filter(pk=id).order_by('-pk')
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'main.html', 'sel_menu': 'main', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'news': news}
+    calendar = embeded_calendar()
+    vars.update(calendar)
+
+    paginator = Paginator(news, 4)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        news = paginator.page(page)
+#        vars.update(news)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        news = paginator.page(1)
+#        vars.update(news)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        news = paginator.page(paginator.num_pages)
+    vars.update({'news': news})
+    t = loader.get_template('index.html')
+
+    return render(request, 'index.html', vars)
+
+
 def contact_page(request):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()

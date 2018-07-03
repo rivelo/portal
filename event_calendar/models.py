@@ -242,6 +242,9 @@ class RegEvent (models.Model):
             #return 5
             return [5, u'60+ років']
  
+    def get_pos(self):
+        
+        return None 
 
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:
@@ -360,6 +363,8 @@ class ResultEvent (models.Model):
     kp3 = models.DateTimeField(blank = True, null = True)
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
+#    dnf = models.BooleanField(default=False)
+    
 #    objects = filterManager()
     #objects = CustomQuerySetManager()
     objects = models.Manager() # The default manager.
@@ -385,6 +390,15 @@ class ResultEvent (models.Model):
             return ""
         res = self.kp1 - self.start
         return str(res)   # Assuming dt2 is the more recent time
+
+    def get_time_diff_kp2(self):
+        if self.start == None:
+            return "DNS"
+        if self.kp2 == None:
+            return ""
+        res = self.kp2 - self.kp1
+        return str(res)   # Assuming dt2 is the more recent time
+
    
 #    def riders_city(self):
 #        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')

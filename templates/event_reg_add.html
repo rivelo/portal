@@ -204,7 +204,7 @@ ul.rules {
 <div>
 <h2 class="title" >Реєстрація на {{event.name}}
 	{% if event.icon %}
-	<img src="/media/{{event.icon}}" style="float:right; object-fit: contain;" />
+	<img src="/media/{{event.icon}}" style="float:right; object-fit: contain; max-width: 100px;" />
 	{% endif %}
 {% if google_city_off == false %}
 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModalCenter">

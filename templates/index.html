@@ -163,11 +163,11 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 			<form method="post" action="/rider/search/" class="form-inline my-2 my-lg-0">
 			{% csrf_token %}
 		{% else %}
-			<form method="get" action="" class="form-inline my-2 my-lg-0">
+			<form method="get" action="/components/search/" class="form-inline my-2 my-lg-0">
 			{% csrf_token %}
 		{% endif %}				
 				<fieldset>
-				<input type="text" name="rider_s" id="search-text" size="15" class="form-control mr-sm-2" placeholder="Пошук"/>
+				<input type="text" name="rider_s" id="search-text" size="15" class="form-control mr-sm-2" placeholder={% if user.is_authenticated %}"Пошук учасника"{% else %}"Пошук товару"{% endif %}/>
 				<input type="submit" id="search-submit" value="Пошук" class="btn btn-outline-success my-2 my-sm-0" />
 				</fieldset>
 			</form>
@@ -300,6 +300,9 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 {% else %}
 {% if error_data %}
 	<br>	<div class="error">{{ error_data }}</div>
+	{% if offline %}
+		<br><a class="info" href="{{offline}}">Оффлайн список стартувавших учасників</a> 
+	{% endif %}
 	{% if reg_data %}
 	{% for reg in reg_data %}
 		<h6>{{reg.email}} - {{reg.fname}} {{reg.lname}}({{reg.date}}) [{{reg.event}}]</h6>

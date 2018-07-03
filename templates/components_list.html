@@ -187,6 +187,8 @@
     </style>
 {% endif %}	
 
+{% load poll_extras %}
+
 {% block content %}
 
 <div class="post">
@@ -265,7 +267,12 @@
 	<i class="material-icons" style="font-size:14px;">star</i><i class="material-icons" style="font-size:14px;">star_border</i><i class="material-icons" style="font-size:14px;">star_border</i><i class="material-icons" style="font-size:14px;">star_border</i><i class="material-icons" style="font-size:14px;">star_border</i>
 	{{component.rating|default_if_none:"-"}}</p>
 	</div>
+{% if user.is_authenticated %}	
 	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.id}}</p></div>
+{% else %}
+	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.ids}}</p></div>	
+{% endif %}
+
 	<div style="background:#red; clear:left;"> 
 	<div style="background:white; width:500px; float:left;">
 	
@@ -329,6 +336,7 @@
 {#	Наявність: {{component.count}}<br> Знижка: {{component.sale|floatformat}} #}
 {% if component.price != component.get_saleprice %}	
 	<p align="left" style="font-size: 110%; font-weight: bold;"> Нова ціна: {{component.get_saleprice|floatformat:"0"}} грн. </p>
+	<p align="left" style="font-size: 90%;"> Ви заощаджуєте: {{component.price|subtract:component.get_saleprice|floatformat:"0"}} грн. </p>
 {% endif %}	
 	</div>
 	</div>

@@ -202,6 +202,86 @@ $("body").on("click", ".chk_riders", function(e){
 });
 
 
+
+function makeAjaxCall(url, methodType, RID, el_d, callback){
+	var d = el_d	
+
+  return $.ajax({
+    type: methodType,
+    url: url, //"/rider/result/add/",
+{% if uname == "kp1" %}                
+//    data: { rid: $(this).attr("rid"), point: 'kp1', value: '', chkhash: 'Rivelo256haSh+123-2018'},
+    data: { rid: RID, point: 'kp1', value: '', chkhash: 'Rivelo256haSh+123-2018'},
+{% endif %}
+{% if uname == "kp2" %}                
+    data: { rid: RID, point: 'kp2', value: '', chkhash: 'Rivelo256haSh+123-2018'},
+{% endif %}        
+{% if uname == "kp3" %}                
+    data: { rid: RID, point: 'kp3', value: '', chkhash: 'Rivelo256haSh+123-2018'},
+{% endif %}        
+{% if uname == "finish" %}                
+    data: { rid: RID, point: 'finish', value: '', chkhash: 'Rivelo256haSh+123-2018'},
+{% endif %}        
+    dataType: "text",
+    async: true, 
+    beforeSend: function(jqXHR) {
+	    var r_time =(new Date).toTimeString().slice(0,8)
+    	var localtime = localStorage.getItem(d.attr("rid"));
+    	if (localtime) {
+	    	var r = confirm("Результат учасника під номером " + d.attr("number")+ " вже існує - " + localtime.split(',')[1]  + " Замінити його новим?");
+    		if (r == true) {
+    			localStorage.setItem(d.attr("rid"), ["{{uname}}", r_time]);
+    		} else {
+    			jqXHR.abort();
+	    		console.log("pressed Cancel; Час " + r_time + " Номер учасника " + d.attr('number') );
+    		}
+    	}
+    },
+    success:function(xhr, ajaxOptions, thrownError){
+//    	$(this).find("div.gps_content").empty();
+		console.log("{{uname}} - #"+ d.attr("number") +" - "+ xhr.split('Час додано ')[1] )
+//		$('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>TEST</td></tr>');
+//		$(this).hide();
+		d.before('<div id="ds_result" style="float: right; width:50%; height:'+ d.height() + 'px; color: black; background-color: green;"><h1 align="center" style="font-size: 500%; font-family: Impact, Times New Roman, Georgia, Serif;">Час додано</h1><h3 align="center">' + xhr.split('Час додано')[1] +'</h3></div>');
+        $('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr+'</td><td></td></tr>');
+        d.hide();
+        $('#ds_result').remove();
+        localStorage.setItem(d.attr("rid"), ["{{uname}}", xhr.split('Час додано ')[1]]);
+        
+    },
+    error:function(xhr, ajaxOptions, thrownError){
+/*        localStorage.setItem(d.attr("rid"), ['kp1', xhr.split('Час додано ')[1]]);
+        alert( xhr.responseText + " - Сталася помилка!");
+        console.log("THIS error = " + d.find('h3:last').html() ) */
+//        $('#rtable tr:last').after('<tr><td>error'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td>Не завантажено на сервер</td></tr>');
+        var r_time =(new Date).toTimeString().slice(0,8)
+        $('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td align="center" css="color:red !important; ">'+ r_time +' - Не завантажено на сервер</td><td></td></tr>');        
+        //d.hide();
+//        d.before('<div id="ds_result" style="float: right; width:50%; height:'+ d.height() + 'px; color: black; background-color: red;"><h1 align="center" style="font-size: 500%; font-family: Impact, Times New Roman, Georgia, Serif;">Не доставлено на сервер</h1><h3 align="center">' + r_time +'</h3></div>');
+		var dc = d.children('.card-header')
+		dc.append('<h3 class="card-title" align="center" style="background-color: red;" >Не доставлено на сервер. Час ' + r_time +'</h3>');
+		dc.css( "background-color", "red" );
+		var localtime = localStorage.getItem(d.attr("rid"));
+        if (localtime) {
+//        	alert("Результат учасника під номером " + d.attr("number")+ " вже існує - " + localtime.split(',')[1]  );
+        	var r = confirm("Результат учасника під номером " + d.attr("number")+ " вже існує - " + localtime.split(',')[1]  + " Замінити його новим?");
+        	if (r == true) {
+        		localStorage.setItem(d.attr("rid"), ["{{uname}}", r_time]);
+        	} else {
+        		console.log("pressed Cancel; Час " + r_time + " Номер учасника " + d.attr('number') );
+        	}
+        }
+        else {
+        	localStorage.setItem(d.attr("rid"), ['kp1', r_time]);
+        }
+        
+        //(new Date).toTimeString().slice(0,8);
+    },
+    timeout: 10000 // sets timeout to 10 seconds
+    
+});	
+}
+	  
 $("body").on("click", ".n_riders", function(e){
 	var d = $(this);
 	d.css({
@@ -210,42 +290,87 @@ $("body").on("click", ".n_riders", function(e){
 //		'height': '50px',
 		'background-color': '#f48035'
 	});
-	$.ajax({
-        type: "POST",
-        url: "/rider/result/add/",
-{% if uname == "kp1" %}                
-        data: { rid: $(this).attr("rid"), point: 'kp1', value: '', chkhash: 'Rivelo256haSh+123-2018'},
-{% endif %}
-{% if uname == "kp2" %}                
-        data: { rid: $(this).attr("rid"), point: 'kp2', value: '', chkhash: 'Rivelo256haSh+123-2018'},
-{% endif %}        
-{% if uname == "kp3" %}                
-        data: { rid: $(this).attr("rid"), point: 'kp3', value: '', chkhash: 'Rivelo256haSh+123-2018'},
-{% endif %}        
-{% if uname == "finish" %}                
-        data: { rid: $(this).attr("rid"), point: 'finish', value: '', chkhash: 'Rivelo256haSh+123-2018'},
-{% endif %}        
-        dataType: "text",
-        async: true,
-        success:function(xhr, ajaxOptions, thrownError){
-//        	$(this).find("div.gps_content").empty();
-//			console.log("THIS = " + $(this))
-//    		$('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>TEST</td></tr>');
-//    		$(this).hide();
-            $('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr+'</td><td></td></tr>');
-            d.hide();
-            localStorage.setItem(d.attr("rid"), ['kp1', xhr.split('Час додано ')[1]]);
-        },
-        error:function(xhr, ajaxOptions, thrownError){
-            localStorage.setItem(d.attr("rid"), ['kp1', xhr.split('Час додано ')[1]]);
-            //alert( xhr.responseText );
-            console.log("THIS error = " + d.find('h3:last').html() )
-            $('#rtable tr:last').after('<tr><td>error'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td></td></tr>');
-            d.hide();
-        }
-    });	
- });
+	
+	RID = $(this).attr("rid")
+	URL = "/rider/result/add/";
+	makeAjaxCall(URL, "POST", RID, d);
+	/*	makeAjaxCall(URL, "POST", RID).then(function(respJson){
+	 $('#rtable tr:last').after('<tr><td>'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr+'</td><td></td></tr>');	
+	}, function(reason){
+	 console.log("error in processing your request", reason);
+	 $('#rtable tr:last').after('<tr><td>error'+d.attr("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr.responseText+'</td><td>Не завантажено на сервер</td></tr>');
+	 alert("Error");
+	})*/
 
+});
+ 
+$("body").on("click", "#server_save", function(e){
+	sendLocalStorageAjax();
+})
+
+$.each($("div.n_riders"), function(i, val)  {
+	var rider = $("div.n_riders")[i]
+	var localtime = localStorage.getItem(rider.getAttribute('rid'));
+    if (localtime) {
+    	var t = document.createElement("h3");
+    	var txt = document.createTextNode("[ "+ localtime.split(',')[1] +" ]");       // Create a text node
+    	t.appendChild(txt); 
+    	rider.children[1].appendChild(t);
+    	//rider.children[0].after('<h3 align="center"> ['+'] </h3>');
+    	//console.log("RID = " + rider.getAttribute('rid') + " val = " + localtime	);
+    }
+})
+
+
+function sendLocalStorageAjax(methodType, callback){
+	//var d = el_d	
+	$.each($("div.n_riders"), function(i, val)  {
+		var rider = $("div.n_riders")[i]
+		var rid = rider.getAttribute('rid')
+		var localtime = localStorage.getItem(rider.getAttribute('rid'));
+		
+	    if (localtime) {
+	    	var vtime = localtime.split(',')[1] 	    	
+	    	var d = rider
+	    	$.ajax({
+	    	    type: "POST",
+	    	    url: "/rider/result/add/",
+	    	{% if uname == "kp1" %}                
+	    	    data: { rid: rid, point: 'kp1', value: vtime, chkhash: 'Rivelo256haSh+123-2018'},
+	    	{% endif %}
+	    	{% if uname == "kp2" %}                
+	    	    data: { rid: rid, point: 'kp2', value: vtime, chkhash: 'Rivelo256haSh+123-2018'},
+	    	{% endif %}        
+	    	{% if uname == "kp3" %}                
+	    	    data: { rid: rid, point: 'kp3', value: vtime, chkhash: 'Rivelo256haSh+123-2018'},
+	    	{% endif %}        
+	    	{% if uname == "finish" %}                
+	    	    data: { rid: rid, point: 'finish', value: vtime, chkhash: 'Rivelo256haSh+123-2018'},
+	    	{% endif %}        
+	    	    dataType: "text",
+	    	    async: true, 
+	    	    success:function(xhr, ajaxOptions, thrownError){
+	    			console.log("kp1 - #"+ d.getAttribute("number") +" - "+ xhr.split('Час додано ')[1] )
+	    			//d.before('<div id="ds_result" style="float: right; width:50%; height:'+ d.height() + 'px; color: black; background-color: green;"><h1 align="center" style="font-size: 500%; font-family: Impact, Times New Roman, Georgia, Serif;">Час додано</h1><h3 align="center">' + xhr.split('Час додано')[1] +'</h3></div>');
+	    	        //$('#rtable tr:last').after('<tr><td>'+d.getAttribute("number")+'</td><td>'+d.find('h3:first').html()+'</td><td>'+d.find('h3:last').html()+'</td><td></td><td></td><td></td><td>'+xhr+'</td><td></td></tr>');
+	    	        //d.hide();
+	    	        d.remove();
+	    	        $('#ds_result').remove();
+	    	        //localStorage.setItem(d.getAttribute("rid"), ['kp1', xhr.split('Час додано ')[1]]);
+	    	        
+	    	    },
+	    	    error:function(xhr, ajaxOptions, thrownError){
+	    	    	console.log("{{ uname }} - #"+ d.getAttribute("number") +" - Час не завантажено" );
+	    	    },
+	    	    timeout: 10000 // sets timeout to 10 seconds
+	    	    
+	    	});	    	
+	    	
+	    }
+	})
+	
+	
+};
 
 });
 
@@ -255,7 +380,7 @@ $("body").on("click", ".n_riders", function(e){
 
 {% load poll_extras %}
 
-{% block content %}
+{% block content %} 
 
 
 <!-- dialog for client message -->
@@ -272,21 +397,52 @@ $("body").on("click", ".n_riders", function(e){
 </form>
  -->
 <br>
-<div style="width:560px; float:left;">
-<h2 class="title"> Відмітка {{uname}} {% if user.is_authenticated %}<a href="{% url 'event-result' event.pk %}"><<Повні результати>></a> {% endif %} <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a> </h2>
-<br>
+<div style="width:100%; float:left;">
+<h2><a href="{% url 'event-show' event.pk %}">{{event.name}}</a></h2>
+
+<h2 class="title"> Відмітка {{uname}} {% if user.is_authenticated %}
+<a href="{% url 'event-result' event.pk %}" type="button" class="btn btn-default btn-md"> <h5>Результати</h5></a>  
+<a href="{% url 'event-result-light-admin-offline' event.pk uname %}" type="button" class="btn btn-success btn-md"> <h5>Автономний стартовий список</h5></a>
+<a href="{% url 'event-result-light-admin' event.pk uname %}" type="button" class="btn btn-success btn-md"> <h5>Відмітка на {{uname}}</h5></a>
+<button  type="button" id="server_save" class="btn btn-primary btn-md"> <h5>Завантажити результати на сервер</h5></button>  
+{% endif %} 
+</h2>
+
 </div>
 
 <div style="float:right;">
 	{% if event.icon %}
-	<img src="/media/{{event.icon}}" />
+	<img src="/media/{{event.icon}}" style="max-width: 100px;" />
 	{% endif %} 
 </div>
 
-<div style="clear:left;">
+<div style="clear:left;"></div>
+
+
+
+<div class="row"> 
 
 {% for rider in list %}
-<div class="n_riders" rid="{{rider.reg_event.id}}" number="{{rider.reg_event.start_number}}" style="width:240px; height:135px; color: black;
+<div class="col-sm-6 col-xl-4">
+
+<div class="card text-center n_riders" rid="{{rider.reg_event.id}}" number="{{rider.reg_event.start_number}}">
+<div class="card-header">
+{% if uname == "kp1" %}                	
+	<h4>{{rider.kp1|date:'H:i:s'}} <span class="badge badge-secondary">{{r_count|add:forloop.counter}} з {{s_count}}</span></h4>
+{% endif %}	
+{% if uname == "kp2" %}                
+	<h6>КП1 - {{rider.kp1|date:'H:i:s'}} ({{rider.get_time_diff_kp1}}) <span class="badge badge-secondary" style="font-size: 20px;">{{r_count|add:forloop.counter}} з {{s_count}}</span></h6>
+{% endif %}	
+{% if uname == "kp3" %}       
+	<h6>КП2 - {{rider.kp2|date:'H:i:s'}} ({{rider.get_time_diff_kp2}}) <span class="badge badge-secondary" style="font-size: 20px;">{{r_count|add:forloop.counter}} з {{s_count}}</span></h6>
+	{# <h4>{{rider.kp2|date:'H:i:s'}} <span class="badge badge-secondary">* з {{s_count}}</span></h4> #}
+{% endif %}
+{% if uname == "finish" %}       
+	<h4>{{rider.kp3|date:'H:i:s'}}</h4>
+{% endif %}
+  </div>
+    <div class="card-body" style="
+
 {% if rider.reg_event.category.0 == 1 %} 
 {% if rider.reg_event.sex == 1 %}
 	background-color: yellow;"
@@ -307,28 +463,25 @@ $("body").on("click", ".n_riders", function(e){
 {% if rider.reg_event.category.0 == 4 %} 
 	background-color: red;"
 {% endif %}
-{% if rider.reg_event.category.0 == 5 %} 
+{% if rider.reg_event.category.0 == 0 %} 
 	background-color: white;"
 {% endif %}
->
-<h1 align="center" style="font-size: 500%; font-family: Impact, Times New Roman, Georgia, Serif;">{{rider.reg_event.start_number}}</h1>
-<h3 align="center">
-{{rider.reg_event.fname}} {{rider.reg_event.lname}}</h3>
-<h3 align="center">{{rider.reg_event.nickname}}</h3>
-{% if uname == "kp1" %}                	
-	<p>{{rider.kp1|date:'H:i:s'}}</p>
-{% endif %}	
-{% if uname == "kp2" %}                
-	<p>{{rider.kp1|date:'H:i:s'}}</p>
-{% endif %}	
-{% if uname == "kp3" %}       
-	<p>{{rider.kp2|date:'H:i:s'}}</p>
-{% endif %}
-{% if uname == "finish" %}       
-	<p>{{rider.kp3|date:'H:i:s'}}</p>
-{% endif %}
+{% if rider.reg_event.category.0 == 5 %} 
+	background-color: white;"
+{% endif %}  
+>   
+
+    <h1 class="card-title" style="font-size: 600%; font-family: Impact, Times New Roman, Georgia, Serif;">{{rider.reg_event.start_number}}</h1>
+    <h3 >{{rider.reg_event.fname}} {{rider.reg_event.lname}} </h3>
+    <h5>{{rider.reg_event.nickname}}</h5>
+    </div>
+  </div>
+  
+  
 </div>
 {% endfor %}
+</div>
+  
 
 <table id="rtable" class="display" cellspacing="0" width="100%">
 <thead>
@@ -351,7 +504,7 @@ $("body").on("click", ".n_riders", function(e){
 {% if uname == "finish" %}       
 	<th title="КП1">Фініш</th>
 {% endif %}
-
+	<th title="Відставання" align="center">До попереднього</th>
 {% if user.is_authenticated %}
 <th>Телефон</th>
 {% endif %}
@@ -417,6 +570,11 @@ style="background-color: white;"
 	{{rider.finish|date:'H:i:s'}}
 {% endif %}	         		         	
 	</td>
+	
+	<td align="center">
+	{{rider.tdelta}}
+	</td>
+
 	<td align="center">
 	{{rider.reg_event.phone}}
 	</td>
@@ -425,6 +583,10 @@ style="background-color: white;"
 {% endfor %}
 </tbody>  
 </table>	
+
+{% load template_math %}
+
+<h5>Проїхало <span class="badge badge-secondary">{{r_count}} з {{s_count}}</span> на маршруті знаходиться <span class="badge badge-secondary">{{s_count|subtract:r_count}}</span> чоловік</h5>
 
 <br><br>
 <h3 style="font-size:16px; font-weight:bold; color: black;" title="Показати статистику" id="event_stat">Результати</h3>

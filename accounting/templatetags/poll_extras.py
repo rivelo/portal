@@ -14,10 +14,9 @@ def mul(value, arg):
 def div(value, arg):
     return value / arg
 
-@register.filter
+@register.filter(name = 'sub')
 def sub(value, arg):
     return value - arg
-
 
 @register.inclusion_tag('orm_debug.html')
 def orm_debug():

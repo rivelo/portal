@@ -95,3 +95,7 @@ def has_group(user, group_name):
 def update_variable(value):
     """Allows to update existing variable in template"""
     return value
+
+@register.filter
+def subtract(value, arg):
+    return value - arg

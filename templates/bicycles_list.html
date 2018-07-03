@@ -184,6 +184,7 @@
     </style>
 {% endif %}	
 
+{% load poll_extras %}
 
 {% block content %}
 
@@ -239,7 +240,9 @@
 
 {% if bicycle %}
 	<div style="background:white; width:240px; float:left;"><p>Рейтинг користувачів: {{bicycle.rating|default_if_none:"-"}}</p></div>
+{% if user.is_authenticated %}	
 	<div style="background:white; width:160px; float:right; "><p>Код товару: 777{{bicycle.id}}</p></div>
+{% endif %}	
 	<div style="background:#red; clear:left;"> 
 	<div style="background:white; width:500px; float:left;">
 	
@@ -297,6 +300,7 @@
 	{# Наявність: {{bicycle.count}}<br> Знижка: {{bicycle.sale|floatformat}}<br> #}
 {% if bicycle.model.price != bicycle.get_saleprice %}	
 	<p align="left" style="font-size: 110%; font-weight: bold;"> Нова ціна: {{bicycle.get_saleprice|floatformat:"0"}} грн. </p>
+	<p align="left" style="font-size: 90%;"> Ви заощаджуєте: <b>{{bicycle.model.price|subtract:bicycle.get_saleprice|floatformat:"0"}} грн. </b></p>
 {% endif %} 
 
 	</div>
@@ -312,16 +316,19 @@
 	{% endfor %}
 	{% endif %}
 		
+	<h3>{{bicycle.model.brand.name}}  {{bicycle.model.model}}</h3>
 	<p align="justify" style="font-size: 135%; font-weight: bold;">Характеристики</p>
 	<p align="justify" style="font-size: 120%">
 	{{bicycle.model.description}}
 	Артикул: {{bicycle.ids}} <br>
 	Виробник: <a href="{% url 'bicycle-list-bybrand' bicycle.model.brand.id %}">{{bicycle.model.brand.name}} ({{bicycle.model.brand.country}})</a> <br>
 	Колір: {{bicycle.model.color}} <br>
-	Країна виробник: {{bicycle.country}} <br>
+	Розмір: {{bicycle.size}} <br>
+	Рік: {{bicycle.model.year.year}} <br>
+	Країна виробник: {{bicycle.model.country_made}} <br>
 	</p>
 	<p align="justify" style="font-size: 120%">
-	[{{bicycle.id}}] [{{bicycle.model.brand.name}}]  {{bicycle.model.model}} </a> Ціна {{bicycle.model.price}} грн.  Знижка {{bicycle.model.sale}}%
+{#	[{{bicycle.id}}] [{{bicycle.model.brand.name}}]  {{bicycle.model.model}} </a> Ціна {{bicycle.model.price}} грн.  Знижка {{bicycle.model.sale}}% #}
 	</p>
 	</div>
 {% endif %}

@@ -946,27 +946,112 @@ def event_result(request, id):
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
-def event_result_simple(request, id, point=None):
+def event_result_simple(request, id, point=None, full=None):
     revent_res = None
     evt = Events.objects.get(pk=id)
     username = request.user.username
     if point <> None:
         username = point
     #ResultEvent.objects.filter(reg_event__event = id).update(kp1=None, kp2=None)
+    res = None
+    if full == None:
+        res = ResultEvent.objects.filter(reg_event__event = id).exclude(start=None).values('reg_event__start_number', 'reg_event__id').order_by('kp1')
+    if full == True:
+        res = ResultEvent.objects.filter(reg_event__event = id).values('reg_event__start_number', 'reg_event__id').order_by('kp1')
+    start_count = res.count()    
+
     revent = None
+    r_count = None
+    ttable = dict
     if username == 'kp1' or point == 'kp1':
-        revent = ResultEvent.objects.filter(reg_event__event = id, kp1 = None).exclude(start=None).order_by("reg_event__start_number") 
-        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp1 = None).order_by("kp1")
+        if full == True:
+            revent = ResultEvent.objects.filter(reg_event__event = id, kp1 = None).order_by("reg_event__start_number")
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp1 = None).order_by("reg_event__start_number")
+        else:
+            revent = ResultEvent.objects.filter(reg_event__event = id, kp1 = None).exclude(start=None).order_by("reg_event__start_number") 
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp1 = None).order_by("reg_event__start_number")
+            
+            try:
+                tmp = revent_res[0]
+            except:
+                pass
+            
+            if revent.count() == 0:
+                txt_url = reverse('event-result-light-admin-offline', kwargs={'id': id, 'point': 'kp1'})
+                vars = {'sel_menu': 'calendar', 'entry': get_funn(), 'error_data': 'Учасники ще не стартували!', 'offline': txt_url}
+                return render(request, 'index.html', vars)
+      
+            for i in revent_res:
+                tdelta = i.kp1 - tmp.kp1
+                tmp = i
+                i.tdelta = tdelta
+            
+#            txt_url = reverse('event-result-light-admin-offline', kwargs={'id': id, 'point': 'kp1'})
+#            vars = {'sel_menu': 'calendar', 'entry': get_funn(), 'error_data': 'Учасники ще не стартували!', 'offline': txt_url}
+#            return render(request, 'index.html', vars)
     if username == 'kp2' or point == 'kp2':
-        revent = ResultEvent.objects.filter(reg_event__event = id, kp2 = None).exclude(kp1=None).order_by("kp1") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
-        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None).order_by("kp2")
+        if full == True:
+            revent = ResultEvent.objects.filter(reg_event__event = id, kp2 = None).order_by("reg_event__start_number")
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None).order_by("kp2")
+        else:
+            revent = ResultEvent.objects.filter(reg_event__event = id, kp2 = None).exclude(kp1=None).order_by("kp1") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None).order_by("kp2")
+
+            try:
+                tmp = revent_res[0]
+            except:
+                pass
+            
+            if revent.count() == 0:
+                txt_url = reverse('event-result-light-admin-offline', kwargs={'id': id, 'point': 'kp2'})
+                vars = {'sel_menu': 'calendar', 'entry': get_funn(), 'error_data': 'Учасники ще не проїхали попереднє КП!', 'offline': txt_url}
+                return render(request, 'index.html', vars)
+      
+            for i in revent_res:
+                tdelta = i.kp1 - tmp.kp1
+                tmp = i
+                i.tdelta = tdelta
+
+    if username == 'kp3' or point == 'kp3':
+        if full == True:
+            revent = ResultEvent.objects.filter(reg_event__event = id, kp3 = None).order_by("reg_event__start_number")
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).order_by("reg_event__start_number")
+        else:
+            revent = ResultEvent.objects.filter(reg_event__event = id, kp3 = None).exclude(kp3=None).order_by("kp2") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(kp3 = None).order_by("kp3")
+
+            try:
+                tmp = revent_res[0]
+            except:
+                pass
+            
+            if revent.count() == 0:
+                txt_url = reverse('event-result-light-admin-offline', kwargs={'id': id, 'point': 'kp2'})
+                vars = {'sel_menu': 'calendar', 'entry': get_funn(), 'error_data': 'Учасники ще не проїхали попереднє КП!', 'offline': txt_url}
+                return render(request, 'index.html', vars)
+      
+            for i in revent_res:
+                tdelta = i.kp1 - tmp.kp1
+                tmp = i
+                i.tdelta = tdelta
+                
     if username == 'finish' or point == 'finish':
+        if full == True:
+            revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).order_by("reg_event__start_number")
+            revent_res = ResultEvent.objects.filter(reg_event__event = id).order_by("reg_event__start_number")
+        
         if ResultEvent.objects.filter(reg_event__event = id).exclude(kp2 = None):
             revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).exclude(kp2=None).order_by("kp2")
         if ResultEvent.objects.filter(reg_event__event = id).exclude(kp3 = None):
             revent = ResultEvent.objects.filter(reg_event__event = id, finish = None).exclude(kp3=None).order_by("kp3")
-        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(finish = None).order_by("finish")                        
-    vars = {'weblink': 'event_simple_result.html', 'sel_menu': 'calendar', 'list': revent, 'list_res': revent_res, 'uname': username}
+        revent_res = ResultEvent.objects.filter(reg_event__event = id).exclude(finish = None).order_by("finish")       
+
+    try:
+        r_count = revent_res.count()
+    except:
+        r_count = 0
+
+    vars = {'weblink': 'event_simple_result.html', 'sel_menu': 'calendar', 'list': revent, 'list_res': revent_res, 'uname': username, 's_count': start_count, 'r_count': r_count}
     evnt = {'event': evt}
     vars.update(evnt)
     #return render(request, 'index_result.html', vars)
@@ -1255,21 +1340,29 @@ def event_rider_copy(request, id, evnt=None):
 
 def rider_search(request):
     if request.user.is_authenticated()==False and auth_group(request.user, 'admin')==False:
-        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>", content_type="text/plain;charset=utf-8")
     message = "Шукаємо текст "
     if request.method == 'POST':  
         POST = request.POST  
         if POST.has_key('rider_s'):
             rider_s = request.POST.get( 'rider_s' )
+            photo1 = Photo.objects.random()
+            photo2 = Photo.objects.random()
             #list = RegEvent.objects.filter(lname__icontains = rider_s)
             list = RegEvent.objects.filter(Q(lname__icontains = rider_s) | Q(fname__icontains = rider_s) | Q(phone__icontains=rider_s) | Q(nickname__icontains=rider_s))
             message = message + rider_s
             #return HttpResponse(message, content_type="text/plain;charset=utf-8")
-            vars = {'weblink': 'regevent_search_edit_table.html', 'sel_menu': 'calendar', 'list': list, 'search_str': rider_s}
+            vars = {'weblink': 'regevent_search_edit_table.html', 'sel_menu': 'calendar', 'list': list, 'search_str': rider_s, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+            calendar = embeded_calendar()
+            vars.update(calendar)        
+
             #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
-            return render(request, 'index_result.html', vars)
+        #    return render(request, 'index_result.html', vars)
+            return render(request, 'index.html', vars)
         
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
+
+    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 @csrf_exempt
@@ -1368,7 +1461,7 @@ def regevent_edit(request, id=None):
                 id = request.POST.get('rid')
                 d = request.POST.get('fname')
                 obj = RegEvent.objects.get(id = id)
-                obj.fname = d
+                obj.fname = d.strip()
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('fname', flat=True)
                 return HttpResponse(c)
@@ -1377,7 +1470,7 @@ def regevent_edit(request, id=None):
                 id = request.POST.get('rid')
                 d = request.POST.get('lname')
                 obj = RegEvent.objects.get(id = id)
-                obj.lname = d
+                obj.lname = d.strip()
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('lname', flat=True)
                 return HttpResponse(c)
@@ -1386,7 +1479,7 @@ def regevent_edit(request, id=None):
                 id = request.POST.get('rid')
                 d = request.POST.get('nickname')
                 obj = RegEvent.objects.get(id = id)
-                obj.nickname = d
+                obj.nickname = d.strip()
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('nickname', flat=True)
                 return HttpResponse(c)
@@ -1395,7 +1488,7 @@ def regevent_edit(request, id=None):
                 id = request.POST.get('rid')
                 d = request.POST.get('city')
                 obj = RegEvent.objects.get(id = id)
-                obj.city = d
+                obj.city = d.strip()
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('city', flat=True)
                 return HttpResponse(c)
@@ -1404,7 +1497,7 @@ def regevent_edit(request, id=None):
                 id = request.POST.get('rid')
                 d = request.POST.get('phone')
                 obj = RegEvent.objects.get(id = id)
-                obj.phone = d
+                obj.phone = d.strip()
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('phone', flat=True)
                 return HttpResponse(c)
@@ -1413,10 +1506,21 @@ def regevent_edit(request, id=None):
                 id = request.POST.get('rid')
                 d = request.POST.get('email')
                 obj = RegEvent.objects.get(id = id)
-                obj.email = d
+                obj.email = d.strip()
                 obj.save() 
                 c = RegEvent.objects.filter(id = id).values_list('email', flat=True)
                 return HttpResponse(c)
+
+            if POST.has_key('rid') and POST.has_key('birthday'):
+                id = request.POST.get('rid')
+                d = request.POST.get('birthday')
+                d2 = datetime.datetime.strptime(d.strip(),'%d/%m/%Y').strftime('%Y-%m-%d')
+                obj = RegEvent.objects.get(id = id)
+                obj.birthday = d2
+                obj.save() 
+                c = RegEvent.objects.filter(id = id).values_list('birthday', flat=True)
+                return HttpResponse(c)
+
 
     message = "Щось пішло не так" 
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
@@ -1556,6 +1660,35 @@ def shop_main(request):
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
     return render(request, 'index.html', vars)        
+
+
+def shop_search(request):
+#    if request.user.is_authenticated()==False and auth_group(request.user, 'admin')==False:
+#        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>", content_type="text/plain;charset=utf-8")
+    message = "Шукаємо текст "
+    if request.method == 'GET':  
+        POST = request.GET  
+        if POST.has_key('rider_s'):
+            rider_s = request.GET.get( 'rider_s' )
+            photo1 = Photo.objects.random()
+            photo2 = Photo.objects.random()
+            
+            scs = Catalog.objects.filter(Q(ids__icontains = rider_s) | Q(dealer_code__icontains = rider_s) | Q(name__icontains = rider_s)).exclude(count = 0).order_by('-sale')
+            #scs = Catalog.objects.filter(count__gt = 0, sale__gt = 0).order_by('-sale')
+            
+#            list = RegEvent.objects.filter(Q(lname__icontains = rider_s) | Q(fname__icontains = rider_s) | Q(phone__icontains=rider_s) | Q(nickname__icontains=rider_s))
+            message = message + rider_s
+            #return HttpResponse(message, content_type="text/plain;charset=utf-8")
+            vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'search_str': rider_s, 'components_sale': scs, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+            #vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}            
+            calendar = embeded_calendar()
+            vars.update(calendar)        
+
+            #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+        #    return render(request, 'index_result.html', vars)
+            return render(request, 'index.html', vars)
+        
+    return HttpResponse(message, content_type="text/plain;charset=utf-8")
     
 
 import csv
@@ -1579,6 +1712,27 @@ def csv_view(request, id, start=True):
 
     for item in revent:
         writer.writerow([item.start_number+1000, item.lname, item.fname, item.id, item.phone, item.start_number])
+#    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+#    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+
+    return response
+
+
+def csv_reg_list_view(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для скачування файлу')
+    
+    revent = RegEvent.objects.filter(event = id, start_number__gt = 0 ).order_by("date") #all rider list
+
+# Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="number_list.csv"'
+
+    writer = csv.writer(response)
+#    writer.writerow(['chip', 'prizv', 'Name', 'rid', 'phone'])
+
+    for item in revent:
+        writer.writerow([item.start_number, item.lname, item.fname, item.id, item.nickname])
 #    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
 #    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
 
