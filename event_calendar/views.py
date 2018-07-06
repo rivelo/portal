@@ -1103,14 +1103,14 @@ def result_add(request):
                         rider.finish = time_point
                         rider.save()
                         rider = ResultEvent.objects.get(reg_event__pk = rid)                        
-                        message = """Вітаємо вас на фініші марафону Рівно100!\n 
+                        message = """Вітаємо вас на фініші марафону Медовий трейл!\n 
     Ви подолали маршрут за %s .\n\n
-    Запрошуємо вас 7 липня відвідати наш грунтовий марафон медовий трейл \n
-    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/19/show/ \n
-    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/19/registration/list/ \n
+    Запрошуємо вас 11 серпня відвідати наш грунтовий марафон "100 миль" \n
+    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/20/show/ \n
+    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/20/registration/list/ \n
     Гарних покатеньок і до зустрічі на старті.
     """ % (rider.get_time_diff())
-                        #res = send_mail('Рівно100. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                        res = send_mail('Медовий трейл 2018. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:

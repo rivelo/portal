@@ -752,7 +752,7 @@ $("#table_cat5_wrapper").hide();
 <a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='finish' %}">Проста версія Finish</a> <br><br>
 
 {% else %}
-<a href="{% url 'event-result-light' event.pk %}"><<Проста версія>></a> <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a>
+<a class="btn btn-success btn-md" href="{% url 'event-result-light' event.pk %}">Проста версія</a> <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a>
 {% endif %} 
 {% endif %}
 </h2>
