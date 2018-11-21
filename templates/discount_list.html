@@ -29,7 +29,7 @@
 
 .card {
 {#  background-color: lightgrey; #}
-  width: 10%;
+/*  width: 10%;*/
   margin: 0px;
   flex: 2;
   border: 1px solid lightgrey;
@@ -57,10 +57,16 @@
 }
 
 .card-columns {
-	display: inline-block;
-	
+	/*display: inline-block;*/
+
+  @include media-breakpoint-only(xs) {
+    column-count: 2;
+  }
+  @include media-breakpoint-only(sm) {
+    column-count: 3;
+  }
   @include media-breakpoint-only(lg) {
-    column-count: 4;
+    column-count: 5;
   }
   @include media-breakpoint-only(xl) {
     column-count: 7;
@@ -113,6 +119,13 @@ h5.sale {
   font-style: normal;
   text-align: center;
 }
+
+.jumbotron{
+    background-color: black;
+/*    min-height: 600px; */
+    height: 150px; 
+    width: 100%;
+}
  
 </style>
 
@@ -134,7 +147,15 @@ $(function () {
 
 
 {# <div class="post">	<h2 class="title" >Чорна п'ятниця</h2> </div> #}
-<h2 class="title post" >Чорна п'ятниця <span class="badge badge-pill badge-dark">{{d_list.0.date_start}} - {{d_list.0.date_end}}</span></h2>
+{# <h2 class="title post"> #}
+
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+	<h2 style="color:red;"  ><b>Чорна п'ятниця</b> <br> <span class="badge badge-pill badge-dark">{{d_list.0.date_start}}</span>-<span class="badge badge-pill badge-dark">{{d_list.0.date_end}}</span></h2>
+  </div>
+</div>
+
+
 
 <div class="card-columns">
 
