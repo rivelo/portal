@@ -27,6 +27,7 @@ class EventsForm(forms.ModelForm):
     date = forms.DateTimeField(initial = datetime.datetime.today, input_formats=['%d.%m.%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y', attrs={'id':"event_datepicker"}), required=False)
     time = forms.TimeField(initial = "10:00", input_formats=['%H:%M'], required=False)
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
+    email_text = forms.CharField(widget=forms.Textarea(), required=False, label='Текст електронного листа')
     
     class Meta:
         model = Events

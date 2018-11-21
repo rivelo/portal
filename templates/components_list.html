@@ -183,9 +183,96 @@
             width /**/: 72px;
             height /**/: 72px;
         }
+
+.image-component {
+	position	: relative;
+	width		: 100%; /* for IE 6 */
+}
+
+h4.sale {
+	color: white;
+	background-color: red;
+	font-weight: bold;
+	position	: absolute; 
+/*	float: right;*/
+	bottom		: 0px;
+	right		: 0px;
+/*	left		: 100px; */
+/*	width		: 50%; */
+}
+ 
+.ilogo {
+    height: auto; 
+    width: auto; 
+    max-width: 175px; 
+    max-height: 175px;
+} 
         
     </style>
 {% endif %}	
+
+<style>
+.image-component {
+	position	: relative;
+	width		: 100%; /* for IE 6 */
+}
+
+h5.sale {
+	color: white;
+	background-color: red;
+	font-weight: bold;
+	position	: absolute; 
+/*	float: right;*/
+	bottom		: 0px;
+	right		: 0px;
+/*	left		: 100px; */
+/*	width		: 50%; */
+}
+
+
+
+.card img {
+  width: 100%;
+}
+
+.card {
+{#  background-color: lightgrey; #}
+  width: 30%;
+  margin: 0px;
+  flex: 2;
+  border: 1px solid lightgrey;
+  display: flex;           /* new */
+  flex-direction: column;  /* new */
+}
+
+.card-block {
+  padding: 10px;
+  background-color: #fff;
+  flex: 1;                /* new */
+}
+
+.card-title {
+  font-size: 18px;
+  color: grey;
+  font-family: verdana, sans;
+}
+
+.card-footer {
+  padding: 15px;
+  border-top: 1px solid lightgrey;
+  background-color: lightgrey;
+}
+
+.card-columns {
+  @include media-breakpoint-only(lg) {
+    column-count: 4;
+  }
+  @include media-breakpoint-only(xl) {
+    column-count: 5;
+  }
+}
+        
+    </style>
 
 {% load poll_extras %}
 
@@ -193,10 +280,13 @@
 
 <div class="post">
 	{% if components_bybrand %}
-	<a href="{% url 'components-company' %}"><h2 class="title">Виробник {{components_bybrand.1.manufacturer.name}} </h2></a>
+	<h2 class="title"><a href="{% url 'components-company' %}">Виробники </a> >>> <a href="#"> Компанія {{components_bybrand.1.manufacturer.name}}</a> 
+	<img src="/media/{{components_bybrand.1.manufacturer.logo}}" class="img-fluid rounded float-right" alt="{{components_bybrand.1.manufacturer.name}}" style="max-height: 100px;"/>
+	</h2>
+
 	{% endif %}
 	{% if components_bytype %}
-	<a href="{% url 'components-company' %}"><h2 class="title">Категорія {{components_bybrand.1.type}} </h2></a>
+	<h2 class="title"><a href="{% url 'components-type-list' %}">Категорія </a> >>> <a href="#"> {{components_bytype.1.type}} </a> </h2>
 	{% endif %}
 	{% if component %}
 	<h2 class="title">{{component.name}}</h2>
@@ -204,24 +294,82 @@
 	{% if components_company %}
 	<a href="{% url 'components-company' %}"><h2 class="title">Виробники компонентів</h2></a>
 	{% endif %}
+	{% if components_list_bytype %}
+	<h2 class="title"><a href="{% url 'components-type-list' %}">Категорії </a> </h2></a>
+	{% endif %}
            
 	<div class="entry">
 
-{% if components_company %}			
+
+{# Список компаній #}
+{% if components_company %}
+<div class="card-columns">
+			
 {% for component in components_company %}
-	<p align="justify" style="font-size: 120%">
-	<img width="150px" src="/media/{{component.manufacturer__logo}}"/> <a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> [{{component.manufacturer__id}}] {{component.manufacturer__name}} ({{component.brand_c}})  {{component.manufacturer__logo}} </a>
-	</p>
-{% endfor %}	
+  <div class="card">
+  	<a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> 
+    <img class="card-img-top ilogo" src="/media/{{component.manufacturer__logo}}" alt="Card image cap">
+    </a>
+    <div class="card-body">
+      <h5 class="card-title">{{component.manufacturer__name}}</h5>
+{#      <p class="card-text">[{{component.manufacturer__id}}] {{component.manufacturer__name}} ({{component.brand_c}})  {{component.manufacturer__logo}}</p> #}
+      <p class="card-text"><small class="text-muted">Кількість - {{component.brand_c}}</small></p>
+    </div>
+  </div>
+{#	<p align="justify" style="font-size: 120%"> #}
+{#	<img width="150px" src="/media/{{component.manufacturer__logo}}"/> <a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> [{{component.manufacturer__id}}] {{component.manufacturer__name}} ({{component.brand_c}})  {{component.manufacturer__logo}} </a> #}
+{#	</p> #}
+{% endfor %}
+</div>	
 {% endif %}		
 
+
+{# Список категорій #} 
+{% if components_list_bytype %}
+<div class="list-group">
+{% for component in components_list_bytype %}
+{#	<p align="justify" style="font-size: 120%"> #}
+{#	<img width="150px" src="/media/{{component.type}}"/> <a href="{% url 'components-list-bytype' component.type__id %}"> [{{component.type__id}}] {{component.type__name}}/{{component.type__name_ukr}} ({{component.type_c}}) <br> {{component.type__description_ukr}} </a> #}
+{#	</p> #}
+
+  <a href="{% url 'components-list-bytype' component.type__id %}" class="list-group-item list-group-item-action flex-column align-items-start"> 
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{component.type__name}}/{{component.type__name_ukr}} </h5><img src="/media/{{component.type.get_icon_name}}"/>
+      <small class="text-muted">{{component.type_c}} штук</small>
+    </div>
+    <p class="mb-1">{{component.type__description_ukr}} </p>
+    <small class="text-muted">{{component.type__description_ukr}}</small>
+  </a>
+	
+{% endfor %}
+
+</div>	
+{% endif %}		
+
+
+{# Список товару компанії #}
 {% if components_bybrand %}
 {% for component in components_bybrand %}
 	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
-	<img src="/media/{{component.photo}}" width="200px"/>
+<div class="image-component">
+	<div style="background-color: white; height:200px;">
+	<img src="/media/{{component.photo}}" width="200px" alt="{{component.name}}" />
+	</div> 
+{#	<img src="/media/images/Y00091310.jpeg" width="200px" alt="{{component.name}}" /> #}
+	{% if component.sale %}
+	<h5 class="sale">Знижка {{component.sale|floatformat:"0"}} %</h5>
+	{% endif %}
+</div>	
 	<p align="justify" style="font-size: 100%"> 
-	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} </a><br> Ціна {{component.price}} грн.  Знижка {{component.sale}}%
-	<a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a>
+	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} </a><br>
+	Тип: <a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a>
+	<br>
+{% if component.sale > 0 %}	
+	Ціна: <s>{{component.price|floatformat:"0"}} </s> <b>{{component.get_saleprice|floatformat:"0"}} грн. </b>
+{% else %}
+	Ціна: <b> {{component.price}} грн. </b>
+{% endif %}	
+	
 	</p> 
 	</div>
 {#	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} <img src="/media/{{component.photo}}"/> </a> #}
@@ -232,7 +380,7 @@
 {% if components_sale %}
 {% for component in components_sale %}
 	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
-	<img src="/media/{{component.photo}}" width="200px"/>
+	<img src="/media/{{component.photo}}" width="200px" style="background-color: white; height:200px;"/>
 	<p align="justify" style="font-size: 100%"> 
 	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} ({{component.get_realshop_count}})</a><br> Ціна {{component.price}} грн.  Знижка {{component.sale}}%
 	<a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a>
@@ -246,10 +394,29 @@
 {% if components_bytype %}
 {% for component in components_bytype %}
 	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
-	<img src="/media/{{component.photo}}" width="200px"/>
+<div class="image-component">
+<div style="background-color: white; height:200px;">
+	<img src="/media/{{component.photo}}" width="200px" alt="{{component.name}}" /> 
+{#	<img src="/media/images/Y00091310.jpeg" width="200px" alt="{{component.name}}" /> #}
+</div> 
+	{% if component.sale %}
+	<h5 class="sale">Знижка {{component.sale|floatformat:"0"}} %</h5>
+	{% endif %}
+</div>		
+	
 	<p align="justify" style="font-size: 100%"> 
-	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} </a><br> Ціна {{component.price}} грн.  Знижка {{component.sale}}%
-	<a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a>
+	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} </a><br>
+	Виробник: <a href="{% url 'components-list-bybrand'  component.manufacturer.id %}"> {{component.manufacturer.name}} </a>
+	<br>
+{% if component.sale > 0 %}	
+	Ціна: <s>{{component.price|floatformat:"0"}} </s> <b>{{component.get_saleprice|floatformat:"0"}} грн. </b>
+{% else %}
+	Ціна: <b> {{component.price}} грн. </b>
+{% endif %}	
+	
+{#	 Ціна {{component.price}} грн.  Знижка {{component.sale}}% #}
+{#	<a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a> #}
+	
 	</p> 
 	</div>
 {% comment %}
@@ -268,9 +435,9 @@
 	{{component.rating|default_if_none:"-"}}</p>
 	</div>
 {% if user.is_authenticated %}	
-	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.id}}</p></div>
+	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.id}} / {{component.ids}}</p></div>
 {% else %}
-	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.ids}}</p></div>	
+	<div style="background:white; width:150px; float:right; "><p>Код товару: {{component.ids}}</p></div> 	
 {% endif %}
 
 	<div style="background:#red; clear:left;"> 
@@ -332,26 +499,30 @@
 {% endcomment %}
 
 </div>	
-	<div style="background:white; width:150px; float:right; ">Ціна товару: {{component.price|floatformat}} грн. <br>
+	
 {#	Наявність: {{component.count}}<br> Знижка: {{component.sale|floatformat}} #}
-{% if component.price != component.get_saleprice %}	
-	<p align="left" style="font-size: 110%; font-weight: bold;"> Нова ціна: {{component.get_saleprice|floatformat:"0"}} грн. </p>
-	<p align="left" style="font-size: 90%;"> Ви заощаджуєте: {{component.price|subtract:component.get_saleprice|floatformat:"0"}} грн. </p>
+{% if component.price != component.get_saleprice %}
+	<div style="background:white; width:150px; float:right; "><s>Ціна товару: {{component.price|floatformat}} грн. </s>	
+	<p align="left" style="font-size: 120%; font-weight: bold; color: red;"> Нова ціна: {{component.get_saleprice|floatformat:"0"}} грн. </p>
+	<p align="left" style="font-size: 90%; color:coral;"> Ви заощаджуєте: {{component.price|subtract:component.get_saleprice|floatformat:"0"}} грн. <br> Це {{component.sale|floatformat:"0"}}% від ціни</p>
+{% else %}
+	<div style="background:white; width:150px; float:right; font-size: 120%; font-weight: bold; color: red;">Ціна товару: {{component.price|floatformat}} грн. <br>	
 {% endif %}	
 	</div>
 	</div>
 {#	<div style="background:#36E065; clear:left;"> #}
 	<div style="clear:left;">
-	<p align="justify" style="font-size: 135%; font-weight: bold;">Характеристики</p>
+	<p align="justify" style="font-size: 135%; font-weight: bold;">Характеристики >></p>
 	<p align="justify" style="font-size: 120%">
 	{{component.description}}
 	Артикул: {{component.ids}} <br>
 	Виробник: <a href="{% url 'components-list-bybrand' component.manufacturer.id %}">{{component.manufacturer.name}} ({{component.manufacturer.country}})</a> <br>
 	Колір: {{component.color}} <br>
 	Країна виробник: {{component.country}} <br>
+	Тип: <a href="{% url 'components-list-bytype' component.type.id %}">{{component.type.name}} / {{component.type.name_ukr}}</a> <br>
 	</p>
 	<p align="justify" style="font-size: 120%">
-	[{{component.ids}}] [{{component.manufacturer.name}}]  {{component.name}} </a> Ціна {{component.price}} грн.  Знижка {{component.sale}}%
+	[{{component.ids}}] [{{component.manufacturer.name}}]  {{component.name}}. </a> Ціна {{component.get_saleprice|floatformat:"0"}} грн.
 	</p>
 	</div>
 {% endif %}

@@ -24,7 +24,7 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 
-from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store
+from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount 
 
 import simplejson
 import googlemaps
@@ -49,6 +49,10 @@ def admin_sendmail(request, id):
         return render(request, 'index.html', vars)
     revent = RegEvent.objects.get(pk = id)
     csum = revent.event.cur_reg_sum()
+    if (type(csum) is tuple) and (csum[0] == "error"):
+        vars = {'error_data': "Щось пішло не так. " + csum[1]}
+        return render(request, 'index.html', vars)
+        
     dleft = revent.event.days_left()
     
     message = """Нагадуємо що до заходу залишилось %s днів. \n 
@@ -504,14 +508,21 @@ def add_reg(request, id):
     a = Events.objects.get(pk=id)
     r = RegEvent(event = a)
     dl = a.days_left()
-    if (a.days_left() < 0):
-        if (auth_group(request.user, 'admin')==False):
-            return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції " + str(a.days_left()), content_type="text/plain")
-#    r = RegEvent()
+
     vars = None
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     calendar = embeded_calendar()
+    
+    if (a.days_left() <= 0):
+        if (auth_group(request.user, 'admin')==False):
+            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': "Реєстрацію завершено, або ви не авторизувались для даної функції. До старту заходу " + str(a.days_left()) + " днів"}
+            vars.update(calendar)        
+            evnt = {'event': a}
+            vars.update(evnt)
+            return render(request, 'index.html', vars)
+#            return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції. До старту заходу " + str(a.days_left()) + " днів", content_type="text/plain")
+#    r = RegEvent()
     if request.method == 'POST':
         form = RegEventsForm(request.POST, instance=r)
         gr = grecaptcha_verify(request)
@@ -929,10 +940,10 @@ def event_result(request, id):
     cat5_b = event_date.replace(year = event_date.year-60)
     #revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b, reg_event__start_status = True).order_by("-finish") #all rider list
     revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b.date(), reg_event__start_status = True).order_by("-finish") #all rider list
- #   photo1 = Photo.objects.random()
- #   photo2 = Photo.objects.random()
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
-    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3}    
+    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3}    
 #    calendar = embeded_calendar()
 #    vars.update(calendar)        
     evnt = {'event': evt}
@@ -1068,7 +1079,7 @@ def result_add(request):
             POST = request.POST  
             if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
                 rid = request.POST['rid']
-                val = request.POST['value']
+                val = request.POST['value'].strip()
                 point = request.POST['point']
                 chkhash = None
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
@@ -1103,13 +1114,17 @@ def result_add(request):
                         rider.finish = time_point
                         rider.save()
                         rider = ResultEvent.objects.get(reg_event__pk = rid)                        
-                        message = """Вітаємо вас на фініші марафону Медовий трейл!\n 
-    Ви подолали маршрут за %s .\n\n
-    Запрошуємо вас 11 серпня відвідати наш грунтовий марафон "100 миль" \n
-    Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/20/show/ \n
-    Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/20/registration/list/ \n
-    Гарних покатеньок і до зустрічі на старті.
-    """ % (rider.get_time_diff())
+                        message = rev.event.email_text % (rider.get_time_diff())
+    #===========================================================================
+    #                     """Вітаємо вас на фініші марафону Медовий трейл!\n 
+    # Ви подолали маршрут за %s .\n\n
+    # Запрошуємо вас 11 серпня відвідати наш грунтовий марафон "100 миль" \n
+    # Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/20/show/ \n
+    # Список зареєстрованих знаходиться за цим посиланням http://www.rivelo.com.ua/event/20/registration/list/ \n
+    # Гарних покатеньок і до зустрічі на старті.
+    # """ 
+    #===========================================================================
+    
                         res = send_mail('Медовий трейл 2018. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
@@ -1526,7 +1541,7 @@ def regevent_edit(request, id=None):
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
 
 
-def year_results(request, year=2017):
+def year_results(request, year=2017):   
     id = 4
     evt = Events.objects.get(pk=id)
     events = Events.objects.filter(date__year = year, reg_status = True).order_by('date')
@@ -1540,9 +1555,12 @@ def year_results(request, year=2017):
     male = ResultEvent.male_objects.get_male_byyear(year)
     #male = revent.active_for_account(1).count()
     female = ResultEvent.female_objects.get_female_byyear(year)
-    print "FEMALE  = ", female
+    #print "FEMALE  = ", female
     #female = revent.active_for_account(0).count()
-    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'list': revent, 'events': events, 'male':male, 'female':female, 'stat_res': stat_res, 'year': year}    
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    
+    vars = {'weblink': 'summary_year_results.html', 'sel_menu': 'calendar', 'entry': get_funn(), 'gphoto1': photo1, 'gphoto2': photo2, 'list': revent, 'events': events, 'male':male, 'female':female, 'stat_res': stat_res, 'year': year}    
     evnt = {'event': evt}
     vars.update(evnt)
     try:
@@ -1550,7 +1568,8 @@ def year_results(request, year=2017):
     except:
         error = "Параметр reg_email не існує"
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render(request, 'index_result.html', vars)        
+    #return render(request, 'index_result.html', vars)        
+    return render(request, 'index.html', vars)
 #    pass
 #    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')
 
@@ -1558,7 +1577,6 @@ def year_results(request, year=2017):
 def shop_bicycle_company(request):
     #bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand__logo', 'model__brand', 'model__brand__name', 'model__brand__id').annotate(brand_c = Count('model__brand'))
     bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand').annotate(brand_c = Count('model__brand__pk'))
-    
 
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
@@ -1602,6 +1620,17 @@ def shop_components_company(request):
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
+
+
+def shop_type_list(request):
+    scc = Catalog.objects.filter(count__gte = 1) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    scc = scc.values('type__id', 'type__name', 'type__name_ukr', 'type__description_ukr').distinct().annotate(type_c = Count('type__id')).order_by('type__name') #annotate(brand_c = Count('manufacturer__id'))
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list_bytype': scc, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
     return render(request, 'index.html', vars)        
 
 
@@ -1689,7 +1718,42 @@ def shop_search(request):
             return render(request, 'index.html', vars)
         
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
-    
+
+
+def workshop_main(request):
+    wg = WorkGroup.objects.all().order_by('tabindex')
+#    WorkType.objects.filter()
+    print "WG = " + str(wg)
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'workshop_main.html', 'sel_menu': 'workshop', 'workgroup': wg,  'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
+
+def workshop_service(request):
+    wg = WorkGroup.objects.all().order_by('tabindex')
+     
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'workshop_service.html', 'sel_menu': 'workshop', 'workgroup': wg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
+
+def shop_discount(request):
+    d_list = Discount.objects.all().order_by('type_id')
+     
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'discount_list.html', 'sel_menu': 'workshop', 'd_list': d_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
+        
 
 import csv
 from django.template import loader, Context

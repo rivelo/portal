@@ -1,0 +1,197 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<style>
+
+.center {
+
+    margin-left: auto;
+    margin-right: auto;
+/*    width: 50%; */
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 24px;
+
+}
+
+.card img {
+    height: auto; 
+    width: auto; 
+    max-width: 175px; 
+    max-height: 175px;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+    background: none;
+    cursor: pointer;
+} 
+
+
+.card {
+{#  background-color: lightgrey; #}
+  width: 10%;
+  margin: 0px;
+  flex: 2;
+  border: 1px solid lightgrey;
+  display: flex;           /* new */
+  flex-direction: column;  /* new */
+}
+
+.card-block {
+  padding: 10px;
+  background-color: #fff;
+  flex: 1;                /* new */
+}
+
+.card-title {
+  font-size: 18px;
+  color: grey;
+  font-family: verdana, sans;
+}
+
+.card-footer {
+  padding: 15px;
+  border-top: 1px solid lightgrey;
+/*  background-color: lightgrey; */
+  background-color: black;
+}
+
+.card-columns {
+	display: inline-block;
+	
+  @include media-breakpoint-only(lg) {
+    column-count: 4;
+  }
+  @include media-breakpoint-only(xl) {
+    column-count: 7;
+  }
+}
+ 
+h5.sale {
+	color: white;
+	background-color: red;
+	font-weight: bold;
+	position	: absolute; 
+/*	float: right;*/
+	bottom		: 0px;
+	right		: 0px;
+/*	left		: 100px; */
+/*	width		: 50%; */
+}
+
+.tooltip {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: bold;
+  line-height: 1.42857143;
+  text-align: left;
+  text-align: start;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  word-break: normal;
+  word-spacing: normal;
+  word-wrap: normal;
+  white-space: normal;
+  /* ... */
+}
+ 
+.tooltip-inner {
+/*    max-width: 200px;*/
+
+    padding: 3px 8px;
+    color: #fff;
+    text-align: center;
+    background-color: red;
+    border-radius: .25rem;
+} 
+
+.note-discount{
+  font-size: 14px;
+  font-style: normal;
+  text-align: center;
+}
+ 
+</style>
+
+<script>
+
+$(function () {
+
+	$('[data-toggle="tooltip"]').tooltip()
+	$('[data-toggle="popover"]').popover(); 
+	
+	$('.popover-dismiss').popover({
+		  trigger: 'focus'
+	})
+		
+})
+</script>
+
+{% block content %}
+
+
+{# <div class="post">	<h2 class="title" >Чорна п'ятниця</h2> </div> #}
+<h2 class="title post" >Чорна п'ятниця <span class="badge badge-pill badge-dark">{{d_list.0.date_start}} - {{d_list.0.date_end}}</span></h2>
+
+<div class="card-columns">
+
+	{% for sale in d_list %}
+<div class="card">
+	{% if sale.get_manufacture %}
+	{% if sale.get_manufacture.logo %}
+	<div class="link_catalog" tabindex="0" data-trigger="focus" data-toggle="popover" data-trigger="focus" data-html="true" title="Повідомлення" data-content="Посилання працюватиме<br> {{sale.date_start}}">
+{#	<h5 class="sale">Знижка {{sale.sale|floatformat:"0"}} %</h5> #}
+		<img class="card-img-top" src="/media/{{sale.get_manufacture.logo}}" class="ilogo" alt="{{sale.get_manufacture.name}}" title="{{sale.get_manufacture.name}}" data-toggle="tooltip" data-placement="top">
+	</div>		
+	{% endif %}
+	{% endif %}
+
+	{% if sale.get_type %}
+	<div class="link_catalog" tabindex="0" class="badge badge-danger" data-trigger="focus" role="button" data-container="body" data-html="true" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}}">
+		<img class="card-img-top" src="{{ sale.get_type.get_icon_name}}" width="64px" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="top">
+	</div>
+	{% endif %}
+    
+{% comment %}    
+    <div class="card-body" style="background-color: black;">
+      <h5 class="card-title">-{{sale.sale|floatformat:"0"}}%</h5>
+      <p class="card-text">{{sale.name}}<br> {{sale.description}}</p>
+    </div>
+
+{% endcomment %}    
+    <div class="card-footer">
+    <h3 class="center">
+    <span tabindex="0" class="badge badge-danger link_catalog" data-container="body" data-html="true" data-trigger="focus" role="button" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}}">
+    Знижка {{sale.sale|floatformat:"0"}}%
+    </span>
+    </h3>
+{#      <small class="text-muted"> <br> {{sale.date_end}}</small> #}
+{#      <small class="text-muted">{{sale.name}} <br> {{sale.description}}</small> #}
+    </div>
+        
+</div>	
+	{% endfor %}  
+
+</div>
+
+<div class="row">
+<h2><span> </span></h2>
+</div>
+
+<div class="alert alert-success" role="alert">
+ <h5 class="note-discount"> *На решту аксесуарів, які не маюьть встановленої знижки. <br> Встановлюється <span class="badge badge-danger note-discount">знижка 15%</span> </h5>
+</div>
+
+<br>
+    
+  
+ 
+
+{% endblock %}
+
+
+
+

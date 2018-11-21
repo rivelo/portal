@@ -66,6 +66,20 @@ def res_stat_bikes(event):
 def res_stat_bikes_byyear(year):
         #return ResultEvent.group_city.get_citys(event)
         return ResultEvent.group_bikes.get_bikes_byyear(year)
+    
+@register.simple_tag(name='time_plus_time')
+def time_plus_time(time1, time2, time3):
+        a = datetime.datetime.strptime(time1, '%H:%M:%S')
+        try:
+            b = datetime.datetime.strptime(time2, '%H:%M:%S')
+            c = datetime.datetime.strptime(time3, '%H:%M:%S')
+            delta = datetime.timedelta(hours=b.hour, minutes=b.minute, seconds=b.second)
+            cdelta = datetime.timedelta(hours=c.hour, minutes=c.minute, seconds=c.second)
+            res = a + delta + cdelta
+        except:
+            return time1 
+        return str((res.day-1)*24+res.hour)+":"+ str(res.minute) +":"+str(res.second)
+#        return res.strftime("%d - %H:%M:%S")
 
 @register.assignment_tag #(name='minustwo')
 def get_current_event():
@@ -93,6 +107,11 @@ def has_group(user, group_name):
 
 @register.assignment_tag
 def update_variable(value):
+    """Allows to update existing variable in template"""
+    return value
+
+@register.simple_tag 
+def update_variable_v2(value):
     """Allows to update existing variable in template"""
     return value
 

@@ -1,4 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
+
+from pyexpat import model
+
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User
@@ -92,7 +95,9 @@ class Events (models.Model):
     duration = models.PositiveSmallIntegerField(default=1, help_text="тривалість заходу, кількість днів")
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     pub_date = models.DateField(auto_now_add=True)
-    rules = models.ManyToManyField(Rules, blank=True)
+    rules = models.ManyToManyField(Rules, blank=True) #реєстраційні внески
+    email_text = models.TextField(blank=True)
+    cup = models.BooleanField(default=False)
 
     def days_left(self):
         today = datetime.datetime.today()
@@ -143,7 +148,11 @@ class Events (models.Model):
             rule = self.rules.get(date_in__lte = today, date_out__gte = today)
         except:
             today=datetime.date.today()
-            rule = self.rules.get(date_in__lte = today, date_out__gte = today)
+            try:
+                rule = self.rules.get(date_in__lte = today, date_out__gte = today)
+            except:
+                rule = "Час реєстрації вичерпався, тому відправляти лист або реєструватись вже не доречно"
+                return ("error", rule) 
             #rule = 0
         #    return 0
 #        if (today >= self.date_in) and (today <= self.date_out):
@@ -173,6 +182,19 @@ def validate_phone(value):
         raise ValidationError('%s is not an phone number' % value)
 
 
+class EventDistance(models.Model):
+    name = models.CharField(max_length=255)
+    distance = models.PositiveSmallIntegerField(default=0, help_text="Довжина маршруту, кілометри")
+    event = models.ForeignKey(Events, blank=True, null=True, on_delete=models.SET_NULL)
+    description = models.TextField(blank=True, help_text="Опис дистанції")
+
+    def __unicode__(self):
+        return '%s - %s км' % (self.name, self.distance)
+
+    class Meta:
+        ordering = ["event", "distance", "name"]    
+
+
 class RegEvent (models.Model):
     PAY_METHOD_CHOICES = (
                           ('card', 'Оплата на картку'),
@@ -200,6 +222,7 @@ class RegEvent (models.Model):
     status = models.BooleanField(default=False)
     start_number = models.IntegerField(help_text="Стартовий номер від 1 до 999", default=0, blank=True) # Стартовий номер; 0 - не вибрано
     #chip_number = models.CharField IntegerField(help_text="номер чіпа", default=0, blank=True) # Стартовий номер; 0 - не вибрано
+    distance_type = models.ForeignKey(EventDistance, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True)
     start_status = models.BooleanField(default=False)
 
@@ -363,8 +386,8 @@ class ResultEvent (models.Model):
     kp3 = models.DateTimeField(blank = True, null = True)
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
-#    dnf = models.BooleanField(default=False)
-    
+    dnf = models.BooleanField(default=False)
+
 #    objects = filterManager()
     #objects = CustomQuerySetManager()
     objects = models.Manager() # The default manager.

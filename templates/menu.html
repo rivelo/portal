@@ -88,8 +88,35 @@
 	display:block
 }
 
+
+.dropdown-menu {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+@media (max-width: 500px) {
+    .dropdown-menu{
+          height:200px;
+          overflow-y:auto;
+       }
+    }
+
+
 </style>
 {% endcomment %}
+
+
+<style>
+.dropdown-menu {
+    max-height: 500px;
+    max-width: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+</style>
+
 
 
 <a class="navbar-brand d-md-none" href="#">Меню</a>
@@ -177,6 +204,23 @@
 	      	<a class="dropdown-item" href="{% url 'bicycle-company' %}">Велосипеди</a>
     	  	<a class="dropdown-item" href="{% url 'components-company' %}">Запчастини</a>
       		<a class="dropdown-item" href="{% url 'components-sale' %}" >Акційні товари </a>
+      		<a class="dropdown-item" href="{% url 'components-discount' %}" >Чорна п'ятниця </a>
+         </div>
+       </li>
+
+
+      <li class="nav-item dropdown
+         {% ifequal sel_menu "workshop" %}
+      		active
+         {% endifequal %}
+      ">      
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         Майстерня
+         </a>
+         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	      	<a class="dropdown-item" href="{% url 'workshop-price' %}">Послуги</a>
+    	  	<a class="dropdown-item" href="{% url 'workshop-service' %}">Технічне обслуговування</a> 
+{#      		<a class="dropdown-item" href="{% url 'components-sale' %}" >Акційні товари </a> #}
          </div>
        </li>
        				
@@ -271,6 +315,25 @@
       	<li><a href="{% url 'bicycle-company' %}">Велосипеди</a></li>
       	<li><a href="{% url 'components-company' %}">Запчастини</a></li>
       	<li><a href="{% url 'components-sale' %}" >Акційні товари </a></li>
+    </ul>
+  </li>
+	{% endifequal %}				
+
+
+	{% ifequal sel_menu "workshop" %}				
+		<li class="current-menu-item"><a  href="/workshop/">Майстерня</a>
+	<ul>
+      	<li><a href="{% url 'workshop-price' %}">Послуги</a></li>
+      	<li><a href="{% url 'workshop-news' %}"></a>Статті</li>
+{#      	<li><a href="{% url 'components-sale' %}" >Акційні товари </a></li> #}
+	</ul>
+				</li>
+	{% else %}			
+  		<li><a  href="/workshop/">Майстерня</a>
+    <ul>
+      	<li><a href="{% url 'workshop-price' %}">Послуги</a></li>
+      	<li><a href="{% url 'workshop-news' %}">Запчастини</a></li>
+{#      	<li><a href="{% url 'components-sale' %}" >Акційні товари </a></li> #}
     </ul>
   </li>
 	{% endifequal %}				

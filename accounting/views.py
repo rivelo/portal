@@ -2,21 +2,21 @@
 from django.db.models import Q
 from django.db.models import F
 from django.db import connection
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import resolve
 
-from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type
+from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts
 from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form 
 
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
-from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm
+from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
 
-from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
-from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
+from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount
+from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 
-from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus
-from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm
+from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
+from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.core.exceptions import ObjectDoesNotExist
@@ -43,11 +43,13 @@ from django.core import serializers
 
 import pytils_ua
 import urllib
-from django.conf import settings
 
 from django.core.mail import EmailMultiAlternatives
 from urlparse import urlsplit
 from django.db.models import F
+from django.http import JsonResponse
+from django.core.context_processors import request
+from _mysql import NULL
 
 
 def custom_proc(request):
@@ -60,13 +62,20 @@ def custom_proc(request):
 
     
 def auth_group(user, group):
-    return True if user.groups.filter(name=group) else False
+#    print "****Group  = " + str(group)
+#    print "****USER  = " + str(user)
+    if user.groups.filter(name=group).exists():
+#        print "****Group = " + str(user.groups.filter(name=group))
+        return True
+#    print "****Group FALSE = " + str(user)
+    return False
+    #return True if user.groups.filter(name=group) else False
 
 
 def current_url(request):
     return request.get_full_path()
 
-
+# old function
 def search(request):
     query = request.GET.get('q', '')
     if query:
@@ -86,16 +95,7 @@ def del_logging(obj):
     file_name = 'test_log'
     log_path = settings.MEDIA_ROOT + 'logs/' + file_name + '.log'
     log_file = open(log_path, 'a')
-    #for s in obj:
-    #    result = result + ' | ' + s 
-    #log_file.write("DELETE FROM TABLE " + table_name + " WHERE id = " + obj.name + "\n")
     log_file.write("%s >>> DELETE FROM TABLE %s WHERE id = %s \n" % (str(datetime.datetime.now()), obj._meta.verbose_name, obj.id) )
-    #obj._meta.object_name
-    #obj._meta.verbose_name
-    #obj.__class__.__name__
-    
-    #for obj_f in obj._meta.get_all_field_names():
-    #    log_file.write("Key %s Value \n" % obj_f)
         
     for f in obj._meta.fields:
         log_file.write("Key = " + f.name + " - ") # field name
@@ -314,7 +314,7 @@ def bicycle_type_del(request, id):
 
 def bicycle_type_list(request):
     list = Bicycle_Type.objects.all()
-    return render_to_response('index.html', {'types': list.values(), 'weblink': 'bicycle_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'types': list, 'weblink': 'bicycle_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_framesize_add(request):
@@ -450,10 +450,89 @@ def processUploadedImage(file, dir=''):
 #     
 #===============================================================================
 
+def bicycle_part_add(request):
+    if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
+        response = JsonResponse({'error': "У вас не вистачає повноважень або ви не авторизувались в системі"})
+        return response
+    a = None
+    bp = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if (POST.has_key('s_cat_id') or POST.has_key('s_name')) and POST.has_key('s_type') and POST.has_key('id'):                
+                bid = request.POST['id']
+                cat_id = None
+                if POST.has_key('s_cat_id'):
+                    cat_id = request.POST['s_cat_id']
+                s_name = request.POST['s_name']
+                s_type = request.POST['s_type']
+                s_desc = request.POST['s_desc']
+                d = {}
+                if s_name or cat_id:
+                    try:
+                        bp_name = None
+                        a = Bicycle.objects.get(pk = bid)
+                        if s_name:
+                            bp_name = s_name
+                            bp = Bicycle_Parts.objects.filter(type = s_type).get(name = bp_name)
+                        print "OBJECT = " + str(bp_name) + "CAT id = " + str(cat_id)
+                        if cat_id:
+                            bp_name = cat_id
+                            bp = Bicycle_Parts.objects.filter(type = s_type).get(catalog = bp_name)
+                        print "OBJECT = " + str(bp_name)
+                        #    bp = Bicycle_Parts.objects.filter(type = s_type).get(catalog = bp_name)
+                        a.bikeparts.add(bp)
+                        a.save()
+                        d['pk'] = bp.pk
+                        d['cat'] = str(bp.catalog)
+                        d['type'] = str(bp.type)
+                        d['status'] = True
+                        d['msg'] = 'Такий компонент вже існує.'
+                        d['error'] = 'Такий компонент вже існує. Вибрати його?'
+                    except Bicycle_Parts.DoesNotExist:
+                        print "CAT = " + str(cat_id)
+                        catalog = None
+                        type = None
+                        if s_type:
+                            type = Type.objects.get(pk = s_type)
+                        else:
+                            d['status'] = False
+                        if cat_id:
+                            catalog = Catalog.objects.get(pk = cat_id)
+                            bp = Bicycle_Parts.objects.create(name = s_name, catalog = catalog, type = type, description = s_desc)
+                            d['status'] = True
+                        else:
+                            catalog = Catalog
+                            bp = Bicycle_Parts.objects.create(name = s_name, type = type, description = s_desc)
+                            d['status'] = True
+                            
+                        #bp = Bicycle_Parts.objects.create(name = s_name, catalog = catalog, type = type, description = s_desc)
+                        a.bikeparts.add(bp)
+                        a.save()
+                        #d['status'] = True
+                        d['pk'] = bp.pk
+                        d['cat'] = str(bp.catalog)
+                        d['type'] = str(bp.type)
+                        d['desc'] = bp.description
+                    except Bicycle.DoesNotExist:
+                        d['status'] = False
+                        d['error'] = "такого велосипеду не існує"
+                    except Bicycle_Parts.MultipleObjectsReturned:
+                        d['status'] = False
+                        d['error'] = "Таких компонентів є більше ніж один. Видаліть дублікати."
+            else:
+                response = JsonResponse({'error': "Невірні параметри запиту"})
+                return response
+    
+            response = JsonResponse(d)
+            return response            
+    
+
+
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/view/')
-    a = Bicycle()    
+#    a = Bicycle()    
     if request.method == 'POST':
 #        form = BicycleForm(request.POST, request.FILES, instance=a)
         form = BicycleForm(request.POST, request.FILES)        
@@ -464,12 +543,21 @@ def bicycle_add(request):
             color = form.cleaned_data['color']
             year = form.cleaned_data['year']
             weight = form.cleaned_data['weight']
+#            sizes = form.cleaned_data['sizes']
             price = form.cleaned_data['price']
             currency = form.cleaned_data['currency']
             description = form.cleaned_data['description']
             sale = form.cleaned_data['sale']
             offsite_url = form.cleaned_data['offsite_url']
-            photo = form.cleaned_data['photo']            
+            photo = form.cleaned_data['photo']  
+            wheel_size = form.cleaned_data['wheel_size']
+            country_made = form.cleaned_data['country_made']
+            rating = form.cleaned_data['rating']
+            warranty = form.cleaned_data['warranty']
+            geometry = form.cleaned_data['geometry']
+            country_made = form.cleaned_data['country_made']
+            internet = form.cleaned_data['internet']
+                      
             folder = year.year
             upload_path_p = ''
             if photo == None:
@@ -477,8 +565,15 @@ def bicycle_add(request):
             if isinstance(photo, InMemoryUploadedFile):
                 upload_path_p = processUploadedImage(photo, 'bicycle/'+str(folder)+'/') 
                 #a.photo=upload_path_p
+            gfolder = year.year
+            upload_path_g = ''
+            if geometry == None:
+                upload_path_g = None
+            if isinstance(geometry, InMemoryUploadedFile):
+                upload_path_g = processUploadedImage(geometry, 'geometry/'+str(gfolder)+'/')
                 
-            Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path_p, weight = weight, price = price, currency = currency, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
+            Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path_p, weight = weight, wheel_size = wheel_size, price = price, currency = currency, internet = internet, country_made = country_made, warranty = warranty, geometry = upload_path_g, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
+#            form.save() #_m2m()
             return HttpResponseRedirect('/bicycle/view/')
             #return HttpResponseRedirect(bicycle.get_absolute_url())
     else:
@@ -491,13 +586,16 @@ def bicycle_add(request):
 
 def bicycle_edit(request, id):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
-        return HttpResponseRedirect('/bicycle/view/')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #return HttpResponseRedirect('/bicycle/view/')
     a = Bicycle.objects.get(pk=id)
+    url_youtube = None
     if request.method == 'POST':
         form = BicycleForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
             year = form.cleaned_data['year']
             photo = form.cleaned_data['photo']            
+            #url_youtube = form.cleaned_data['upload_youtube']
             folder = year.year
             upload_path_p = ''
             if photo == None:
@@ -507,6 +605,18 @@ def bicycle_edit(request, id):
                 a.photo=upload_path_p
                 a.save()
             form.save()
+            if request.POST.has_key('upload_youtube'):
+                url_youtube = request.POST.get('upload_youtube')
+                if url_youtube :
+                    try:
+                        y = YouTube.objects.get(url = url_youtube)
+                        a.youtube_url.add(y)
+                        a.save()
+                    except YouTube.DoesNotExist:
+                        add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
+                        a.youtube_url.add(add_tube)
+                        a.save()
+                         
             return HttpResponseRedirect('/bicycle/view/')
     else:
         form = BicycleForm(instance=a)
@@ -622,20 +732,8 @@ def bicycle_store_edit(request, id=None):
     if request.method == 'POST':
         form = BicycleStoreForm(request.POST, instance=a)
         if form.is_valid():
-#===============================================================================
-#            model = form.cleaned_data['model']
-#            serial_number = form.cleaned_data['serial_number']
-#            size = form.cleaned_data['size']
-#            price = form.cleaned_data['price']
-#            currency = form.cleaned_data['currency']
-#            description = form.cleaned_data['description']
-#            realization = form.cleaned_data['realization']
-#            count = form.cleaned_data['count']
-#            date = form.cleaned_data['date']            
-#            Bicycle_Store(id = id, model = model, serial_number=serial_number, size = size, price = price, currency = currency, description=description, realization=realization, count=count, date=date).save()
-#===============================================================================
             form.save()
-            return HttpResponseRedirect('/bicycle-store/view/seller/')
+            return HttpResponseRedirect('/bicycle-store/view/')
     else:
         form = BicycleStoreForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_store.html', 'text': 'Редагувати тип'}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -895,15 +993,12 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
         month = datetime.datetime.now().month
         #list = Bicycle_Sale.objects.all().order_by('date')
         if (id != None):
-            list = Bicycle_Sale.objects.filter(model=id).order_by('date')
+            list = Bicycle_Sale.objects.filter(pk = id).order_by('date')
         else:
             list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-    if (year != False) & (month != False):
+    if (year != False) & (month != False) & (id == None):
         list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-       
     header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
-#     Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
-#     Order.objects.filter().extra({'day':"Extract(day from created)"}).values_list('day').annotate(Count('id'))
     psum = 0
     price_summ = 0
     profit_summ = 0
@@ -944,7 +1039,10 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
         profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
-    brand = list[0].model.model.brand.name
+    try:
+        brand = list[0].model.model.brand.name
+    except:
+        brand = None
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'header_links':header_bike, 'price_opt': price_opt, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -1005,7 +1103,7 @@ def bicycle_sale_check_add(request, id):
                     try:
                         page = urllib.urlopen(url).read()
                     except:
-                        message = "Сервер не відповідає"
+                        message = "Сервер" + settings.HTTP_MINI_SERVER_IP + " не відповідає"
                         return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
@@ -1211,8 +1309,8 @@ def bicycle_order_edit(request, id):
             form.save()
             return HttpResponseRedirect('/bicycle/order/view/')
     else:
-        form = BicycleOrderForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html'})
+        form = BicycleOrderForm(instance=a, initial={'client_id': a.client.pk, 'model_id': a.model.pk})
+    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_order_del(request, id):
@@ -1258,7 +1356,6 @@ def bicycle_lookup_ajax(request):
             
     else:
         message = "Error"
-
     #search = Bicycle.objects.filter(id=q).values('price', 'sale')
     return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
@@ -1268,20 +1365,26 @@ def ValuesQuerySetToDict(vqs):
 def bike_lookup(request):
     data = None
     cur_year = datetime.datetime.now().year
-    #if request.is_ajax():
+
     if request.method == "POST":
         if request.POST.has_key(u'query'):
             value = request.POST[u'query']
             if len(value) > 2:
                 model_results = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-2, 1, 1)).filter(Q(model__icontains = value) | Q(brand__name__icontains = value)).order_by('-year')
-                #.values('id', 'model', 'type__type', 'brand__name',  'color', 'price', 'sale')
-                #.values('id', 'model', 'type__type', 'brand__name', 'year', 'color', 'price', 'sale');
                 data = serializers.serialize("json", model_results, fields = ('id', 'model', 'type', 'brand', 'color', 'price', 'year', 'sale'), use_natural_keys=False)
-#                data = serializers.serialize("json", list(model_results))
-#                data_dict = ValuesQuerySetToDict(model_results)
-#                data = simplejson.dumps(data_dict)
             else:
                 data = []
+                
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('bike_id'):
+                q = request.POST['bike_id']
+                search = Bicycle.objects.get(id=q)
+                data = search.model
+    else:
+        message = "Error"
+                
     return HttpResponse(data)                
 
 
@@ -1725,7 +1828,7 @@ def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
 
 def dealer_invoice_search(request):
     #query = request.GET.get('q', '')
-    return render_to_response('index.html', {'weblink': 'dealer_invoice_search.html'})
+    return render_to_response('index.html', {'weblink': 'dealer_invoice_search.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_invoice_search_result(request):
@@ -1799,7 +1902,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -1813,27 +1916,36 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name']
-        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
     elif  'id' in request.GET and request.GET['id']:
         id = request.GET['id']
-        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
-        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         company_name = Manufacturer.objects.get(id=mid)
     if cid:
-        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         cat_name = type_list.get(id=cid)
     if isale == True:
-        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+    if enddate == True:
+        list = InvoiceComponentList.objects.filter(catalog__date__isnull = False, catalog__count__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update', 'catalog__date').order_by('-catalog__date')
 
+    if upday != 0:
+        curdate=datetime.datetime.today()
+        update = curdate - datetime.timedelta(days=int(upday))
+        list = InvoiceComponentList.objects.filter(catalog__last_update__gt = update).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     
     if limit == 0:
         try:
-            list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+            if enddate == True:
+                list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__date")
+            else:
+                list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         except:
             list = InvoiceComponentList.objects.none()        
     else:
-        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
 #        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         list = list[:limit]
     
@@ -1841,8 +1953,18 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         id_list.append(item['catalog'])
 
     new_list = []
-    sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
-    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'last_update', 'user_update__username')        
+    years_range  = None
+    sale_list = None
+    if auth_group(request.user, 'admin')==True:
+        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+    if sel_year > 0:
+        sale_list = ClientInvoice.objects.filter(catalog__in=id_list, date__year = sel_year).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+        #years_range = ClientInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id'))
+    else:
+        sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+
+    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')        
+#    arrive_list = Catalog.objects.filter(pk__in = id_list).new_arrival()
     for element in list:
         element['balance']=element['sum_catalog']
         element['c_sale']=0
@@ -1850,6 +1972,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             if element['catalog']==sale['catalog']:
                 element['c_sale']=sale['sum_catalog']
                 element['balance']=element['sum_catalog'] - element['c_sale']
+#                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+#                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         for cat in cat_list:
             if element['catalog']==cat['id']:
                 element['manufacturer__id']=cat['manufacturer__id']
@@ -1859,20 +1983,33 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 element['type__name_ukr']=cat['type__name_ukr']
                 element['description']=cat['description']
                 element['photo_url']=cat['photo_url']
+                element['youtube_url']=cat['youtube_url']
                 element['last_update']=cat['last_update']
                 element['user_update']=cat['user_update__username']
-
+        
         if element['balance']!=0:
             new_list.append(element)
             zsum = zsum + (element['balance'] * element['catalog__price'])
             zcount = zcount + element['balance']
-
+            cat_obj = Catalog.objects.get(pk = element['catalog'])
+            element['new_arrival'] = cat_obj.new_arrival()
+            element['get_realshop_count'] = cat_obj.get_realshop_count()
+            element['get_discount'] = cat_obj.get_discount()
+#            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
+    
 # update count field in catalog table            
         #upd = Catalog.objects.get(pk = element['catalog'])
         #upd.count = element['balance'] 
         #upd.save()
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}
+#    calendar = embeded_calendar()
+#    cat_discount = cat_name.get_discount()
+#    vars.update({'cat_discount': cat_discount})
     
-    return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    categ = type_list.get(id=cid)
+#    vars.update({'type_obj': categ})
+    
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoicecomponent_print(request):
@@ -1980,7 +2117,6 @@ def invoicecomponent_sum(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         catalog = paginator.page(paginator.num_pages)
         
-        
     return render_to_response('index.html', {'allpricesum':psum, 'countsum': scount, 'counter': counter, 'catalog': catalog, 'weblink': 'invoicecomponent_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -2023,53 +2159,55 @@ def invoicecomponent_edit(request, id):
 def invoice_search(request):
     return render_to_response('index.html', {'weblink': 'invoice_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-# Пошук товару по назві і артикулу
-def invoice_search_result(request):
-    list = None
-    psum = 0
-    zsum = 0
-    scount = 0
-    zcount = 0
-    id_list = []
-    if 'name' in request.GET and request.GET['name']:
-        name = request.GET['name']
-        #list = Catalog.objects.filter(name__icontains = name).order_by('manufacturer') 
-#        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale').annotate(sum_catalog=Sum('count'))
-        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id').annotate(sum_catalog=Sum('count'))        
-    elif  'id' in request.GET and request.GET['id']:
-        id = request.GET['id']
-        #list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id)
-#        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id').annotate(sum_catalog=Sum('count')) 
-        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id', 'sum_catalog', 'catalog__dealer_code')
-#        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__type__id').annotate(sum_catalog=Sum('count'))        
-        #list = Catalog.objects.filter(ids__icontains = id).order_by('manufacturer')
-
-    for item in list:
-        psum = psum + (item['catalog__price'] * item['sum_catalog'])
-        scount = scount + item['sum_catalog']
-        id_list.append(item['catalog'])
-#        list_sale = ClientInvoice.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price').annotate(sum_catalog=Sum('count'))
-#        list_sale = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price').annotate(sum_catalog=Sum('count'))
-    sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price', 'catalog__type__name', 'catalog__type__id', 'catalog__locality').annotate(sum_catalog=Sum('count'))        
-    for element in list:
-        element['c_sale']=0
-        for sale in sale_list:
-            if element['catalog']==sale['catalog']:
-                element['c_sale']=sale['sum_catalog']
-                element['catalog__type__name'] = sale['catalog__type__name']                
-                element['catalog__type__id'] = sale['catalog__type__id']
-                element['catalog__locality'] = sale['catalog__locality']
-        if element.get('catalog__type__name') == None:
-            element['catalog__type__name'] = Catalog.objects.values('type__name').get(id=element['catalog'])['type__name']
-        element['balance']=element['sum_catalog'] - element['c_sale']                
-        zsum = zsum + ((element['sum_catalog'] - element['c_sale']) * element['catalog__price'])
-        zcount = zcount + (element['sum_catalog'] - element['c_sale'])
-#        return render_to_response('index.html', {'componentlist': list, 'salelist': list_sale, 'allpricesum':psum, 'zsum':zsum, 'zcount':zcount, 'countsum': scount, 'weblink': 'invoicecomponent_list_test.html'})
-
-    category_list = Type.objects.filter(name_ukr__isnull=False).order_by('name_ukr')
-    company_list = Manufacturer.objects.all()
-    return render_to_response('index.html', {'company_list': company_list, 'category_list': category_list, 'componentlist': list, 'allpricesum':psum, 'zsum':zsum, 'zcount':zcount, 'countsum': scount, 'weblink': 'invoicecomponent_list_test.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-    #return render_to_response('index.html', {'componentlist': list, 'allpricesum':psum, 'countsum': scount, 'weblink': 'invoicecomponent_list.html'})        
+# Пошук товару по назві і артикулу (стара функція)
+#===============================================================================
+# def invoice_search_result(request):
+#     list = None
+#     psum = 0
+#     zsum = 0
+#     scount = 0
+#     zcount = 0
+#     id_list = []
+#     if 'name' in request.GET and request.GET['name']:
+#         name = request.GET['name']
+#         #list = Catalog.objects.filter(name__icontains = name).order_by('manufacturer') 
+# #        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale').annotate(sum_catalog=Sum('count'))
+#         list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id').annotate(sum_catalog=Sum('count'))        
+#     elif  'id' in request.GET and request.GET['id']:
+#         id = request.GET['id']
+#         #list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id)
+# #        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id').annotate(sum_catalog=Sum('count')) 
+#         list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id', 'sum_catalog', 'catalog__dealer_code')
+# #        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__type__id').annotate(sum_catalog=Sum('count'))        
+#         #list = Catalog.objects.filter(ids__icontains = id).order_by('manufacturer')
+# 
+#     for item in list:
+#         psum = psum + (item['catalog__price'] * item['sum_catalog'])
+#         scount = scount + item['sum_catalog']
+#         id_list.append(item['catalog'])
+# #        list_sale = ClientInvoice.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price').annotate(sum_catalog=Sum('count'))
+# #        list_sale = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price').annotate(sum_catalog=Sum('count'))
+#     sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price', 'catalog__type__name', 'catalog__type__id', 'catalog__locality').annotate(sum_catalog=Sum('count'))        
+#     for element in list:
+#         element['c_sale']=0
+#         for sale in sale_list:
+#             if element['catalog']==sale['catalog']:
+#                 element['c_sale']=sale['sum_catalog']
+#                 element['catalog__type__name'] = sale['catalog__type__name']                
+#                 element['catalog__type__id'] = sale['catalog__type__id']
+#                 element['catalog__locality'] = sale['catalog__locality']
+#         if element.get('catalog__type__name') == None:
+#             element['catalog__type__name'] = Catalog.objects.values('type__name').get(id=element['catalog'])['type__name']
+#         element['balance']=element['sum_catalog'] - element['c_sale']                
+#         zsum = zsum + ((element['sum_catalog'] - element['c_sale']) * element['catalog__price'])
+#         zcount = zcount + (element['sum_catalog'] - element['c_sale'])
+# #        return render_to_response('index.html', {'componentlist': list, 'salelist': list_sale, 'allpricesum':psum, 'zsum':zsum, 'zcount':zcount, 'countsum': scount, 'weblink': 'invoicecomponent_list_test.html'})
+# 
+#     category_list = Type.objects.filter(name_ukr__isnull=False).order_by('name_ukr')
+#     company_list = Manufacturer.objects.all()
+#     return render_to_response('index.html', {'company_list': company_list, 'category_list': category_list, 'componentlist': list, 'allpricesum':psum, 'zsum':zsum, 'zcount':zcount, 'countsum': scount, 'weblink': 'invoicecomponent_list_test.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#     #return render_to_response('index.html', {'componentlist': list, 'allpricesum':psum, 'countsum': scount, 'weblink': 'invoicecomponent_list.html'})        
+#===============================================================================
 
 
 def invoice_report(request):
@@ -2115,17 +2253,19 @@ def invoice_id_list(request, id=None, limit=0):
     psum = 0
     optsum = 0
     scount = 0
+    uaoptsum = 0
     for item in list:
         #psum = psum + (item['catalog__price'] * item['count'])
         psum = psum + (item.catalog.price * item.count)
         #optsum = optsum + (item['count'] * item['price'])
-        optsum = optsum + (item.get_uaprice() * item.count)
+        optsum = optsum + (item.price * item.count)
+        uaoptsum = optsum + (item.get_uaprice() * item.count)
         #scount = scount + item['count']
         scount = scount + item.count
     dinvoice = DealerInvoice.objects.get(id=id)    
     
     #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
-    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoice_cat_id_list(request, cid=None, limit=0):
@@ -2219,8 +2359,22 @@ def category_get_list(request):
 #    list = {'E':'Letter E','F':'Letter F','G':'Letter G', 'selected':'F'}
     json = simplejson.dumps(dictionary)
     return HttpResponse(json, content_type='application/json')
+
    
-#    return render_to_response('index.html', {'categories': list, 'weblink': 'category_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+def category_lookup(request):
+    data = None
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query'):
+                value = request.POST[u'query']
+                if len(value) > 2:
+                    model_results = Type.objects.filter(Q(name__icontains = value) | Q(name_ukr__icontains = value)).order_by('name')
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)
+                else:
+                    model_results = Type.objects.all().order_by('name')
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)                    
+#                    data = []
+    return HttpResponse(data)                
 
 
 def category_add(request):
@@ -2238,7 +2392,7 @@ def category_add(request):
     else:
         form = CategoryForm(instance = a)
     #return render_to_response('category.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'category.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'category.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 def category_edit(request, id):
     a = Type.objects.get(pk=id)
@@ -2249,7 +2403,7 @@ def category_edit(request, id):
             return HttpResponseRedirect('/category/view/')
     else:
         form = CategoryForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'category.html', 'text': 'Обмін валют (редагування)'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'category.html', 'text': 'Обмін валют (редагування)'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 def category_del(request, id):
     obj = Type.objects.get(id=id)
@@ -2289,8 +2443,29 @@ def curency_del(request, id):
     obj.delete()
     return HttpResponseRedirect('/curency/view/')
 
+from bs4 import BeautifulSoup
+import urllib2
+
+def goverla_currency():
+    url='https://goverla.ua/'
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    the_page = response.read()
+    soup = BeautifulSoup(the_page)
+    usd = soup.find("div", {"id": "usd"})
+    eur = soup.find("div", {"id": "eur"})
+    soup_usd = BeautifulSoup(str(usd))
+    soup_eur = BeautifulSoup(str(eur))
+    c_usd = int(soup_usd.find("div", {'class' : 'gvrl-table-cell ask'}).string)/100.0
+    c_eur = int(soup_eur.find("div", {'class' : 'gvrl-table-cell ask'}).string)/100.0
+    return [c_usd, c_eur]
+
 
 def exchange_add(request):
+    cur = goverla_currency()
+    c_usd = cur[0]
+    c_eur = cur[1]
+        
     a = Exchange(date = datetime.datetime.now())
     if request.method == 'POST':
         form = ExchangeForm(request.POST, instance = a)
@@ -2307,14 +2482,19 @@ def exchange_add(request):
     else:
         form = ExchangeForm(instance = a)
     #return render_to_response('exchange.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'exchange.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 
 def exchange_list(request):
+    cur = goverla_currency()
+    c_usd = cur[0]
+    c_eur = cur[1]
+        
     curdate = datetime.datetime.now()
     list = Exchange.objects.filter(date__month=curdate.month)
     #return render_to_response('exchange_list.html', {'exchange': list.values()})
-    return render_to_response('index.html', {'exchange': list, 'weblink': 'exchange_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'exchange': list, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def exchange_edit(request, id):
@@ -2397,6 +2577,20 @@ def manufacturer_delete(request, id):
     return HttpResponseRedirect('/manufacturer/view/')
 
 
+def manufacturer_lookup(request):
+    data = []
+    if request.method == "POST":
+        if request.POST.has_key(u'query'):
+            value = request.POST[u'query']
+            if len(value) > 2:
+                results = Manufacturer.objects.filter(name__icontains = value)
+                #model_results = Client.objects.filter(Q(name__icontains = value) | Q(forumname__icontains = value))
+                data = serializers.serialize("json", results, fields=('name','id', 'country', 'www'))
+            else:
+                data = []
+    return HttpResponse(data)    
+
+
 def catalog_import(request):
 # id / company / type / name / color / country / price / currency / 
 # id / name / company / type / color / country / count/ price / currency / invoice_id / rrp_price / currency /
@@ -2475,14 +2669,13 @@ def catalog_add(request):
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def catalog_edit(request, id=None):
+def catalog_set(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
-
+    
     if request.is_ajax():
         if request.method == 'POST':
             POST = request.POST
-            
             if POST.has_key('id') and POST.has_key('value') and auth_group(request.user, 'seller'):
                 id = request.POST.get('id')
                 d = request.POST.get('value')
@@ -2503,14 +2696,12 @@ def catalog_edit(request, id=None):
                 obj.save() 
                 c = Catalog.objects.filter(id = id).values_list('locality', flat=True)
                 return HttpResponse(c)
-                
-            if auth_group(request.user, 'admin')==False:
-                return HttpResponse('Error: У вас не має прав для редагування')
             
             if POST.has_key('id') and POST.has_key('price'):
                 id = request.POST.get('id')
                 p = request.POST.get('price')
                 obj = Catalog.objects.get(id = id)
+                obj.last_price = obj.price
                 obj.price = p
                 obj.last_update = datetime.datetime.now()
                 obj.user_update = request.user
@@ -2526,12 +2717,49 @@ def catalog_edit(request, id=None):
                 obj.sale = s
                 obj.last_update = datetime.datetime.now()
                 obj.user_update = request.user
-                obj.save() 
-
+                obj.save()
                 c = Catalog.objects.filter(id = id).values_list('sale', flat=True)
-                return HttpResponse(c)
+                return HttpResponse(c) 
+
+            if POST.has_key('id') and POST.has_key('update_enddate'):
+                pk = request.POST['id']                
+                s = request.POST['update_enddate']
+                obj = Catalog.objects.get(pk = pk)
+                conv = datetime.datetime.strptime(s, '%d-%m-%Y').date()                                
+                obj.date = conv
+                obj.save() 
+                d = {}
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response                
+
+            if POST.has_key('id') and POST.has_key('count'):
+                d = {}
+                if auth_group(request.user, 'admin')==False:
+                    d['status'] = False
+                    d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+                    response = JsonResponse(d)
+                    return response                
+#                    return HttpResponse('Error: У вас не має прав для редагування')
+                pk = request.POST['id']                
+                count = request.POST['count']
+                obj = Catalog.objects.get(pk = pk)
+                obj.count = count
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response                
+
+                #return HttpResponse(c)
               #  return HttpResponse(simplejson.dumps(list(c)))
-       
+    else :
+           return HttpResponse('Error: Щось пішло не так')
+    
+
+
+def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     #url1=request.META['HTTP_REFERER']
     if request.method == 'POST':
@@ -2546,12 +2774,13 @@ def catalog_edit(request, id=None):
             #return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
 #            return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/type/'+str(type.id)+'/view')
             return catalog_list(request, id = id)
+            #return HttpResponseRedirect('/catalog/view/')
             #return HttpResponseRedirect(str(url1))
     else:
         form = CatalogForm(instance=a)
     #url=request.META['HTTP_REFERER']
 
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.photo_url.all(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def catalog_list(request, id=None):
@@ -2602,10 +2831,12 @@ def catalog_type_list(request, id):
 
 
 def catalog_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Помилка: У вас не достатньо прав для даної операції.')
     obj = Catalog.objects.get(id=id)
-    #del_logging(obj)
+    del_logging(obj)
     obj.delete()
-    return HttpResponseRedirect('/catalog/search/')
+    return HttpResponseRedirect('/catalog/search/id/')
 
 
 def catalog_search_id(request):
@@ -2636,6 +2867,7 @@ def catalog_search_result(request):
 
 def catalog_lookup(request):
     # Default return list
+    data = None
     results = []
     if request.method == "GET":
         if request.GET.has_key(u'query'):
@@ -2647,13 +2879,19 @@ def catalog_lookup(request):
 #                results = [ x.name for x in model_results ]
 #    json = simplejson.dumps(results)
                 data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
+
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
+                value = request.POST[u'query']
+                type_id = request.POST[u'type']
+
+                if len(value) > 2:
+                    model_results = Catalog.objects.filter(name__icontains=value, type = type_id)
+                    data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
+                
     return HttpResponse(data)    
     #return HttpResponse(json)
-
-
-def photo_list(request):
-    list = Photo.objects.all().values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id').order_by('-date')
-    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def catalog_get_locality(request):
@@ -2675,11 +2913,14 @@ def client_add(request):
             city = form.cleaned_data['city']
             email = form.cleaned_data['email']
             phone = form.cleaned_data['phone']
+            phone1 = form.cleaned_data['phone1']
             sale = form.cleaned_data['sale']
             summ = form.cleaned_data['summ']
             description = form.cleaned_data['description']
+            birthday = form.cleaned_data['birthday']
+            sale_on = form.cleaned_data['sale_on']
  
-            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description)
+            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description, phone1=phone1, birthday=birthday, sale_on=sale_on)
             a.save()
             #return HttpResponseRedirect('/client/view/')
             return HttpResponseRedirect('/client/result/search/?id=' + str(a.id))
@@ -2691,13 +2932,13 @@ def client_add(request):
 def client_edit(request, id):
     a = Client.objects.get(pk=id)
     if request.method == 'POST':
-        form = ClientForm(request.POST, instance=a)
+        form = ClientEditForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
             #return HttpResponseRedirect('/client/view/')
             return HttpResponseRedirect('/client/result/search/?id='+id)
     else:
-        form = ClientForm(instance=a)
+        form = ClientEditForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'client.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -3119,7 +3360,8 @@ def client_invoice_edit(request, id):
         return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
     now = datetime.datetime.now()
     old_count = a.count
-    old_length = 0
+#    print "OLD count = " + str(old_count)
+#    old_length = 0
     cat_id = a.catalog.id
     cat = Catalog.objects.get(id = cat_id)
     if request.method == 'POST':
@@ -3144,10 +3386,13 @@ def client_invoice_edit(request, id):
                 else:
                     cat.length = 0 - float(old_length) + float(clen)
                 description = description + '\nlength:' + str(clen)
-            if old_count > count:
-                cat.count = cat.count - (old_count - count)*-1
-            else: 
-                cat.count = cat.count - (old_count - count)
+#            print "NEW count = " + str(count)
+#            print "CAT count = " + str(cat.count)
+#            if old_count > count:
+                #cat.count = cat.count - (old_count - count)*-1
+            cat.count = cat.count + (old_count - count)
+#            else: 
+#                cat.count = cat.count - (old_count - count)
             cat.save()
             user = a.user
             if request.user.is_authenticated():
@@ -3530,6 +3775,7 @@ def client_order_edit(request, id):
             pay = form.cleaned_data['pay']
             post = form.cleaned_data['post_id']
             cash_type = form.cleaned_data['cash_type']
+            client = form.cleaned_data['client']
             catalog = None
             if post:
                 catalog = Catalog.objects.get(id=post)
@@ -3537,13 +3783,17 @@ def client_order_edit(request, id):
             a.catalog = catalog
             a.save()
             cred = ClientCredits.objects.get(id = a.credit.id)
+            cred.client = client
             cred.price = pay
 #            cred.cash_type = CashType.objects.get(name=u"Готівка")
             cred.cash_type = cash_type
             cred.save()
             return HttpResponseRedirect('/client/order/view/')
     else:
-        form = ClientOrderForm(instance=a)
+        if a.catalog:
+            form = ClientOrderForm(instance=a, initial={'catalog' : a.catalog.pk, 'client': a.client.pk})
+        else:
+            form = ClientOrderForm(instance=a, initial={'client': a.client.pk})
 
     return render_to_response('index.html', {'form': form, 'weblink': 'clientorder.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -3652,9 +3902,13 @@ def client_search_result(request):
 
 
 #----- Виписка клієнта -----
-def client_result(request, tdelta = 30):
+def client_result(request, tdelta = 30, id = None, email=False):
     now = datetime.datetime.now()
-    user = request.GET['id'] 
+    user = None
+    if request.GET.has_key('id'):
+        user = request.GET['id']
+    if id != None:
+        user = id 
     sql1 = "SELECT sum(price) FROM accounting_clientcredits WHERE client_id = %s;"
     sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
     #user = id;
@@ -3698,7 +3952,7 @@ def client_result(request, tdelta = 30):
         client_workshop_sum = client_workshop_sum + a.price
             
     b_bike = Bicycle_Sale.objects.filter(client=user).values('model__model__model', 'model__model__brand__name', 'model__serial_number', 'model__size__name', 'date', 'service', 'id')
-    workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name').order_by('-date')
+    workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name', 'phone_status__name', 'phone_user__username', 'phone_date').order_by('-date')
     messages = ClientMessage.objects.filter(client=user).values('msg', 'status', 'date', 'user__username', 'id')
     status_msg = messages.values('status').filter(status=False).exists()
     rent = Rent.objects.filter(client=user)
@@ -3742,7 +3996,9 @@ def client_result(request, tdelta = 30):
     #list_debt = ClientDebts.objects.filter(client='2').annotate(Sum("price"))
     #return render_to_response('index.html', {'clients': list_credit.values_list(), 'weblink': 'client_result.html'})
     #return render_to_response('index.html', {'clients': list_debt.values_list(), 'weblink': 'client_result.html'})
-    return render_to_response('index.html', {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
+    if email == True :
+        return render_to_response('client_result.html', {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta})        
+    return render_to_response('index.html', {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_lookup(request):
@@ -3796,7 +4052,7 @@ def workgroup_edit(request, id):
 
 
 def workgroup_list(request, id=None):
-    list = WorkGroup.objects.all()
+    list = WorkGroup.objects.all().order_by("tabindex")
     return render_to_response('index.html', {'workgroups': list, 'weblink': 'workgroup_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -3819,7 +4075,7 @@ def worktype_add(request):
             return HttpResponseRedirect('/worktype/view/')
     else:
         form = WorkTypeForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Створити'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_edit(request, id):
@@ -3828,10 +4084,11 @@ def worktype_edit(request, id):
         form = WorkTypeForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/worktype/view/')
+            #return HttpResponseRedirect('/worktype/view/')
+            return HttpResponseRedirect('/worktype/view/group/'+ str(a.work_group.id))
     else:
         form = WorkTypeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_list(request, id=None):
@@ -3840,8 +4097,9 @@ def worktype_list(request, id=None):
         list = WorkType.objects.filter(work_group=id)
     else:
         list = WorkType.objects.all()
-    
-    return render_to_response('index.html', {'worktypes': list, 'weblink': 'worktype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    worklist = WorkType.objects.all().order_by('work_group')
+    component_type_list = Type.objects.all().order_by('group')
+    return render_to_response('index.html', {'worktypes': list, 'worklist': worklist, 'component_type_list':component_type_list, 'weblink': 'worktype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 #===============================================================================
 # 
@@ -3858,7 +4116,125 @@ def worktype_delete(request, id):
     return HttpResponseRedirect('/worktype/view/')
 
 
+def worktype_depence_add(request):
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('depence_id[]'):
+                d = {}
+                id = request.POST['id']                
+                dep_ids = request.POST.getlist('depence_id[]')
+                obj = WorkType.objects.get(pk = id)
+                dw = WorkType.objects.filter(pk__in = dep_ids)
+                dw_list = list(dw)
+#                print "Depence = " + str(dw[0].pk)
+                #obj.dependence_work.add(dw[0])
+                obj.dependence_work.add(*dw_list)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                d['work_list'] = list(dw.values('id', 'name', 'price'))
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+                       
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+
+
+def worktype_depence_component_add(request):
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('comp_ids[]'):
+                d = {}
+                id = request.POST['id']                
+                dep_ids = request.POST.getlist('comp_ids[]')
+                obj = WorkType.objects.get(pk = id)
+                dw = Type.objects.filter(pk__in = dep_ids)
+                dw_list = list(dw)
+#                print "Depence = " + str(dw[0].pk)
+                #obj.dependence_work.add(dw[0])
+                obj.component_type.add(*dw_list)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                d['comp_list'] = list(dw.values('id', 'name'))
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+                       
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+    
+
+def worktype_depence_delete(request):
+    d = {}
+    if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
+        d['status'] = False 
+        d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+        response = JsonResponse(d)
+        return response                
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('del_work_id'):
+                id = request.POST['id']                
+                dep_work_id = request.POST['del_work_id']
+                obj = WorkType.objects.get(pk = id)
+                dw = WorkType.objects.get(pk = dep_work_id)
+                obj.dependence_work.remove(dw)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+
+
+def worktype_depence_component_delete(request):
+    d = {}
+    if request.is_ajax():
+        if (auth_group(request.user, 'seller')==False): # or (auth_group(request.user, 'admin')==False):
+            d['status'] = False
+            d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+            response = JsonResponse(d)
+            return response                
+        
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('del_component_id'):
+                id = request.POST['id']                
+                dep_comp_id = request.POST['del_component_id']
+                obj = WorkType.objects.get(pk = id)
+                dc = Type.objects.get(pk = dep_comp_id)
+                obj.component_type.remove(dc)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+    
+
 def workstatus_add(request):
+    text = 'Створити новий статус роботи'
     if request.method == 'POST':
         form = WorkStatusForm(request.POST)
         if form.is_valid():
@@ -3868,10 +4244,11 @@ def workstatus_add(request):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = WorkStatusForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'workstatus.html'})
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workstatus_edit(request, id):
+    text = 'Редагувати статус виконання роботи'
     a = WorkStatus.objects.get(pk=id)
     if request.method == 'POST':
         form = WorkStatusForm(request.POST, instance=a)
@@ -3880,7 +4257,7 @@ def workstatus_edit(request, id):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = WorkStatusForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'workstatus.html'})
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workstatus_list(request):
@@ -3896,7 +4273,15 @@ def workstatus_list(request):
         message = "Error"
     
     list = WorkStatus.objects.all()
-    return render_to_response('index.html', {'workstatus': list.values_list(), 'weblink': 'workstatus_list.html'})
+    plist = PhoneStatus.objects.all()
+    return render_to_response('index.html', {'workstatus': list.values_list(), 'phonestatuslist': plist, 'weblink': 'workstatus_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def workstatus_delete(request, id):
+    obj = WorkStatus.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return HttpResponseRedirect('/workstatus/view/')
 
 
 def phonestatus_list(request):
@@ -3915,8 +4300,35 @@ def phonestatus_list(request):
 #    return render_to_response('index.html', {'phonestatus': list.values_list(), 'weblink': 'workstatus_list.html'})
 
 
-def workstatus_delete(request, id):
-    obj = WorkStatus.objects.get(id=id)
+def phonestatus_add(request):
+    text = 'Додати статус дзвінка'
+    if request.method == 'POST':
+        form = PhoneStatusForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            PhoneStatus(name=name, description=description).save()
+            return HttpResponseRedirect('/workstatus/view/')
+    else:
+        form = PhoneStatusForm()
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def phonestatus_edit(request, id):
+    text = 'Редагувати статус дзвінка'
+    a = PhoneStatus.objects.get(pk=id)
+    if request.method == 'POST':
+        form = PhoneStatusForm(request.POST, instance=a)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/workstatus/view/')
+    else:
+        form = PhoneStatusForm(instance=a)
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def phonestatus_delete(request, id):
+    obj = PhoneStatus.objects.get(id=id)
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/workstatus/view/')
@@ -3937,12 +4349,13 @@ def workticket_add(request, id=None):
             date = form.cleaned_data['date']
             end_date = form.cleaned_data['end_date']
             status = form.cleaned_data['status']
-            phone_status = form.cleaned_data['phone_status']
+#            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
-            user = form.cleaned_data['user']
-            if user == '' or user == None:
-                user = request.user 
-            WorkTicket(client=client, date=date, end_date=end_date, status=status, phone_status=phone_status, description=description, user=user).save()
+ #           user = form.cleaned_data['user']
+  #          if user == '' or user == None:
+            user = request.user 
+            WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+#phone_status=phone_status,            
             return HttpResponseRedirect('/workticket/view/')
     else:
         #form = WorkTicketForm()
@@ -3966,6 +4379,7 @@ def workticket_edit(request, id=None):
                 p = request.POST.get('value')
                 obj = WorkTicket.objects.get(pk = id)
                 obj.status = WorkStatus.objects.get(pk = p)
+                obj.end_date = datetime.date.today()
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('status__name', flat=True)
                 return HttpResponse(c)
@@ -3974,6 +4388,8 @@ def workticket_edit(request, id=None):
                 p = request.POST.get('value')
                 obj = WorkTicket.objects.get(pk = id)
                 obj.phone_status = PhoneStatus.objects.get(pk = p)
+                obj.phone_date = datetime.datetime.today()
+                obj.phone_user = request.user
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('phone_status__name', flat=True)
                 return HttpResponse(c)
@@ -4009,7 +4425,8 @@ def workticket_edit(request, id=None):
 
 
 def workticket_list(request, year=None, month=None, all=False, status=None):
-#    cur_year = datetime.datetime.now().year
+    cur_year = datetime.datetime.now().year
+    wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk'))#annotate(year_count=Count('date__year'))
     list = None
     if month != None:
         list = WorkTicket.objects.filter(date__year=year, date__month=month)
@@ -4018,15 +4435,22 @@ def workticket_list(request, year=None, month=None, all=False, status=None):
         year = datetime.datetime.now().year
         list = WorkTicket.objects.filter(date__year=year, date__month=month)
     if all == True:
-        list = WorkTicket.objects.all()
+        list = WorkTicket.objects.filter(date__year=cur_year)
     if status == '1':
         #ws = WorkStatus.objects.get(id=status)
-        list = WorkTicket.objects.filter(status__id__in=[status,2])
+        list = WorkTicket.objects.filter(status__id__in=[status,1]) # Прийнято
+    if status == '2':
+        list = WorkTicket.objects.filter(status__id__in=[status,2]) # Ремонтується       
+    if status == '3':
+        list = WorkTicket.objects.filter(status__id__in=[status,3]) # Виконано       
     if status == '4':
-        list = WorkTicket.objects.filter(status__id__in=[status,4])
-        
-    
-    return render_to_response('index.html', {'workticket':list, 'sel_year':year, 'sel_month':int(month), 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        list = WorkTicket.objects.filter(status__id__in=[status,4]) # Виконано невидано 
+    if status == '5':
+        list = WorkTicket.objects.filter(status__id__in=[status,5]) # Віддано без ремонта 
+    if status == '6':
+        list = WorkTicket.objects.filter(status__id__in=[status,6]) # Відкладено
+
+    return render_to_response('index.html', {'workticket':list, 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workticket_delete(request, id):
@@ -4037,6 +4461,11 @@ def workticket_delete(request, id):
 
 
 def workshop_add(request, id=None, id_client=None):
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+#        return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
     now = datetime.datetime.now()
     work = None
     wclient = None
@@ -4047,35 +4476,74 @@ def workshop_add(request, id=None, id_client=None):
     
     if request.method == 'POST':
         form = WorkShopForm(request.POST)
+        
         if form.is_valid():
-            client = form.cleaned_data['client']
-            date = form.cleaned_data['date']
-            work_type = form.cleaned_data['work_type']
-            price = form.cleaned_data['price']
-            description = form.cleaned_data['description']
-            pay = form.cleaned_data['pay']
-            user = form.cleaned_data['user']            
-            if request.user.is_authenticated():
-                user = request.user
+            form.save()
             
-            WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay=pay).save()
+            #WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
-            form = WorkShopForm(initial={'work_type': work.id, 'price': work.price})
+            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user})
         elif wclient != None:
-            form = WorkShopForm(initial={'client': wclient.id})
+            form = WorkShopForm(initial={'client': wclient.id, 'user': request.user})
         else:        
-            form = WorkShopForm()
-    
+            form = WorkShopForm(initial={'user': request.user})
     nday = 7
+    try:
+        wc_name = wclient.name
+        wc_id = wclient.id
+    except:
+        wc_name = None
+        wc_id = None
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'work': work, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def workshop_add_formset(request):
+    now = datetime.datetime.now()
+    formset = formset = WorkShopFormset(None)
+    if request.method == 'POST':
+        formset = WorkShopFormset(request.POST)
+        if formset.is_valid():
+            for form in formset:
+                # extract name from each form and save
+                name = form.cleaned_data.get('name')
+                # save book instance
+                if name:
+                    WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+            # once all books are saved, redirect to book list view
+            return HttpResponseRedirect('/workshop/view/')
+#===============================================================================
+# '''        
+#         form = WorkShopForm(request.POST)
+#         if form.is_valid():
+#             client = form.cleaned_data['client']
+#             date = form.cleaned_data['date']
+#             work_type = form.cleaned_data['work_type']
+#             price = form.cleaned_data['price']
+#             description = form.cleaned_data['description']
+#             #pay = form.cleaned_data['pay']
+#             user = form.cleaned_data['user']            
+#             if request.user.is_authenticated():
+#                 user = request.user
+#             else:
+#                 return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
+#             WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+#             return HttpResponseRedirect('/workshop/view/')
+# '''        
+#===============================================================================
+    nday = 7
+    heading_message = 'Formset Demo'
+    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
+    return render_to_response('index.html', { 'formset': formset, 'weblink': 'workshop_formset.html', 'clients_list':clients_list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_edit(request, id):
     now = datetime.datetime.now()
     a = WorkShop.objects.get(pk=id)
+    work = a.work_type
+    owner = a.user
     if request.method == 'POST':
         form = WorkShopForm(request.POST, instance=a)
         if form.is_valid():
@@ -4084,17 +4552,22 @@ def workshop_edit(request, id):
             work_type = form.cleaned_data['work_type']
             price = form.cleaned_data['price']
             description = form.cleaned_data['description']
-            pay = form.cleaned_data['pay']
+#            pay = form.cleaned_data['pay']
+            user = request.user 
             if request.user.is_authenticated():
-                user = request.user
-            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, pay = pay, user=user).save()
+                if (request.user == owner) or (auth_group(request.user, 'admin')==True):
+                    user = form.cleaned_data['user']
+                else:
+                    user = owner
+                    date = datetime.datetime.now() 
+            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         form = WorkShopForm(instance=a)
 
     nday = 7
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client, 'work': work}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_list(request, year=None, month=None, day=None):
@@ -4110,13 +4583,14 @@ def workshop_list(request, year=None, month=None, day=None):
     else:
         if day == 'all':
             list = WorkShop.objects.filter(date__year=year, date__month=month).order_by("-date")
+            day = 0
         else:
             list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date")
     sum = 0 
     for item in list:
         sum = sum + item.price
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    return render_to_response('index.html', {'workshop': list, 'summ':sum, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days': days, 'weblink': 'workshop_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'workshop': list, 'summ':sum, 'sel_year':int(year), 'sel_month':int(month), 'sel_day':int(day), 'month_days': days, 'weblink': 'workshop_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_delete(request, id=None):
@@ -4147,7 +4621,21 @@ def worktype_ajax(request):
         message = "Error"
 
     search = WorkType.objects.filter(id=q).values('price', 'description')
-    return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
+    comp_depence = Type.objects.filter(worktype__pk = q).values('name', 'pk', 'name_ukr')  
+    return HttpResponse(simplejson.dumps({'data': list(search), 'dep': list(comp_depence)}), content_type="application/json")
+
+
+def worktype_lookup(request):
+    data = []
+    if request.method == "POST":
+        if request.POST.has_key(u'query'):
+            value = request.POST[u'query']
+            if len(value) > 2:
+                results = WorkType.objects.filter(name__icontains = value, disable = False)
+                data = serializers.serialize("json", results, fields=('name', 'id', 'price', 'dependence_work', 'get_sale_price', 'sale', 'work_group'))
+            else:
+                data = []
+    return HttpResponse(data)    
 
 
 def workshop_pricelist(request, pprint=False):
@@ -4172,7 +4660,10 @@ def shopdailysales_add(request):
             cash = form.cleaned_data['cash']
             tcash = form.cleaned_data['tcash']
             ocash = form.cleaned_data['ocash']
-            user = form.cleaned_data['user']
+            if form.cleaned_data['user']:
+                user = form.cleaned_data['user']
+            else:
+                user = request.user
             date = now
             if request.user.is_authenticated():
                 user = request.user
@@ -4200,7 +4691,7 @@ def shopdailysales_add(request):
         lastCasa = ShopDailySales.objects.latest('date')
                 
         casa = cashCred - cashDeb
-        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred})
+        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user})
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -4213,6 +4704,7 @@ def shopmonthlysales_view(request, year=None, month=None):
         return HttpResponseRedirect("/.")
     deb = ClientDebts.objects.filter(date__year=year, date__month=month ).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
     cred = ClientCredits.objects.filter(Q(date__year=year), Q(date__month=month), Q(cash_type__name='Готівка') | Q(cash_type__name='Термінал pb.ua') | Q(cash_type=None)).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
+    year_list = ClientCredits.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk')).order_by('year')    
     sum_cred = 0
     sum_deb = 0
     
@@ -4227,8 +4719,8 @@ def shopmonthlysales_view(request, year=None, month=None):
             
 #    strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", datetime.datetime(int(year), int(month), 1), inflected=True)
     date_month = pytils_ua.dt.ru_strftime(u"%B %Y", datetime.datetime(int(year), int(month), 1), inflected=False)
-#'date': strdate,
-    return render_to_response('index.html', {'sum_cred': sum_cred, 'sum_deb': sum_deb, 'Cdeb': deb, 'Ccred':cred, 'date_month': date_month, 'sel_year': year, 'l_month': xrange(1,13), 'weblink': 'shop_monthly_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    return render_to_response('index.html', {'sum_cred': sum_cred, 'sum_deb': sum_deb, 'Cdeb': deb, 'Ccred':cred, 'date_month': date_month, 'sel_year': int(year), 'year_list':year_list, 'sel_month':int(month), 'l_month': xrange(1,13), 'weblink': 'shop_monthly_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shopdailysales_view(request, year, month, day):
@@ -4283,7 +4775,7 @@ def shopdailysales_edit(request, id):
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def shopdailysales_list(request, month=None, year=None):
+def shopdailysales_list(request, month=None, year=None):    
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
     now = datetime.datetime.now()
@@ -4292,10 +4784,12 @@ def shopdailysales_list(request, month=None, year=None):
     if year == None:
         year = now.year
     list = ShopDailySales.objects.filter(date__year=year, date__month=month)
+    total_sum = list.aggregate(total_cash=Sum('cash'), total_tcash=Sum('tcash'), total_price=Sum('price'), total_ocash=Sum('ocash'))
     sum = 0 
-    for item in list:
-        sum = sum + item.price
-    return render_to_response('index.html', {'shopsales': list, 'summ':sum, 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    for item in list:
+#        sum = sum + item.price
+#'summ':sum,
+    return render_to_response('index.html', {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shopdailysales_delete(request, id):
@@ -4406,13 +4900,13 @@ def shop_price_print_add(request, id=None):
     if request.is_ajax():
         if auth_group(request.user, 'seller')==False:
             return HttpResponse('Error: У вас не має прав для редагування')
-        if request.method == 'GET':  
-            GET = request.GET  
-            if GET.has_key('id'):
-                q = request.GET.get( 'id' )
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                q = request.POST.get( 'id' )
                 s = 1 
-                if GET.has_key('scount'):
-                    s = request.GET.get( 'scount' )
+                if POST.has_key('scount'):
+                    s = request.POST.get( 'scount' )
                 ids = q.split(',')
                 if len(ids) > 1:
                     for i in ids:
@@ -4447,9 +4941,9 @@ def shop_price_print_add(request, id=None):
 #    return render_to_response('manual_price_list.html', {'price_list': list})    
 
 
-def shop_price_print_view(request):
-    list = ShopPrice.objects.all().order_by("user")
-    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
+#def shop_price_print_view(request):
+#    list = ShopPrice.objects.all().order_by("user")
+#    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 def shop_price_qrcode_print_view(request):
@@ -4457,10 +4951,26 @@ def shop_price_qrcode_print_view(request):
     return render_to_response('manual_qrcode_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
-def shop_price_print_list(request):
-    list = ShopPrice.objects.all().order_by("user", "date", "catalog__manufacturer")
+def shop_price_print_list(request, pprint=False):
+    list = ShopPrice.objects.all().order_by("-catalog__sale", "user", "date", "catalog__manufacturer")
+    plist = None
+    paginator = Paginator(list, 330)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        plist = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        plist = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        plist = paginator.page(paginator.num_pages)
+            
 #    return render_to_response('mtable_pricelist.html', {'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    if pprint:
+        return render_to_response('manual_price_list.html', {'price_list': plist, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': plist}, context_instance=RequestContext(request, processors=[custom_proc]))    
     
 
 def shop_price_print_delete_all(request):
@@ -4469,10 +4979,23 @@ def shop_price_print_delete_all(request):
 #    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
-def shop_price_print_delete(request, id):
-    obj = ShopPrice.objects.get(id=id)
-    del_logging(obj)
-    obj.delete()
+def shop_price_print_delete(request, id=None):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                q = request.POST.get( 'id' )
+                obj = ShopPrice.objects.get(id=q)
+                del_logging(obj)
+                obj.delete()
+                return HttpResponse("Виконано", content_type="text/plain")
+    else:
+        obj = ShopPrice.objects.get(id=id)
+        del_logging(obj)
+        obj.delete()
     return HttpResponseRedirect('/shop/price/print/list/')
 
 
@@ -4486,6 +5009,7 @@ def price_import(request):
     pricereader = None
     ids_list = []
     now = datetime.datetime.now()
+    rec_price = False
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
     if request.POST and request.FILES:
@@ -4494,6 +5018,7 @@ def price_import(request):
         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
         csvfile.open()
         pricereader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
+        rec_price = request.POST.get('recomended')
 #===============================================================================
 #    name = 'import'
 #    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
@@ -4511,25 +5036,45 @@ def price_import(request):
         code = row[1]
                 
         try:
-            if id <> u'0':
-                cat = Catalog.objects.get(ids = id)
-                print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|')
-                ids_list.append(row[0])
-                # заміна старого коду на новий
-                cat.dealer_code = id
-                cat.ids = code
-#                cat.description = "Updated!!!"
-                cat.save()
-            else:
-                print(' CODE  ['+code+']# '+row[3]+'')
-                cat = Catalog.objects.get(dealer_code = code)
-                ids_list.append(row[1])
+            price = row[3]    
+
+            if (code <> '0') and (id <> '0'):
+#                print('CODE = ' + code + ' - ID ='+id)
+                cat = Catalog.objects.filter(Q(ids = id) | Q(dealer_code = id) | Q(ids = code) | Q(dealer_code = code)).first()
+                print ('ID + CODE = '+cat.ids)
+                
             
+            if (id <> '0'):
+                try:
+                    cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
+                    ids_list.append(cat.ids)
+                except:
+                    print ('ID = '+cat.ids)
+                #    cat = Catalog.objects.get(dealer_code = id)
+                #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
+
+
+                # заміна старого коду на новий
+                #cat.dealer_code = id
+                #cat.ids = code
+                #cat.save()
+                
+            if (code <> '0'):
+                print(' CODE  ['+code+']# '+row[3]+'')
+                try:
+                    cat = Catalog.objects.get(Q(ids = code) | Q(dealer_code = code))
+                    ids_list.append(cat.ids)
+                except:
+                    #cat = Catalog.objects.get(ids = code)
+                    print('CODE = ' + cat.ids)
+
 #            if code != u'0':
                 #cat.dealer_code = code
-            price = row[3]
+            
                 
-            if price <> u'0': 
+            if (price <> '0') and (rec_price == 'on'): 
+                #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
+                cat.last_price = cat.price
                 cat.price = row[3]
             #cat.dealer_code = row[1]
                 cat.currency = Currency.objects.get(id = row[4])
@@ -4537,15 +5082,15 @@ def price_import(request):
             #cat.user_update = request.user
                 cat.user_update = User.objects.get(username='import')
  #           cat.description = row[5]
- #           cat.save()
+                cat.save()
             
             #spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]],)
         except: # Catalog.DoesNotExist:
                       
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
         #return HttpResponse("Виконано", content_type="text/plain")
-    list = Catalog.objects.filter(ids__in = ids_list)
-    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
+    return render_to_response('index.html', {'catalog': list, 'post':rec_price,  'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 
 #--------------------- MY Costs -------------------------
@@ -4883,13 +5428,16 @@ def payform(request):
     desc = ""
     sum = 0
     bal = 0
+    error_msg = None
+    chk_list = None
     if Check.objects.filter(catalog__id__in = list_id):
         error_msg = "Дана позиція вже існує в чеку №:"
         chk_list = Check.objects.filter(catalog__id__in = list_id).values("check_num", "catalog__catalog__name")
 #        for ichek in Check.objects.filter(catalog__id__in = list_id).values("check_num"):
 #            url =  '<a href="/check/'+str(ichek['check_num'])+'/print/">['+str(ichek['check_num'])+'],</a>'
             #error_msg = error_msg + "["+str(ichek['check_num'])+"]"
-        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        if auth_group(request.user, 'admin')==False:
+            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
     for inv in ci:
         if client!=inv.client:
@@ -4940,7 +5488,7 @@ def payform(request):
      
     url = '/client/result/search/?id=' + str(client.id)
     cmsg = ClientMessage.objects.filter(client__id=user)
-    return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'weblink': 'payform.html', 'next': url}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', 'next': url}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_payform(request):
@@ -4966,7 +5514,7 @@ def workshop_payform(request):
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", wk[0].date, inflected=True)
         request.session['invoice_id'] = list_id
-        check_num = Check.objects.aggregate(Max('check_num'))['check_num__max']+1
+        check_num = Check.objects.aggregate(Max('check_num'))['check_num__max'] + 1
         return render_to_response('index.html', {'weblink': 'client_invoice_sale_check.html', 'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'check_num':check_num, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
 
     user = client.id
@@ -5010,6 +5558,36 @@ def client_ws_payform(request):
         client = inv.client
         desc = desc + inv.work_type.name + "; "
         sum = sum + inv.price
+
+# Без друку касового чеку
+    print_check = request.POST.get("print_check", False)
+    if print_check == False:
+        if 'pay' in request.POST and request.POST['pay']:
+            pay = request.POST['pay']
+            cash_type = CashType.objects.get(id = 1) # готівка
+            if float(request.POST['pay']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+        if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
+            pay = request.POST['pay_terminal']
+            cash_type = CashType.objects.get(id = 2) # термінал
+            if float(request.POST['pay_terminal']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+
+        ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
+        ccred.save()
+        for item in wk:
+            item.pay = True
+            item.save()
+        
+        if client.id == 138:
+            return HttpResponseRedirect('/workshop/view/')
+         
+        url = '/client/result/search/?id=' + str(client.id)
+        return HttpResponseRedirect(url)
+        
+#--------- Begin section to send data to CASA ---------
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -5144,6 +5722,8 @@ def client_ws_payform(request):
     data =  {"cmd": "close"}
     url = base + urllib.urlencode(data)
     page = urllib.urlopen(url).read()
+
+#----- End section to send data to CASA  
             
     ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
     ccred.save()
@@ -5173,26 +5753,26 @@ def client_payform(request):
     client = None
     res = Check.objects.aggregate(max_count=Max('check_num'))
     check = None
+    status = True
     
     if len(checkbox_list):
         for id in checkbox_list:
             list_id.append( int(id.replace('checkbox_', '')) )
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
-        
+       
+#--------- Begin section to send data to CASA ---------
         try: 
             base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
             data =  {"cmd": "get_status"}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()            
-#===============================================================================
-#            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-#            data =  {"cmd": "open"}
-#            url = base + urllib.urlencode(data)
-#            page = urllib.urlopen(url).read()
-#===============================================================================
         except:
-            return HttpResponse("Включіть комп'ютер з касовим апаратом")
+            if auth_group(request.user, 'admin') == False:
+                status = False
+                return HttpResponse("Включіть комп'ютер з касовим апаратом", content_type="text/plain;charset=UTF-8")
+            else:
+                status = False
                 
         for inv in ci:
             inv.pay = inv.sum
@@ -5203,10 +5783,40 @@ def client_payform(request):
     else:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
+# Без друку касового чеку
+    print_check = request.POST.get("print_check", False)
+    if print_check == False:
+        if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
+            if client.id == settings.CLIENT_UNKNOWN:
+                if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
+                #return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
+                    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
+        if 'pay' in request.POST and request.POST['pay']:
+            pay = request.POST['pay']
+            cash_type = CashType.objects.get(id = 1) # готівка
+            if float(request.POST['pay']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+        if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
+            pay = request.POST['pay_terminal']
+            cash_type = CashType.objects.get(id = 2) # термінал
+            if float(request.POST['pay_terminal']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+    
+        cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
+        cdeb.save()
+        if client.id == settings.CLIENT_UNKNOWN:
+            return HttpResponseRedirect('/client/invoice/view/')
+        url = '/client/result/search/?id=' + str(client.id)
+        return HttpResponseRedirect(url)
+
+
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         if client.id == settings.CLIENT_UNKNOWN:
             if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
-                return HttpResponse("Невідомий клієнт не може мати борг");
+                return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "get_status"}
         url = base + urllib.urlencode(data)
@@ -5215,7 +5825,7 @@ def client_payform(request):
             page = urllib.urlopen(url).read()
         except:
             message = "Сервер не відповідає"
-            return HttpResponse(message, content_type="text/plain")
+            return HttpResponse(message, content_type="text/plain;charset=UTF-8")
         
         data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
@@ -5223,7 +5833,7 @@ def client_payform(request):
     
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
         if client.id == settings.CLIENT_UNKNOWN:
-            return HttpResponse("Невідомий клієнт не може мати борг");
+            return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
         cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         cdeb.save()
 #===============================================================================
@@ -5232,10 +5842,11 @@ def client_payform(request):
 #        url = base + urllib.urlencode(data)
 #        page = urllib.urlopen(url).read()
 #===============================================================================
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "close"}
-        url = base + urllib.urlencode(data)
-        page = urllib.urlopen(url).read()
+        if status == True:
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "close"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
 
             #return HttpResponseRedirect('/client/invoice/view/')
         url = '/client/result/search/?id=' + str(client.id)
@@ -5394,15 +6005,14 @@ def catalog_saleform(request):
 from django.contrib.auth.models import User
 
 def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
-    #user_id = 5; #choper
-    #user_id = 6; #andre
-    #user_id = 4; #ygrik
-    #user_id = 7; #Vadymyr
+    userid = None
+    if user_id:
+        user_id = user_id
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and user_id == None:
         user_id = request.user.id
-    else:
-        user_id = None
+#    else:
+#        user_id = None
     
     if year == None:
         year = datetime.datetime.now().year
@@ -5444,16 +6054,9 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
 
 
 def user_workshop_report(request, month=None, year=None, day=None, user_id=None):
-    #user_id = 5; #choper
-    #user_id = 6; #andre
-    #user_id = 4; #ygrik
-    #user_id = 7; #Vadymyr
-
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and user_id == None:
+#    if request.user.is_authenticated():
         user_id = request.user.id
-        #user_id = 4;
-    else:
-        user_id = None
     
     if year == None:
         year = datetime.datetime.now().year
@@ -5494,7 +6097,11 @@ def user_workshop_report(request, month=None, year=None, day=None, user_id=None)
     return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'sum_salary':psum*0.4, 'countall':scount, 'weblink': 'report_workshop_byuser.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def all_user_salary_report(request, month=None, year=None, day=None):
+def all_user_salary_report(request, month=None, year=None, day=None, user_id=None):
+    qwsum = None
+    res = None
+    l = 0
+    users = User.objects.filter(is_active = True).order_by('id')
    
     if year == None:
         year = datetime.datetime.now().year
@@ -5505,17 +6112,46 @@ def all_user_salary_report(request, month=None, year=None, day=None):
         day = datetime.datetime.now().day
         w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
         c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-        b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))        
+        b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
     else:
         if day == 'all':
             w_list = WorkShop.objects.filter(date__year=year, date__month=month).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
             c_list = ClientInvoice.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum'))
             b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qwsum = WorkShop.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username', 'user').annotate(total_price=Sum('price')).order_by('user')
+            qcsum = ClientInvoice.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qbsum = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qbsum1 = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).exclude(user=4).aggregate(total_price=Sum('sum'))
+            
+            d = {}
+            for u in users:
+                t = []
+                dic = {}
+                t.append(qwsum.filter(user = u.id))
+                dic['workshop'] = qwsum.filter(user = u.id)
+                t.append(qcsum.filter(user = u.id))
+                dic['client_inv'] = qcsum.filter(user = u.id)
+                t.append(qbsum.filter(user = u.id))
+                dic['bicycle'] =  qbsum.filter(user = u.id)
+                if dic['workshop'].count() == 0 and dic['client_inv'].count() == 0 and dic['bicycle'].count() == 0:
+                    print 'EMPTY ' +  str(type(dic['workshop'])) + str(dic['client_inv']) + str(dic['bicycle'])
+                else:
+                    #print 'DICT = ' + str(dic['workshop'].count()) + str(dic['client_inv'].count()) + str(dic['bicycle'].count())
+                    d[u.id] = dic
+            res = d
+            l = len(res)
+            try:
+                qbsum1 = qbsum1['total_price'] * 0.05 / l
+            except:
+                qbsum1 = 0
         else:
             w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
             c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
             b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-    
+
+#    user_list = User.objects.filter(is_active = True)
+#    request.user.points_set.all()
+
     bsum = 0
     csum = 0
     wsum = 0
@@ -5525,9 +6161,8 @@ def all_user_salary_report(request, month=None, year=None, day=None):
         csum = csum + c['total_price']
     for w in w_list:
         wsum = wsum + w['total_price']
-
     
-    return render_to_response('index.html', {'sel_year':year, 'sel_month':month, 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'sel_year':year, 'sel_month':month, 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'qwsum': qbsum1,  'll':l, 'res': res, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def rent_add(request):
@@ -5652,30 +6287,52 @@ def ajax_search(request):
 
        
 
-def sendemail(request):
-    list = Catalog.objects.filter(manufacturer = 28, count__gt=0).order_by("type")    
-    company = Manufacturer.objects.get(id=28)
-    company_list = Manufacturer.objects.all()
+def client_card_sendemail(request, id):
+    client = id
+    user = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('status'):
+                user = request.POST.get('status')
     
-    w = render_to_response('price_list.html', {'catalog': list, 'company': company, 'company_list': company_list,})
-    
-    
-    subject, from_email, to = 'hello', 'rivelo@ymail.com', 'rivelo@ukr.net'
-    text_content = 'This is an important message.'
+#    list = Catalog.objects.filter(manufacturer = 28, count__gt=0).order_by("type")    
+#    company = Manufacturer.objects.get(id=28)
+#    company_list = Manufacturer.objects.all()
+#    w = render_to_response('price_list.html', {'catalog': list, 'company': company, 'company_list': company_list,})
+        cl = None   
+        try:
+            cl = Client.objects.get(id = client)#.values_list('email')
+        except:
+            return HttpResponse("Сталася помилка при відправленні. Не заповнено поле E-MAIL")
+        w = client_result(request, 30, client, True)
+
+#        if cl.email == None:
+#            return HttpResponse("Сталася помилка при відправленні. Не заповнено поле E-MAIL")
+        
+        subject, from_email, to = 'Картка клієнта в магазині Rivelo', 'rivelo@ymail.com', cl.email
+        text_content = 'This is an important message.'
 #    html_content = '<p>This is an <strong>important</strong> message.</p>'
-    html_content = w.content
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-    msg.attach_alternative(html_content, "text/html")
-    msg.send()
+        html_content = w.content
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        msg.attach_alternative(html_content, "text/html")
+    #msg.send()
 #    send_mail('Rivelo shop', 'Here is the new message with you check.', 'rivelo@ymail.com', ['igor.panchuk@gmail.com'], fail_silently=False)
     #send_mail('subj - Test rivelo check', 'Here is the new message with you check.', 'rivelo@ymail.com', ['igor.panchuk@gmail.com'],)
     # Define these once; use them twice!
-    strFrom = 'rivelo@ymail.com'
-    strTo = 'rivelo@ukr.net'
+#    strFrom = 'rivelo@ymail.com'
+#    strTo = 'rivelo@ukr.net'
 #    send_mail('Товарний Чек - Test rivelo check', 'Here is the new message with you check.', 'rivelo@ymail.com', [strTo,],)
     #send_mail('subj - Test rivelo check', ‘message’, ‘from@mail.ru’, ‘rivelo@ymail.com’)        
     #return render_to_response('index.html', {'weblink': 'index.html'})
-    return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+        try:
+            msg.send()
+            return HttpResponse("Лист відправлено на пошту " + to)
+        except:
+            return HttpResponse("Сталася помилка при відправленні. Перевірте з'єднання до інтернету або зверніться до адмністратора.")
+    return None
+#    return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 from django.views.decorators.csrf import csrf_protect
@@ -5929,7 +6586,58 @@ def photo_url_add(request):
     return HttpResponse(search, content_type="text/plain")
 
 
-def photo_url_get(request):
+import StringIO, requests, os
+from PIL import Image
+from django.utils.text import slugify
+
+def retrieve_image(url):
+    response = requests.get(url)
+    return StringIO.StringIO(response.content)
+
+def save_photo_local(obj, url, d_url, file_path, filename):
+    try:
+        ri = retrieve_image(url)
+        image = Image.open(ri)
+        print "Django FileName = " + d_url + filename
+        #obj.local = filename
+        print "FileName = " + filename
+        if os.path.isfile(file_path + filename):
+            print "isFile = True"
+            obj.local = d_url + filename
+            obj.save()
+            tempfile = file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+            print "Image OBJ = " + tempfile
+            im1 = Image.open(file_path + filename)
+            image.save(file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:], 'JPEG')
+            #image.save('c:\svn\catalog\catalog\media/download/398292-305.jpg', 'JPEG')
+            im2 = Image.open(tempfile)
+            print "image file = " + file_path + filename
+            if im1 == im2: 
+                print "File is SAME/equal"
+                os.remove(tempfile)
+            else:
+                print "Save another file..."+ file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+                image.save(file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:], 'JPEG')
+                obj.local = d_url + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+                obj.save()
+                pass
+            return False
+        else:
+            image.save(file_path + filename, 'JPEG')
+            obj.local = d_url + filename  
+            obj.www = url
+            obj.save()
+            print "File save = " + file_path +  filename
+            return obj
+        
+    except:
+        print "EXCEPT save_photo_local"
+        pass
+
+    return obj
+
+
+def photo_url_get(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
 #            if auth_group(request.user, 'admin')==False:
@@ -5938,22 +6646,221 @@ def photo_url_get(request):
             if POST.has_key('id'):
                 pid = request.POST.get('id')
                 #photo_list = Photo.objects.filter(catalog__id = pid).values_list('url', 'description', 'id')
-                photo_list = Photo.objects.filter(catalog__id = pid).values('url', 'description', 'id')
+                photo_list = Photo.objects.filter(catalog__id = pid).values('url', 'www', 'local', 'description', 'id')
                 cat = Catalog.objects.get(id = pid)
                 c_name = "[" + cat.ids + "] - " + cat.name
                 try:
                     json = simplejson.dumps({'aData': list(photo_list), 'id': pid, 'cname': c_name})
                 except:
                     json = simplejson.dumps({'aData': "None", 'id': pid, 'cname': c_name})
-#                json = simplejson.dumps(photo_list)
 
+        return HttpResponse(json, content_type='application/json')
+    else:
+        #id = request.POST.get('id')
+        obj = Photo.objects.get(pk = id)
+        bset = obj.bicycle_set.all()
+        cat_set = obj.catalog_set.all()
+        str_cat = ''
+        str_bike = ''
+        for cat in cat_set:
+            str_cat = str_cat + str(cat.pk) + "["+ str(cat.ids) +"] | " 
+        for bike in bset:            
+            str_bike = str_bike + str(bike.pk)
+        
+        status_cat = cat_set.exists()
+        status_bike = bset.exists()
+        
+        o_url = ''
+        if obj.url == "":
+            o_url = obj.www
+        if obj.www == None:
+            o_url = obj.url
+        else:
+            o_url = obj.www
+        print "oURL = " + o_url
+        print "oWwww = " + str(obj.www)
+        print "obj_url = " + obj.url
+        print "olocal = " + (str(obj.local) or "")
+
+        file_path = settings.MEDIA_ROOT + 'download/'
+        filetype = ".jpg"
+        media = settings.MEDIA_URL + 'download/'
+        print "file_path = " + file_path
+        filename = ''
+        dirname_glob = settings.PROJECT_DIR
+
+        if (not status_cat) and (not status_bike):
+            filename = "new-file-" + str(obj.pk)
+        if (status_cat) and (not status_bike):
+            filename = cat_set[0].ids
+            filename = slugify(filename)
+        if (not status_cat) and (status_bike):            
+            filename = bset[0].id
+            filename = slugify(filename)
+        print "File name = " + filename + filetype
+        print "Local path = " + dirname_glob[:-1]
+        
+        if obj.local == None or obj.local == '':
+            print "Locale = None"
+            save_photo_local(obj, o_url, media, file_path, filename + filetype)            
+#            return HttpResponse("Local NoneType")
+            str_obj = "<img style='max-width:500px' src='" + str(o_url) + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+            return HttpResponse(str_obj)
+        
+        print "Local path + obj = " + dirname_glob[:-1] + obj.local
+        if (obj.local <> '') and (os.path.isfile(dirname_glob[:-1] + obj.local)):
+            #print "File LOCAL exists = " + str(settings.MEDIA_ROOT + obj.local)
+            print "File Local exists = " + dirname_glob[:-1] + obj.local
+            #obj.local = ''
+            #obj.save()
+            str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+            return HttpResponse(str_obj)
+
+        if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
+            print "Local var is False"
+            save_photo_local(obj, o_url, media, file_path, filename + filetype)
+
+        print "LAST return"
+        str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+        #str_obj = "<img style='max-width:500px' src='"+ str(obj.local) or "" + "'><br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + str(obj.url) or "" + "<br>local = " + str(obj.local) or "" + "  <br>  www = " + str(obj.www) or ""  
+        return HttpResponse(str_obj) 
+
+
+def change_photo_url(obj_photo):
+    obj = obj_photo 
+#    Photo.objects.get(pk = id)
+    bset = obj.bicycle_set.all()
+    cat_set = obj.catalog_set.all()
+    str_cat = ''
+    str_bike = ''
+    status_cat = cat_set.exists()
+    status_bike = bset.exists()
+    o_url = ''
+    if obj.url == "":
+        o_url = obj.www
+    if obj.www == None:
+        o_url = obj.url
+    else:
+        o_url = obj.www
+    print "oURL = " + o_url
+
+    file_path = settings.MEDIA_ROOT + 'download/'
+    filetype = ".jpg"
+    media = settings.MEDIA_URL + 'download/'
+    print "file_path = " + file_path
+    filename = ''
+    dirname_glob = settings.PROJECT_DIR
+
+    if (not status_cat) and (not status_bike):
+        filename = "new-file-" + str(obj.pk)
+    if (status_cat) and (not status_bike):
+        filename = cat_set[0].ids
+        filename = slugify(filename)
+    if (not status_cat) and (status_bike):            
+        filename = bset[0].id
+        filename = slugify(unicode(str(filename), "utf-8"))
+    if obj.local == None or obj.local == '':
+        print "Locale = None"
+        save_photo_local(obj, o_url, media, file_path, filename + filetype)            
+        return True
+
+    if (obj.local <> '') and (os.path.isfile(dirname_glob[:-1] + obj.local)):
+        print "File Local exists = " + dirname_glob[:-1] + obj.local
+        return True
+
+    if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
+        print "Local var is False"
+        save_photo_local(obj, o_url, media, file_path, filename + filetype)
+
+    print "LAST return"
+    return True
+
+
+def photo_del_field(request):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponse('Error: У вас не має прав для редагування')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                pid = request.POST.get('id')
+                try:
+                    photo = Photo.objects.get(pk = pid)    
+                    if POST.has_key('local'):
+                        local = request.POST.get('local')
+                        loc = photo.local
+                        photo.local = ''
+                        photo.save()
+                        msg = 'Фото '+ str(loc) +' видалено'
+                        json = simplejson.dumps({'status': True, 'msg': msg})
+                        return HttpResponse(json, content_type='application/json')
+                    if POST.has_key('www'):
+                        www = request.POST.get('www')
+                        www = photo.www
+                        photo.www = None
+                        photo.save()
+                        msg = 'Фото '+ '['+str(photo.pk)+'] ' + str(www) +' видалено'
+                        json = simplejson.dumps({'status': True, 'msg': msg})
+                        return HttpResponse(json, content_type='application/json')
+                    if POST.has_key('url'):
+                        url = request.POST.get('url')
+                        url = photo.url
+                        photo.url = ''
+                        photo.save()
+                        msg = 'Фото '+'['+str(photo.pk)+'] ' + str(url) +' видалено'
+                        json = simplejson.dumps({'status': True, 'msg': msg})
+                        return HttpResponse(json, content_type='application/json')
+                    
+                except:
+                    json = simplejson.dumps({'status': False, 'msg': u'Ajax: Photo get ERRROR'})
+                    return HttpResponse(json, content_type='application/json')
+            
+                
+#                    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Такого фото вже не існує, спробуйте оновити сторінку, та повторіть спробу'}, context_instance=RequestContext(request, processors=[custom_proc]))                    
+    json = simplejson.dumps({'status': False, 'msg': u'Ajax: Щось пішло не так'})
     return HttpResponse(json, content_type='application/json')
 
 
+
+def photo_list(request, show=2):
+    list = None
+    show = int(show)
+    print "PARAM id = " + str(show) + " type = " + str(type(show))     
+    if show == 0: # Show all
+        list = Photo.objects.exclude(catalog = None)
+        #list = Photo.objects.filter(catalog = None)
+    if show == 1: # New record with Catalog connect
+        list = Photo.objects.exclude((Q(www = '') | Q (www = None)) & Q(catalog = None))
+    if show == 2: # New record with Catalog connect        
+        list = Photo.objects.exclude( (Q(www = '') | Q (www = None)) )
+    if show == 3: # Show all who catalog in None
+        list = Photo.objects.filter(catalog = None)
+    if show == 4: # Show all who have URL field
+        list = Photo.objects.exclude( (Q(url = '') | Q (catalog = None)) )
+
+        
+#    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
+    for iphoto in list:
+        psts = change_photo_url(iphoto)
+        print "[" + str(iphoto.pk) + "] - "+ str(psts) 
+            
+    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
 def photo_url_delete(request, id=None):
-    obj = None
     if auth_group(request.user, 'seller')==False:
         return HttpResponseRedirect('/catalog/photo/list/')
+
+    obj = None
+    if (id <> None):
+        try:        
+            obj = Photo.objects.get(pk = id)
+            obj.delete()
+        except:
+            return HttpResponse("Дане фото вже видалене спробуйте інший ID")#, content_type="text/plain")
+                         
     try:
         if request.is_ajax():
             if request.method == 'POST':  
@@ -5968,8 +6875,7 @@ def photo_url_delete(request, id=None):
             obj = Photo.objects.get(id = id)
     except:
         pass
-    del_logging(obj)
-    obj.delete()
+
     return HttpResponseRedirect('/catalog/photo/list/')
     
 
@@ -6031,7 +6937,7 @@ def storage_box_list(request, boxname=None, pprint=False):
     else:
         list = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').order_by('locality')
     if pprint:
-        return render_to_response('storage_box.html', {'boxes': list, 'pprint': True})
+        return render_to_response('storage_box.html', {'boxes': list, 'pprint': True}, context_instance=RequestContext(request, processors=[custom_proc]))
 
     return render_to_response("index.html", {"weblink": 'storage_box.html', "boxes": list, 'pprint': False}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -6085,35 +6991,34 @@ def inventory_list(request, year=None, month=None, day=None):
 
 
 def inventory_mistake(request, year=None, month=None, day=None):
-#    if (year != None and month != None and day != None):
-#===============================================================================
-#    if (year == None) and (month == None) and (day == None):
-#        day = datetime.datetime.now().day
-#        month = datetime.datetime.now().month
-#        year = datetime.datetime.now().year
-#    else:
-#        day = day
-#        month = month
-#        year = year
-#===============================================================================
-
-#******** RAW SQL *******
-#mysql> select t.catalog_id, t.count, t.date from ( select catalog, MAX(date) as
-#mdate from accounting_inventorylist group by catalog) r inner join accounting_in
-#ventorylist t on t.catalog = r.catalog and t.date=r.mdate;
-
-#mysql> select count(t.catalog_id) from ( select catalog_id, MAX(date) as mdate f
-#rom accounting_inventorylist group by catalog_id) r inner join accounting_invent
-#orylist t on t.catalog_id = r.catalog_id and t.date=r.mdate where t.check_all =
-
-#mysql> select catalog_id, count, real_count, Max(date) from accounting_inventory
-#list where count != real_count and check_all=True group by catalog_id;
-
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
-    im = InventoryList.objects.filter(check_all = True).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    #im = InventoryList.objects.filter(check_all = True, date__gt = year_ago).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')    
     #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
-    list = im.exclude(real_count = F('count'))
-     
+    #list = im.exclude( Q(real_count = F('count')) & Q(check_all = True) ) 
+    #list = im.exclude( check_all = True, real_count__gt = F('count'), real_count__lt = F('count'))
+    list = im 
+    #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
+    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def inventory_autocheck(request, year=None, month=None, day=None, update=False):
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    im = InventoryList.objects.filter( Q(date__gt = year_ago), ((Q(real_count = F('count')) & Q(check_all = False))) ).annotate(mdate=Max('date', distinct=True)).order_by('catalog__id')
+    if update == True:
+        im.update(check_all=True)
+         
+    list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
+    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def inventory_mistake_not_all(request, year=None, month=None, day=None):
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    exc_list =  InventoryList.objects.filter( Q(date__gt = year_ago), (Q(real_count = F('count')) & Q(check_all = True)) )
+    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date', 'catalog__id')    
+    list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
+    #list = im 
     #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
     return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -6181,8 +7086,7 @@ def inventory_get(request):
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-        
-    
+
     return HttpResponse(data_c, content_type='application/json')        
 
 
@@ -6206,7 +7110,6 @@ def inventory_get_listid(request):
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-        
     
     return HttpResponse(i_list, content_type='application/json')        
 
@@ -6223,8 +7126,9 @@ def inventory_set(request):
                 i_list = InventoryList.objects.get(id = id)
                 i_list.check_all = not(i_list.check_all)
                 i_list.edit_date = datetime.datetime.now()
-                if request.user != i_list.user:
-                    return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
+                if request.user != i_list.user :
+                    if auth_group(request.user, 'admin')==False:
+                        return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
                 i_list.save()
                 result = ''
                 if i_list.check_all: 
@@ -6381,12 +7285,17 @@ def check_list(request, year=None, month=None, day=None, all=False):
         day = datetime.datetime.now().day
         month = datetime.datetime.now().month
         year = datetime.datetime.now().year
-    else:
-        day = day
-        month = month
-        year = year
+        
     if all == True:
-        list = Check.objects.all()
+        if (month == None):
+            list = Check.objects.filter(date__year = year)
+            listPay = CheckPay.objects.filter(date__year = year)
+        if (day == None and month):
+            list = Check.objects.filter(date__year = year, date__month = month)
+            listPay = CheckPay.objects.filter(date__year = year, date__month = month)
+        if (year == None):
+            list = Check.objects.all()
+            listPay = CheckPay.objects.all()
     else:
         list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()
         listPay = CheckPay.objects.filter(date__year = year, date__month = month, date__day = day)
@@ -6415,8 +7324,10 @@ def check_list(request, year=None, month=None, day=None, all=False):
                 chk_sum = chk_sum + ((100-i.discount)*0.01*i.workshop.price*i.count)
             else:
                 chk_sum_term = chk_sum_term + ((100-i.discount)*0.01*i.workshop.price*i.count)                
-                
-    days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
+    if month == None:
+        days = xrange(1, 1)
+    else:            
+        days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, "sum_term":sum_term, "sum_cash":sum_cash, "pay_list": listPay, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum, 'chk_sum_term': chk_sum_term}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -6467,7 +7378,7 @@ def shop_sale_check_add(request):
                     try:
                         page = urllib.urlopen(url).read()
                     except:
-                        message = "Сервер не відповідає"
+                        message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
                         return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
@@ -6695,10 +7606,209 @@ def check_add(request):
     return HttpResponseRedirect('/check/list/now/')
 
 def check_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
     obj = Check.objects.get(id=id)
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/check/list/now/')
+
+
+def youtube_list(request):
+    tube = None
+    list = YouTube.objects.all() #filter(count__gt=0).values('id', 'name', 'count', 'price')
+    paginator = Paginator(list, 25)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        tube = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        tube = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        tube = paginator.page(paginator.num_pages)
+        
+    return render_to_response('index.html', {'tube_list': tube, 'weblink': 'youtube_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def youtube_delete(request, id):
+    obj = YouTube.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return redirect('youtube_list')
+    #return redirect('post_details', id=post_id)
+    # equivalent to: return HttpResponseRedirect(reverse('post_details', args=(post_id, )))
+
+
+def youtube_url_add(request, id=None):
+    a = None
+    add_tube = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            #if POST.has_key('ids'):
+            if POST.has_key('id') and POST.has_key('upload_youtube'):                
+                id = request.POST['id']
+                url_youtube = request.POST['upload_youtube']
+                d = {}
+                if url_youtube :
+                    try:
+                        a = Bicycle.objects.get(pk = id)
+                        y = YouTube.objects.get(url = url_youtube)
+                        a.youtube_url.add(y)
+                        a.save()
+                        d['pk'] = y.pk
+                        d['url'] = y.url
+                        d['status'] = True
+                        d['msg'] = 'Такий ролик вже існує.'
+                        d['error'] = 'Такий ролик вже існує.'
+#                        response = JsonResponse({'error': "Дане відео вже існує", 'pk': y.pk, 'url': u.url})
+#                        return response
+                    except YouTube.DoesNotExist:
+                        add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
+                        a.youtube_url.add(add_tube)
+                        a.save()
+                        d['status'] = True
+                        d['pk'] = add_tube.pk
+                        d['url'] = add_tube.url
+                        
+                    except Bicycle.DoesNotExist:
+                        d['status'] = False
+                        d['error'] = "такого велосипеду не існує"
+                        
+                    except YouTube.MultipleObjectsReturned:
+                        d['status'] = False
+                        d['error'] = "Таких роликів є більше ніж один. Видаліть дублікати."
+
+            if POST.has_key('c_id') and POST.has_key('upload_youtube'):
+                id = request.POST['c_id']
+                url_youtube = request.POST['upload_youtube']
+                d = {}
+                if url_youtube :
+                    try:
+                        a = Catalog.objects.get(pk = id)
+                        y = YouTube.objects.get(url = url_youtube)
+                        a.youtube_url.add(y)
+                        a.save()
+                        d['pk'] = y.pk
+                        d['url'] = y.url
+                        d['status'] = True
+                        d['msg'] = 'Такий ролик вже існує.'
+                        d['error'] = 'Такий ролик вже існує.'
+
+                    except YouTube.DoesNotExist:
+                        add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
+                        a.youtube_url.add(add_tube)
+                        a.save()
+                        d['status'] = True
+                        d['pk'] = add_tube.pk
+                        d['url'] = add_tube.url
+                        
+                    except Catalog.DoesNotExist:
+                        d['status'] = False
+                        d['error'] = "такого товару не існує"
+                        
+                    except YouTube.MultipleObjectsReturned:
+                        d['status'] = False
+                        d['error'] = "Таких роликів є більше ніж один. Видаліть дублікати."
+            if not POST.has_key('c_id') and not POST.has_key('id'):
+                response = JsonResponse({'error': "Невірні параметри запиту"})
+                return response
+            
+            response = JsonResponse(d)
+            return response
+
+
+def discount_add(request):
+    if auth_group(request.user, 'seller')==True:
+    #if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    a = Discount()
+    name = ''
+    if request.method == 'POST':
+        form = DiscountForm(request.POST, instance = a)
+        #form = RentForm(request.POST)
+        POST = request.POST
+        
+        if form.is_valid():
+#            print "POST = " + form.cleaned_data['name']
+            if POST.has_key('name'):
+                name = request.POST['name']
+            else:
+                name = form.cleaned_data['name']
+            ds = form.cleaned_data['date_start']
+            de = form.cleaned_data['date_end']
+            #conv_ds = datetime.datetime.strptime(ds, '%d-%m-%Y').date()
+            #conv_de = datetime.datetime.strptime(de, '%d-%m-%Y').date()
+            f = form.save(commit=False)
+            f.date_start = ds
+            f.date_end = de
+            #f.name = "Black Friday"
+            f.name = name
+            f.save()
+            
+            return HttpResponseRedirect('/discount/list/')
+    else:
+        form = DiscountForm(instance = a)
+    return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+
+def discount_list(request):
+    list = None
+    list = Discount.objects.all()#exclude( (Q(url = '') | Q (catalog = None)) )
+#    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
+    return render_to_response('index.html', {'weblink': 'discount_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def discount_delete(request):
+    d = {}
+    if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
+        d['status'] = False 
+        d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+        response = JsonResponse(d)
+        return response                
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id'):
+                id = request.POST['id']                
+                obj = Discount.objects.get(pk = id)
+                obj.delete()
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+
+
+def discount_lookup(request):
+    data = None
+    cur_date = datetime.date.today()
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query'):
+                value = request.POST[u'query']
+                if len(value) > 2:
+                    model_results = Discount.objects.filter(Q(name__icontains = value), Q(date_end__gt = cur_date) ).order_by('date_start', 'name')
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name', 'date_start', 'date_end'), use_natural_keys=False)
+#                else:
+#                    model_results = Type.objects.all().order_by('name')
+#                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)                    
+#                    data = []
+    return HttpResponse(data)                 
+
 
 def send_workshop_sound(request):
     base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"

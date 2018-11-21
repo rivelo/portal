@@ -1,5 +1,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<meta name="description" content="Список зареєстрованих на марафон <a href="{% url 'event-show' event.pk  %}">{{event.name}}">
+<meta name="keywords" content="{{event.name}}, МТБ марафон, Веломарафон, Велосипедний марафон, Вело, Рівело, Rivelo, Рівне, XCM, Marathon MTB, Start list">
+<meta name="author" content="Rivelo">
+
+
 <link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -168,25 +173,32 @@ $(document).ready(function(){
     	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
     });
     
-	rtable.column(7).visible(false);
-	rtable.column(-4).visible(false);
-	rtable.column(-1).visible(false);
-	rtable.column(-2).visible(false);
-	rtable.column(-3).visible(false);
-	rtable.column(-5).visible(false);
-	rtable.column(-6).visible(false);
-	rtable.column(-7).visible(false);
-//	rtable.column(-8).visible(false);
+    rtable.column(0).visible(false); // номер по порядку
+	//rtable.column(8).visible(false); // Стартовий Номер 
+	rtable.column(-4).visible(false); // Велосипед
+	rtable.column(-1).visible(false); // Статус оплати
+	rtable.column(-2).visible(false); //стать 0/1
+	rtable.column(-3).visible(false); // Примітки 
+	rtable.column(-5).visible(false); // Рік народження
+	rtable.column(-6).visible(false); // Команда
+	rtable.column(-7).visible(false); // Статус оплати
+//	rtable.column(-8).visible(false); // Стать
+	rtable.column(4).visible(true); // місто
+	
 	$('#rtable_length_panel').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');	
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');	
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Рік</a></div>');
+ 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Рік</a></div>');
 {% if user.is_authenticated and user|has_group:"moder" %}
+	//rtable.column(0).visible(true); // номер по порядку
 	rtable.column(-8).visible(false);
 	rtable.column(5).visible(false);
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');
+	rtable.column(7).visible(false); // Велосипед
+//	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="0">Id</a></div>');
+//	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');	
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Телефон</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Email</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Примітки</a></div>');
@@ -421,7 +433,7 @@ $("#table_cat5_wrapper").hide();
 <div style="margin: 0px 0px 20px 0px;"><a class="register" href="/event/{{event.pk}}/registration/" style="font-size: 20; color: red;"><span class="btn btn-danger btn-lg" style="font-size: 18px" title="зареєстровано {{event.riders_count}} учасників">Зареєструватись >>></span></a> *Реєстрація на сьогодні вартує {{event.cur_reg_sum}} гривень</div>
 {% else %}
 {% if user.is_authenticated %}
-<div style="margin: 0px 0px 20px 0px;"><a class="register" href="/event/{{event.pk}}/registration/" style="font-size: 16; color: red;"><span class="badge badge-danger btn-lg" style="font-size: 20px" title="учасників">Зареєструватись >>></span></a> *Реєстрація на сьогодні вартує {{event.cur_reg_sum}} гривень</div>
+<div style="margin: 0px 0px 20px 0px;"><a class="register" href="/event/{{event.pk}}/registration/" style="font-size: 16; color: red;"><span class="badge badge-danger btn-lg" style="font-size: 20px" title="учасників">Зареєструватись >>></span></a> {% if event.cur_reg_sum.0 == "error" %} {{event.cur_reg_sum.1}} {% endif %}</div>
 {% endif %}
 {% endif %}
 

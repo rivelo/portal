@@ -1,0 +1,92 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<style>
+/*       #map {        height: 60%;      } */
+/*#map_container {
+ position: relative;
+ padding-top: 50%;
+}*/
+#map {
+ position: absolute;
+ width: 99%;
+/* height: 50%; 
+ top: 0; */
+}      
+</style>
+
+<script>
+
+$(function () {
+ 	  $('[data-toggle="popover"]').popover(); 
+
+})
+</script>
+
+{% block content %}
+
+
+<div class="post">
+	
+	<h2 class="title" >Майстерня</h2>
+           
+</div>
+
+
+	<p align="justify" style="font-size: 110%">
+	Майстерня знаходиться за адресою: м.Рівне Кавказька 6
+	<br>
+	<a href="/about/" class="btn btn-success">Контакти >>> </a>
+	</p>
+	
+<div class="list-group" id="myList" role="tablist">
+  <span class="list-group-item list-group-item-action list-group-item-secondary active font-weight-bold">
+    Групи робіт в майстерні:
+  </span>
+{% for wgroup in workgroup %}
+<a href="#" class="list-group-item list-group-item-action disabled" data-container="body" data-toggle="popover" data-html="true" data-placement="top" title="{{wgroup.name}}" role="tab" data-content='
+<ul class="list-group">
+{% for work in wgroup.worktype_set.all %}
+  <li class="list-group-item">{{work}} <h5><span class="badge badge-info badge-pill">{{work.price}}грн.</span></h5></li>
+{% endfor %}
+</ul>
+' id="wg{{wgroup.id}}">
+{{wgroup}} <span class="badge badge-primary badge-pill">{{wgroup.work_ingroup_count.work_count_sum}}</span>
+</a>
+{#<a href="#wg{{wgroup.id}}" class="list-group-item list-group-item-action disabled" data-toggle="list" role="tab" >{{wgroup}} <span class="badge badge-primary badge-pill">{{wgroup.work_ingroup_count.work_count_sum}}</span>#}
+</a>
+{% endfor %}
+</div>	
+
+
+
+    <div id="map" ></div>  
+
+<br>
+    
+<script>
+
+function initMap() {
+  var myLatLng = {lat: 50.627250, lng: 26.2509700};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 17,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Веломагазин-майстерня Рівело'
+  });
+}
+
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
+  
+ 
+
+{% endblock %}
+
+
+
+

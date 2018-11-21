@@ -25,10 +25,6 @@ def sub(value, arg):
 #    '''Вычитание'''
     return round(float(value) - float(arg), 2)
 
-@register.filter(name='subtract')
-def subtract(value, arg):
-    return value - arg
-
 @register.filter
 def summa(value, arg):
     value = 0

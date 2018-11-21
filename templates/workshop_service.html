@@ -1,0 +1,176 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<style>
+      #map {
+        height: 60%;
+      }
+      
+.wrap-img {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+}
+.wrap-img > img {
+  display: block;
+}
+.wrap-img:before {
+  content: 'LOGO';
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: tomato;
+  color: #fff;
+  padding: 3px;
+  font-size: 14px;
+}
+
+.imgteaser { /* общий блок */
+  position: relative;
+  display: table;
+  margin: 0 auto;
+/*  border: 10px solid #456; */
+  line-height: 0;
+  color: rgb(223,223,223);
+  cursor: pointer;
+}
+
+.imgteaser:after { /* "подробнее" */
+  content: "Детально \bb";
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px 10px;
+  background: rgba(17,34,51,.6);
+  line-height: 1.6em;
+}
+.imgteaser:hover:after {content: none;}
+
+.imgteaser figcaption {display: none;}
+.imgteaser:hover figcaption { /* прозрачная область */
+  display: block;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background: rgba(68,85,102,.7);
+  font-size: 80%;
+  line-height: 1.3em;
+}
+
+.imgteaser:hover figcaption strong { /* заголовок */
+  display: block;
+  line-height: 2em;
+  font-size: 110%;
+}
+
+/* Підказки на CSS */
+a {
+/* color: darkred; */
+}
+a:hover {
+ color: red;
+ position: relative;
+}
+a[title]:hover:after {
+ content: attr(title);
+ box-shadow: 0 0 4px #aaa;
+ background: #efefef;
+ padding: 7px 15px;
+ color: #333;
+ left: 0; 
+ top: 110%;
+ position: absolute;
+ white-space: nowrap; 
+ border-radius: 3px; 
+ -moz-border-radius: 3px; 
+ -webkit-border-radius: 3px; 
+ -moz-box-shadow: 0 0 4px #aaa; 
+ -webkit-box-shadow: 0 0 4px #aaa; 
+}
+      
+</style>
+
+<script>
+$(document).ready(function() {
+//	$(".photo-container").find('img').wrap('<div class="wrap-img"></div>');
+});
+</script>
+
+<body>
+
+{% block content %}
+
+<div class="post">
+	<h2 class="title"><a href="#" title="Майстерня"> Майстерня </a> >> Технічне обслуговування</h2>
+</div>
+
+<div class="row">
+<div class="col-12">
+
+<figure class="imgteaser">
+    <img src="/media/images/bicycle_season_repair.png" alt="конь"/>
+    <figcaption><strong>Технічне обслуговування велосипеда:<br> - Оцінка стану механізмів та їх зовнішня чистка</strong>***на обслуговування приймаються лише чисті велосипеди</figcaption>
+</figure>
+</div>
+
+{% comment %}
+<div class="col-12">
+<div class="wrap-img" >
+<img src="/media/images/bicycle_season_repair.png" class="img-fluid" alt="Responsive image" style="content: 'Logo'">
+</div>
+</div>
+{% endcomment %}
+</div>
+
+
+	<p align="justify" style="font-size: 110%">
+	Майстерня знаходиться за адресою: м.Рівне Кавказька 6
+	<br>
+	<a href="/about/" class="btn btn-success">Контакти >>> </a>
+	</p>
+
+
+<div class="list-group">
+  <a href="#" class="list-group-item list-group-item-action active">
+    Групи робіт в майстерні:
+  </a>
+{% for wgroup in workgroup %}
+<a href="#" class="list-group-item list-group-item-action disabled">{{wgroup}}</a>
+{% endfor %}
+</div>
+
+{#    <div id="map"></div> #}
+
+</body>
+
+{% comment %}
+<script>
+
+function initMap() {
+  var myLatLng = {lat: 50.627250, lng: 26.2509700};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 17,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'Веломагазин-майстерня Рівело'
+  });
+}
+
+</script>
+
+ <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> 
+ {% endcomment %}
+ 
+</body>
+
+{% endblock %}
+
+
+
+

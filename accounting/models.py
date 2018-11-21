@@ -4,10 +4,19 @@ from django.forms import ModelForm
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Max
 from django.db.models.aggregates import Avg
-from datetime import datetime
+#from datetime import datetime
+import datetime
 from django.db.models import F
+
+from urlparse import urlparse,parse_qs,urlunparse
+from urllib import urlencode
+import httplib
+from compiler.ast import Discard
+import os.path
+import urllib2
+from django.conf import settings
 
 
 # Group Type = Group for Component category 
@@ -25,6 +34,7 @@ class GroupType(models.Model):
     class Meta:
         ordering = ["name"]    
 
+from django.utils.text import slugify
 
 # Type = Component category 
 class Type(models.Model):
@@ -34,7 +44,34 @@ class Type(models.Model):
     description_ukr = models.CharField(max_length=255, blank=True, null=True)
     bike_order = models.PositiveSmallIntegerField(blank=True, default = 0)
     group = models.ForeignKey(GroupType, blank=True, null=True)
-#   icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+    synonym = models.CharField(max_length=255, blank=True, null=True)
+    synonym_ukr = models.CharField(max_length=255, blank=True, null=True)
+    ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
+#    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+#    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+
+    def get_icon_name(self, status=True):
+        dirpath = settings.ICON_DIR
+        if status == True:
+            return (dirpath + slugify(self.name) + '-gr.png')
+        else:
+            return (dirpath + slugify(self.name) + '-bl.png')
+
+    def get_discount(self):
+        max_sale = None
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.pk).order_by("-sale")
+        if dateDiscount.exists():
+            pass
+            #max_sale = dateDiscount.aggregate(msale = Max('sale'))
+            #max_sale = dateDiscount.annotate(max_s = Max('name'))
+            return dateDiscount
+        else:
+           return 0
+        #return (max_sale, dateDiscount.values('name', 'sale'))         
+        #return (max_sale, dateDiscount[0])
+
+
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)
@@ -110,6 +147,36 @@ class Exchange(models.Model):
         ordering = ["date"]    
 
 
+class Discount(models.Model):
+    name = models.CharField(max_length=255)
+    manufacture_id = models.IntegerField(blank = True, null = True)
+    type_id = models.IntegerField(blank = True, null = True) 
+    date_start = models.DateField(auto_now_add = False)
+    date_end = models.DateField(auto_now_add = False)
+    sale = models.FloatField()
+    description = models.TextField(blank = True, null = True)
+            
+    def get_manufacture(self):
+        res = Manufacturer.objects.filter(pk = self.manufacture_id)
+        if res.exists():
+            return res[0]
+        else:
+            return None
+
+    def get_type(self):
+        res = Type.objects.filter(pk = self.type_id)
+        if res.exists():
+            return res[0]
+        else:
+            return None
+    
+    def __unicode__(self):
+        return u'%s [%s-%s]. Знижка - %s%s' % (self.name, self.date_start, self.date_end, int(self.sale), '%') 
+
+    class Meta:
+        ordering = ["name", "sale", "date_start", "date_end"]    
+
+
 # list of manufectures 
 class Manufacturer(models.Model):
     name = models.CharField(max_length=100)
@@ -117,6 +184,16 @@ class Manufacturer(models.Model):
     logo = models.ImageField(upload_to = 'upload/brandlogo/', blank=True, null=True)
     country = models.ForeignKey(Country, null=True)
     description = models.TextField(blank=True, null=True)    
+
+    def get_discount(self):
+        max_sale = None
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.pk).order_by("-sale")
+        if dateDiscount.exists():
+            max_sale = dateDiscount.aggregate(Max('sale'))
+        else:
+           return 0
+        return (max_sale, dateDiscount[0])         
     
     def natural_key(self):
         return (self.id, self.name)
@@ -130,13 +207,48 @@ class Manufacturer(models.Model):
 
 class Photo(models.Model):
     url = models.CharField(max_length=255)
+    local = models.CharField(max_length=255, blank=True, null=True)
+    www = models.URLField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
     #goo_url = models.CharField(max_length=255)
+
+    def image_local_exists(self):
+        path = self.url
+#        domain = urlparse(path).hostname
+        file_path = settings.MEDIA_ROOT        
+        if self.local and os.path.isfile(file_path.split('\media')[0] + self.local):
+            return True
+        else:
+            if self.url <> "":
+                try:
+                    url_obj = urllib2.urlopen(self.url)
+                    return True
+                except:
+                    pass
+                    #return False
+            if self.www <> "":
+                try:
+                    url_obj = urllib2.urlopen(self.url)
+                    return True
+                except:
+                    return False
+
+        return False
+
+    def catalog_show(self):
+        cat_list = self.catalog_set.all()
+        str = ''
+        for cat in cat_list:
+            str = str + "["+cat.ids+"] " + cat.name + "<br>"
+        return str
+
+    def catalog_show_simple(self):
+        return self.catalog_set.all()
     
     def __unicode__(self):
-        return u'%s' % self.url
+        return u'%s %s' % (self.url, self.local) 
 
     class Meta:
         ordering = ["date", "description"]    
@@ -147,6 +259,18 @@ class YouTube(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
+
+    def youtube_hash(self):
+        #qs = self.youtube_url
+        try:
+            qs = self.url
+            pars = parse_qs(urlparse(qs).query)
+            if pars:
+                return pars['v'][0]
+            else:
+                return qs.split('/')[3]
+        except:
+            return 'youtube url not found'
     
     def __unicode__(self):
         return u'%s' % self.url
@@ -185,9 +309,22 @@ class Catalog(models.Model):
 #    models.ManyToManyField() # field like sizechart, field to shoes
 #    bike_style = models.ManyToManyField()  cyclocross, crosscountry, road, gravel ...
 #    season = winter, summer, ...
-#    full_description = models.TextField(blank=True, null=True)
-#    youtube_link
+    full_description = models.TextField(blank=True, null=True)
+    youtube_url = models.ManyToManyField(YouTube, blank=True, null=True)
 #    наявність у постачальника
+    date = models.DateField(null=True, blank=True) #Строк придатності
+
+    def get_discount(self):
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+#        print "QUERY set = " + str(dateDiscount)
+        try:
+            pdiscount = dateDiscount[0].sale
+            percent_sale = (100-pdiscount)*0.01
+            price = self.price * percent_sale
+        except:
+            return 0
+        return price
 
     def get_saleprice(self):
         percent_sale = (100-self.sale)*0.01
@@ -279,6 +416,23 @@ class Catalog(models.Model):
             else:
                 return "через 1-%s дні має приїхати - %s шт." % (days, count)
         return False
+
+    def get_photos(self):
+        photos_list = []
+        if self.photo:
+            photos_list.append(self.photo)
+        if self.photo_url:
+            p_url = self.photo_url.all()
+        for photo in p_url:
+            if photo.local:
+                photos_list.append(photo.local)
+            if photo.url:
+                photos_list.append(photo.url)
+        if photos_list:
+            return photos_list
+        else:
+            return False
+            
         
     def _get_full_name(self):
         p = self.inv_price()
@@ -286,7 +440,7 @@ class Catalog(models.Model):
         if self.price < cprice:
             return "Ahtung!!!"
         return 'Price OK = ' + str(cprice)
-    chk_price = property(_get_full_name)
+    chk_price = property(_get_full_name) # Перевірка на правильність ціни
 
     
     def __unicode__(self):
@@ -550,11 +704,25 @@ class ClientInvoice(models.Model):
 #            ua = self.model.price * 1
         #ua = self.price * cur_exchange2['average_val'] #['value__avg']
         if (self.currency.ids_char == 'UAH'):
-            percent_sale = (100-self.sale)*0.01
+            try:
+                percent_sale = (100-self.sale)*0.01
+            except:
+                percent_sale = (100-0)*0.01
+                self.sale = 0
+                self.save()
             profit = self.price * percent_sale * self.count - ua * self.count 
         #return cur_exchange1
         return (ua, profit)
 
+    def get_client_profit(self):
+        try:
+            res = (self.price * self.count) * (self.sale/100.0)
+        except:
+            res = (self.price * self.count) * (0/100.0)
+            
+            self.sale = 0
+            self.save()
+        return res 
             
     def __unicode__(self):
         return u"%s - %s шт." % (self.catalog.name, self.count) 
@@ -591,6 +759,13 @@ class CostType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
 
+    def cost_list(self):
+        res = self.costs.all().order_by('-date')[:10]
+        return res
+
+    def cost_list_sum(self):
+        res = self.costs.all().aggregate(cost_sum = Sum('price'))
+        return res['cost_sum']
     
     def __unicode__(self):
         return self.name
@@ -601,13 +776,13 @@ class CostType(models.Model):
 
 class Costs(models.Model):
     date = models.DateTimeField(auto_now_add=True)
-    cost_type = models.ForeignKey(CostType)
+    cost_type = models.ForeignKey(CostType, related_name='costs', default=3)
     price = models.FloatField()
     description = models.TextField()
 
-    
     def __unicode__(self):
-        return self.name
+        #return self.name
+        return u"[%s] (%s) - %s грн." % (self.date, self.description, self.price) 
 
     class Meta:
         ordering = ["date"]
@@ -616,13 +791,37 @@ class Costs(models.Model):
 #Bicycle type table
 class Bicycle_Type(models.Model):
     type = models.CharField(max_length=255) #adult, kids, mtb, road, hybrid
+    ukr_name = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    level = models.IntegerField(default = 0, blank = True, null = True)
+    parent_id = models.ForeignKey("self", blank=True, null = True, default=None)
+    status = models.BooleanField(default = True, blank=True)
 
-#    def natural_key(self):
-#        return (self.id, self.type)
+    def bike_count(self):
+        res = self.bicycle_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        return res['bike_sum']
+    
+    def subtype_count(self):
+        res = self.bicycle_type_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        return res['bike_sum']
+
+    def subtype_list(self):
+        res = self.bicycle_type_set.all()
+        return res
+
+    def subtype_storebike(self):
+        res = self.bicycle_type_set.all().values_list('pk')
+        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = res).order_by('model__brand')
+        return bs
+
+    def storebike(self):
+        inlist = []
+        inlist.append(self.pk)
+        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = inlist).order_by('model__brand')
+        return bs
 
     def __unicode__(self):
-        return self.type
+        return u'%s' % self.type
 
     class Meta:
         ordering = ["type"]    
@@ -646,16 +845,16 @@ class Wheel_Size(models.Model):
 
 #Bicycle parts table
 class Bicycle_Parts(models.Model):
-    name = models.CharField(max_length=255)
-    catalog = models.ForeignKey(Catalog, blank=True)
-    type = models.ForeignKey(Type) #kids, 26, 29 ...
+    name = models.CharField(max_length=255, blank=True)
+    catalog = models.ForeignKey(Catalog, null=True, blank=True)
+    type = models.ForeignKey(Type) #frame, bar, wheel ...
     description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
-        return u'%s [%s]' % (self.name, self.catalog)
+        return u'[%s] %s / %s' % (self.type, self.name, self.catalog)
 
     class Meta:
-        ordering = ["type"]    
+        ordering = ["type__bike_order"]    
 
 
 # Bicycle table (Bicycle)
@@ -693,10 +892,14 @@ class Bicycle(models.Model):
             qs = self.youtube_url.all()
 #            q = qs.all()
             for i in qs:
-               #res.append(i.url.split('/')[3])
-               res.append(i.url.split('?v=')[1])
+                pars = parse_qs(urlparse(i.url).query)
+                if pars:
+                    res.append(pars['v'][0])
+                else:
+                    res.append(i.url.split('/')[3])
+               #res.append(i.url.split('?v=')[1])
             return res 
-            return qs #self.youtube_url.split('/') #[3]
+            #return qs #self.youtube_url.split('/') #[3]
         except:
             return 'test None'
         
@@ -761,6 +964,10 @@ class Bicycle_Store(models.Model):
         percent_sale = (100-self.model.sale)*0.01
         price = self.model.price * percent_sale
         return price
+
+    def get_client(self):
+        bsale = self.bicycle_sale_set.all()
+        return bsale
     
     def __unicode__(self):
         #return self.model
@@ -911,9 +1118,14 @@ class WorkGroup(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     tabindex = models.IntegerField()
+
+    def work_ingroup_count(self):
+        r = WorkType.objects.filter(work_group = self).aggregate(work_count_sum = Count('pk'))
+        #res = r.price + self.cash - self.price
+        return r #int(round(res, 0))
     
     def __unicode__(self):
-        return u'%s -> %s' % (self.name, self.description)
+        return u'%s >>> %s' % (self.name, self.description)
 
     class Meta:
         ordering = ["name", "tabindex"]
@@ -924,6 +1136,26 @@ class WorkType(models.Model):
     work_group = models.ForeignKey(WorkGroup)
     price = models.FloatField()
     description = models.TextField(blank=True, null=True)
+    disable = models.BooleanField(default = False, verbose_name="Відображення")
+    component_type = models.ManyToManyField(Type, blank=True)
+    dependence_work = models.ManyToManyField("self", blank=True)
+    block = models.BooleanField(default = False, verbose_name="Блок/обєднання робіт")
+    plus = models.BooleanField(default = False, verbose_name="Сума+")
+    sale = models.FloatField(default = 0, blank=True, null=True)
+
+    def work_count(self):
+        r = WorkShop.objects.filter(work_type = self).aggregate(work_count_sum = Count('pk'), work_sum=Sum('price'))#.latest('date')
+        #res = r.price + self.cash - self.price
+        return r #int(round(res, 0))
+
+    def get_sale_price(self):
+        r = self.price/100 * (100 - self.sale)
+        base = 5
+        return int(base * round(float(r)/base)) 
+
+    def sum_depend_work(self):
+        r = WorkType.objects.filter(dependence_work = self).aggregate(depend_sum=Sum('price'))
+        return r 
     
     def __unicode__(self):
         #return u'Розділ %s. Робота: %s' % (self.work_group, self.name)
@@ -977,7 +1209,8 @@ class WorkTicket(models.Model):
     date = models.DateField()
     end_date = models.DateField()
     status = models.ForeignKey(WorkStatus)
-#    status_date = models.DateTimeFieldField()
+    phone_date = models.DateTimeField(blank=True, null=True)
+    phone_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='p_user') 
     description = models.TextField(blank=True, null=True)
     phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
@@ -1090,25 +1323,6 @@ class PreOrder(models.Model):
     class Meta:
         ordering = ["company", "manager", "date"]    
 
-
-class Discount(models.Model):
-    name = models.CharField(max_length=255)
-    manufacture_id = models.IntegerField()
-    type_id = models.IntegerField() 
-    date_start = models.DateField(auto_now_add=True)
-    date_end = models.DateField(auto_now_add=False)
-    sale = models.FloatField()
-    #received = models.BooleanField(default=False, verbose_name="Товар отримано?")
-    description = models.TextField(blank = True, null = True)
-            
-    def __unicode__(self):
-        return self.file 
-
-    class Meta:
-        ordering = ["name", "sale", "date_end"]    
-
-
-import datetime
 
 class Rent(models.Model):
     catalog = models.ForeignKey(Catalog)    

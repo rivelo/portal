@@ -1,5 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<title>Результати серії марафонів за {{year}} рік</title>
+
 <link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
 <script src="/media/jquery.dataTables.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
@@ -309,11 +311,13 @@ $(document).ready(function(){
 	rtable.column(-1).visible(false);
 {% endif %}
 
+	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-3">Загальний час</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="3">Місто</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="1">Нік</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Команда</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Велосипед</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">стать</a></div>');
+	
 {% if user.is_authenticated %}
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-1">Телефон</a></div>');
 	$('#rtable_length').append('<div class="cdiv" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-3">К-ть Марафонів</a></div>');
@@ -576,84 +580,17 @@ $("#table_cat1_wrapper").hide();
 <a href="{% url 'event-show' event.pk  %}">{{event.name}} - {{event.date|date:"d E Y року (l)"}}</a><br>
 {% endfor %}
 
-{% comment %}
-{% if user.is_authenticated %}
-{% if user|has_group:"admin"%}
-{{request.user}} <br>
-<a href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  <br>
-<a href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  <br>
-<a href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br>
-{% else %}
-<a href="{% url 'event-result-light' event.pk %}"><<Проста версія>></a> <br><a href="{% url 'event-show' event.pk %}">{{event.name}}</a>
-{% endif %} 
-{% endif %}
-{% endcomment %}
-
 <br>
 </div>
-{% comment %}
-{% for event in events|dictsortreversed:"date" %}
-<div style="float:right;">
-	{% if event.icon %}
-	<img src="/media/{{event.icon}}" />
-	{% endif %} 
-</div>
-{% endfor %}
-{% endcomment %}
 
 <div style="clear:left;">
-{% comment %} 
-{{stat_res.query}} 
-<table width="100%">
-{% for res in stat_res %}
-<tr>
-<td>{{forloop.counter}}</td><td>{{res.reg_event__lname}}</td><td>{{res.reg_event__fname}}</td><td>{{res.reg_event__phone}}</td><td>{{res.reg_event.email}}</td><td>{{res.reg_event__city}}</td><td>{{res.cphone}}</td><td>{{res.reg_event__birthday}}</td><td>{{res.reg_event__event__name}}</td>
-</tr>
-{% endfor %}
-</table>
 
-
-{% regroup stat_res by reg_event.phone as phone_list %}
-
-<table width="100%">
-{% for p_rider in phone_list %}
-    <tr><td>{{forloop.counter}}</td>
-    
-    {# <td>{{ p_rider.grouper }}</td> #}
-    
-    {% with total=p_rider.list|first %} 
-    {# p_rider.list|first #}
-    <td> 
-    {{total.reg_event.lname}} {{total.reg_event.fname}}
-    </td>
-    <td> {{ total.reg_event.nickname }}</td><td> {{ total.reg_event.city }}</td><td> {{ total.reg_event.club }}</td>
-    {% endwith %} 
-    
-        {% for ustat in p_rider.list %}
-            <td>{{ustat.reg_event.event.name}}</td> <td>{{ustat.get_time_diff}}</td> 
-            {% if forloop.last %}
-            	{% ifequal forloop.counter 1 %}
-            	<td></td><td></td><td></td><td></td>
-            	{% endifequal %}
-            	{% ifequal forloop.counter 2 %}
-            	<td></td><td></td>
-            	{% endifequal %}
-            	<td>{{forloop.counter}}</td>
-            {% endif %}
-        {% endfor %}
-        	
-    </tr>
-{% endfor %}
-</table>
-{% endcomment %}
 </div>
-
 
 
 <table id="rtable" class="display" cellspacing="0" width="100%">
 <thead>
 <tr>
-{# <th title="Стартовий номер">№</th> #}
 <th>Ім'я / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">С</th>
@@ -668,21 +605,17 @@ $("#table_cat1_wrapper").hide();
 	<th title='{{event.name}} - {{event.date|date:"d E Y року (l)"}}'>{{event.name}} - {{event.date|date:"d E Y року (l)"}} </th>
 	{% endif %} 
 {% endfor %}
-{% comment %}
-<th title="Рівно100"><img height="70px" src="/media/upload/events/rivno100_small_logo_84.jpg"></th>
-<th title="МедовийТрел"><img height="90px" src="/media/upload/events/logo.jpg"/></th>
-<th title="100 миль"><img height="90px" src="/media/upload/events/100miles_100px.jpg"/></th>
-{% endcomment %}
 <th title="Кількість проїханих марафонів">Кількість</th>
+<th title="Загальний час">Загальний час</th>
 <th>Стать</th>
 {% if user.is_authenticated %}
 <th>Телефон</th>
 {% endif %}
 </tr>
 </thead>
-	<tfoot>
-            <tr>
-{# <th title="Стартовий номер">№</th> #}
+
+<tfoot>
+			<tr>
 <th>Ім'я / Прізвище</th>
 <th>Нік</th>
 <th title="Стать">С</th>
@@ -694,14 +627,15 @@ $("#table_cat1_wrapper").hide();
 <th title="МедовийТрел">МедовийТрейл</th>
 <th title="100 миль">100Миль</th>
 <th title="Кількість проїханих марафонів">Кількість</th>
+<th title="Загальний час">Загальний час</th>
 <th>Стать</th>
 {% if user.is_authenticated %}
 <th>Телефон</th>
 {% endif %}            
             </tr>
-        </tfoot>
-<tbody>
+</tfoot>
 
+<tbody>
 {% if user.is_authenticated %}
   
 {% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
@@ -721,10 +655,10 @@ $("#table_cat1_wrapper").hide();
     <tr>
 {#    <td>{{forloop.counter}}</td> #}
   
-    {# <td>{{ p_rider.grouper }}</td> #}
+{# <td>{{ p_rider.grouper }}</td> #}
     
     {% with total=p_rider.list|first %} 
-    {# p_rider.list|first #}
+{# p_rider.list|first #}
     <td> {{total.reg_event.lname}} {{total.reg_event.fname}} </td>
     <td> {{ total.reg_event.nickname }}</td>
 <td align="center">
@@ -766,44 +700,56 @@ style="background-color: white;"
 <!-- {{rider.reg_event.birthday|date:"Y"}}  --> 
 {{total.reg_event.category.0}} <div class="hover-content">{{total.reg_event.category.1}}</div> </td>
     
-{#	<td align="center">{{total.reg_event.birthday|date:"Y"}}</td> #}
-
 <td align="center">{{total.reg_event.bike_type.name}}</td>
 
-     
+{% with timeplus=0 timeplus1=0 flag=True %}    	     
     	{% for ev in events %}
     	{% if p_rider.list|length <= events|length %}
-{% with flag=True %}    	
+{# with flag=True #}    	
         	{% for ustat in p_rider.list|dictsort:"reg_event.event.date" %}
         	{% ifequal ev.id ustat.reg_event.event.id %}
         		{% update_variable False as flag %}
-        		{# update_variable "True" as flag #}
-        		<td align="center">{{ustat.get_time_diff}} {# <img height="60px" src="/media/{{ustat.reg_event.event.icon}}"> #}</td>
+        		{# update_variable_v2 ustat.get_time_diff as timeplus #}
+        		<td align="center">{{ustat.get_time_diff}}  {# TIME <img height="60px" src="/media/{{ustat.reg_event.event.icon}}"> #}</td>
+        		
         	{% endifequal %}
 		{% if forloop.last == True and flag == True %}	
 			<td></td>
 		{% endif %}
+		
+	
 			{% endfor %}
+			
+	{# update_variable_v2 False as timeplus #}
 	
-{% endwith %}				 
+{# endwith #}				 
 		{% endif %}
-	
-{% comment %}			
-{# full event rider list #}
-    	{% if p_rider.list|length == events|length %}
-        {% for ustat in p_rider.list|dictsort:"reg_event.event.date" %}
-        	{% ifequal ev.id ustat.reg_event.event.id %}
-        		<td>{{ustat.reg_event.event}} {{ustat.reg_event.event.name}}<img src="/media/{{ustat.reg_event.event.icon}}"></td> <td>{{ustat.get_time_diff}}</td>
-        	{% endifequal %}
-		{% endfor %}
-		{% endif %}
-{% endcomment %}
 		
 		{% if forloop.last %}	
 			<td align="center">{{p_rider.list|length}}</td>
 		{% endif %}
+			
+{% comment %}			 
+			 {{ p_rider.list.0.get_time_diff }}
+			 {{ p_rider.list.1.get_time_diff }}
+			 {% update_variable_v2 p_rider.list.1.get_time_diff as timeplus %}
+			 {{ p_rider.list.2.get_time_diff }}
+			 {% update_variable_v2 p_rider.list.2.get_time_diff as timeplus1 %}
+			 {# p_rider.list.0.get_time_diff|time_plus_time:timeplus|time_plus_time:timeplus1 #}
+			 {% time_plus_time p_rider.list.0.get_time_diff timeplus timeplus1 %}
+			 
+{% endcomment %}
 
 {% endfor %}
+			{# Загальний час #}
+			<td align="center">
+			 {% update_variable_v2 p_rider.list.1.get_time_diff as timeplus %}
+			 {% update_variable_v2 p_rider.list.2.get_time_diff as timeplus1 %}
+			 {% time_plus_time p_rider.list.0.get_time_diff timeplus timeplus1 %}
+			</td>
+
+{% endwith %}
+
 <td align="center">{{total.reg_event.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" >
@@ -817,49 +763,7 @@ style="background-color: white;"
 
 
 
-{% comment %}
-{% for rider in list %}
 
-<td align="center">{{rider.reg_event.bike_type.name}}</td>
-<td align="center" rid="{{rider.reg_event.id}}"> {{rider.start|date:'H:i:s'}} </td>
-<td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp1|date:'H:i:s'}} </td>
-<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.finish|date:'H:i:s'}} </td>
-<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.get_time_diff}} </td>
-
-
-{% if user.is_authenticated %}
-	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.reg_event.status}}</td>
-	<td align="center" class="pay_type" rider_id="{{rider.pk}}">{{rider.reg_event.pay_type}}<div class="hover-content">{{rider.reg_event.pay_date}}</div></td>
-{% else %}
-	<td align="center">{{rider.reg_event.status}}</td>
-{% endif %}
-
-{% if user.is_authenticated %}
-	<td align="center" >
-<div class="dropdown">
-  <span>
-<a href="{% url 'rider-pay-submit-admin' rider.reg_event.pk %}"><img src="/media/images/menu_navigation_40.png" height="25"></a>
-  </span>
-  <div class="dropdown-content">
-	<a href="{% url 'rider-reminder-mail' rider.reg_event.pk %}">Відправити лист</a>
-  </div>
-</div>
-	</td>
-	<td>
-	{{rider.reg_event.phone}}
-	</td>
-	<td>
-	{{rider.reg_event.description}}
-	</td>
-	<td class="start_status" rider_id="{{rider.reg_event.pk}}">
-	{{rider.reg_event.start_status}}
-	</td>
-
-	
-{% endif %}
-</tr>
-{% endfor %}
-{% endcomment %}
 
 </tbody>  
 </table>	

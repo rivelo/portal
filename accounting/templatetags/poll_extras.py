@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from django import template
 from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
+register = template.Library()
+
 import datetime
 
 register = template.Library()
@@ -14,9 +17,10 @@ def mul(value, arg):
 def div(value, arg):
     return value / arg
 
-@register.filter(name = 'sub')
+@register.filter
 def sub(value, arg):
     return value - arg
+
 
 @register.inclusion_tag('orm_debug.html')
 def orm_debug():
@@ -65,6 +69,18 @@ def phone2Str(value):
         return ''  
 
 
+import json
+import requests
+
+def google_url_shorten(url):
+    GOOGLE_URL_SHORTEN_API = "AIzaSyAmFLlPmG7SKuwdCEG2s2TLmwGsgStGbZw"
+    req_url = 'https://www.googleapis.com/urlshortener/v1/url?key=' + GOOGLE_URL_SHORTEN_API
+    payload = {'longUrl': url}
+    headers = {'content-type': 'application/json'}
+    r = requests.post(req_url, data=json.dumps(payload), headers=headers)
+    resp = json.loads(r.text)
+    return resp['id']
+
 @register.filter
 def qr(value,size="120x120"):
     """
@@ -83,8 +99,23 @@ def sale_url(value,host):
         {{object.code|sale_url}}"
     """
 #    host="192.168.0.102:8001"
-    host="rivelo.com.ua/price"
-    return "%s/%s/" % (host, value)
+    host="rivelo.com.ua/component"
+    #return "%s/%s/" % (host, value)
+    str_url = "%s/%s/" % (host, value)
+    return google_url_shorten(str_url)
+
+
+@register.filter
+def bike_url(value,host):
+    """
+        Usage:
+        {{object.code|bike_url}}"
+    """
+#    host="192.168.0.102:8001"
+    host="rivelo.com.ua/bicycles"
+    #return "%s/%s/" % (host, value)
+    str_url = "%s/%s/model/" % (host, value)
+    return google_url_shorten(str_url)
 
 
 @register.filter
@@ -112,7 +143,7 @@ def truncate_chars(value, max_length):
 def has_group(user, group_name): 
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
- 
+    #return user.groups.filter(name=group_name).exists()
 
     
 @register.filter(name='date_left') 
@@ -123,4 +154,28 @@ def date_left(date):
     except TypeError:
         return "don't update" 
     return res.days 
-    
+
+
+@register.filter(name='addcss')
+def addcss(value, arg):
+    css_classes = value.field.widget.attrs.get('class', '').split(' ')
+    if css_classes and arg not in css_classes:
+        css_classes = '%s %s' % (css_classes, arg)
+    return value.as_widget(attrs={'class': css_classes})    
+
+
+@register.filter(name='add_attr')
+def add_attr(field, css):
+    attrs = {}
+    definition = css.split(',')
+
+    for d in definition:
+        if ':' not in d:
+            attrs['class'] = d
+        else:
+            key, val = d.split(':')
+            attrs[key] = val
+
+    return field.as_widget(attrs=attrs)
+
+

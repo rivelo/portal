@@ -2,11 +2,15 @@
 from django import forms
 from django.forms import ModelForm
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
-from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList
-from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay
+from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList, Discount
+from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
 
 from django.contrib.auth.models import User
 import datetime
+
+from django.db.models import Q
+
+from django.forms import formset_factory
 
 TOPIC_CHOICES = (
     ('general', 'General enquiry'),
@@ -96,8 +100,8 @@ class CategoryForm(forms.ModelForm):
 
 # --------- Bicycle -------------
 class BicycleTypeForm(forms.ModelForm):
-    type = forms.CharField(label='Bicycle type')
-    description = forms.CharField(label='Description of type', widget=forms.Textarea(), max_length=255)
+#    type = forms.CharField(label='Bicycle type')
+#    description = forms.CharField(label='Description of type', widget=forms.Textarea(), max_length=255)
     class Meta:
         model = Bicycle_Type
         fields = '__all__'
@@ -126,7 +130,6 @@ class BicycleForm(forms.ModelForm):
     weight = forms.FloatField(min_value=0, initial=0)
     price = forms.FloatField(initial=0)
     offsite_url = forms.URLField(required=False)
-    #currency = SelectFromModel(objects=Currency.objects.all())
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), initial=Currency.objects.get(ids_char = 'UAH'))
     sale = forms.FloatField(min_value=0, initial=0, required=False)
     warranty = forms.IntegerField(min_value=0, initial=1)
@@ -134,6 +137,7 @@ class BicycleForm(forms.ModelForm):
     internet = forms.BooleanField(required=False)
     rating = forms.IntegerField(min_value=0, initial=0)
     description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)
+    country_made = forms.ModelChoiceField(queryset = Country.objects.all())
 
     class Meta:
         model = Bicycle
@@ -206,10 +210,6 @@ class BicycleSaleEditForm(forms.ModelForm):
 class BicycleOrderForm(forms.ModelForm):
     cur_year = datetime.datetime.today().year
     client_id = forms.CharField(widget=forms.TextInput(attrs={'size': '50'}), max_length=50, label = 'Клієнт')
-    #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label = 'Клієнт')    
-#    client = forms.IntegerField(widget=forms.HiddenInput(), label = 'Клієнт')
-#    model = forms.IntegerField(widget=forms.HiddenInput(), label = 'Модель велосипеду')
-    #model = forms.ModelChoiceField(queryset = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-1, 1, 1)).order_by('-year'), empty_label="", label = 'Модель велосипеду')
     model_id = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), label = 'Модель велосипеду')    
     size = forms.CharField(max_length=50, label = 'Розмір рами')
     price = forms.FloatField(initial = 0, label = 'Ціна')
@@ -217,7 +217,6 @@ class BicycleOrderForm(forms.ModelForm):
     prepay = forms.FloatField(initial = 0, label = 'Аванс')
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
     date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
-    #done = forms.BooleanField(required=False) 
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
     
     class Meta:
@@ -368,6 +367,7 @@ class ImportPriceForm(forms.Form):
     recomended = forms.BooleanField(label='Ціна товару', required=False)
     description = forms.BooleanField(label='Опис', required=False)
     photo = forms.BooleanField(label='Фото', required=False)
+    currency = forms.BooleanField(label='Курс валюти', required=False)
     
 
 class InvoiceComponentListForm(forms.ModelForm):
@@ -447,7 +447,8 @@ class CatalogForm(forms.ModelForm):
     count = forms.IntegerField(initial=0, required=False)
     length = forms.FloatField(initial=0, required=False)
     country = forms.ModelChoiceField(queryset = Country.objects.all())    
-    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)
+    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y') , required=False)    
 
     class Meta:
         model = Catalog
@@ -461,6 +462,35 @@ class ClientForm(forms.ModelForm):
     city = forms.CharField(max_length=255)
     email = forms.EmailField(required=False)
     phone = forms.CharField(max_length=255, required=False)
+    phone1 = forms.CharField(max_length=255, required=False)
+    sale = forms.IntegerField(required=False, initial=0)
+    summ = forms.FloatField(initial=0)
+    birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
+
+    def clean_phone(self):
+        data = self.cleaned_data['phone']
+        res = Client.objects.filter( Q(phone__icontains = data) | Q(phone1__icontains=data))
+        if res:
+            raise forms.ValidationError("Клієнт з таким номером телефону вже існує!")
+
+        # Always return a value to use as the new cleaned data, even if
+        # this method didn't change it.
+        return data
+
+    class Meta:
+        model = Client
+        fields = '__all__'
+
+
+class ClientEditForm(forms.ModelForm):
+    name = forms.CharField(max_length=255)
+    forumname = forms.CharField(max_length=255, required=False)    
+    country = forms.ModelChoiceField(queryset = Country.objects.all(), initial=1)
+    city = forms.CharField(max_length=255)
+    email = forms.EmailField(required=False)
+    phone = forms.CharField(max_length=255, required=False)
+    phone1 = forms.CharField(max_length=255, required=False)
     sale = forms.IntegerField(required=False, initial=0)
     summ = forms.FloatField(initial=0)
     birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
@@ -612,28 +642,83 @@ class WorkGroupForm(forms.ModelForm):
 
         
 class WorkTypeForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    work_group = forms.ModelChoiceField(queryset = WorkGroup.objects.all())
-    price = forms.FloatField()
-    description = forms.CharField(label='Description', widget=forms.Textarea())
+    name = forms.CharField(max_length=255, label='Назва роботи')
+    work_group = forms.ModelChoiceField(queryset = WorkGroup.objects.all(), label='Група робіт')
+    price = forms.FloatField(label='Ціна')
+    description = forms.CharField(label='Короткий опис роботи', widget=forms.Textarea())
+   
     class Meta:
         model = WorkType
-        fields = '__all__'    
+        fields = '__all__'
+
 
 class WorkShopForm(forms.ModelForm):
-    #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label="Клієнт")
-    client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="")
-    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False, label="Дата")
-#    work_type = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete', 'width':'340px'}), queryset = WorkType.objects.all())
-    work_type = forms.ModelChoiceField(queryset = WorkType.objects.all(), label="Робота")    
-    price = forms.FloatField(initial=0, label="Ціна")
-    pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
+#    client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.none(), empty_label="Клієнт")
+#    work_type = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = WorkType.objects.none(), label="Робота")
+#    client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="Клієнт")
+#    work_type = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = WorkType.objects.all(), label="Робота")
+    
+    work_type = forms.CharField(widget=forms.HiddenInput(), label="Робота")
+    client = forms.CharField(widget=forms.HiddenInput())
+    
+    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
+    price = forms.FloatField(initial=0, label="Ціна" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
+    #pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
+    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+
+    def clean_client(self):
+        data = self.cleaned_data['client']
+        res = Client.objects.filter(pk = data)
+        if not res:
+            raise forms.ValidationError("Клієнт з таким ПІБ або номером телефону не існує!")
+        # Always return a value to use as the new cleaned data, even if
+        # this method didn't change it.
+        return res[0]
+  
+    def clean_work_type(self):
+        data = self.cleaned_data['work_type']
+        res = WorkType.objects.filter(pk = data)
+        if not res:
+            raise forms.ValidationError("Такої роботи не існує або ви її не вибрали!")
+        return res[0]
+
+#===============================================================================
+#     def clean(self):
+#         cleaned_data = super(WorkShopForm, self).clean()
+#         cc_client = cleaned_data.get("client")
+#         work = cleaned_data.get("work_type")
+# 
+#         try:
+#             data = self.cleaned_data['client']
+#             res = Client.objects.filter(pk = data)
+#         # no user with this username or email address
+#         except User.DoesNotExist:
+#             self.add_error['no_user'] = 'User does not exist'
+#             return False
+# 
+#         if cc_client == '':
+#             msg = "Must put 'help' in subject when cc'ing yourself."
+#             self.add_error('client', msg)
+#             self.add_error('work_type', msg)
+#             return False
+#===============================================================================
+
+    #===========================================================================
+    # def save(self, commit=True):
+    #     client = Client.objects.get(id = self.cleaned_data['client'])
+    #     work = WorkType.objects.get(id = self.cleaned_data['work_type'])
+    #     self.cleaned_data['client'] = client.id
+    #     self.cleaned_data['work_type'] = work.id
+    #     return super(WorkShopForm, self).save(commit)
+    #===========================================================================
     
     class Meta:
         model = WorkShop
         fields = '__all__'
+        exclude = ['pay']
 
+WorkShopFormset = formset_factory(WorkShopForm, extra=1)
 
 class WorkStatusForm(forms.ModelForm):
     name = forms.CharField(max_length=255)
@@ -647,26 +732,38 @@ class WorkStatusForm(forms.ModelForm):
 class WorkTicketForm(forms.ModelForm):
     client = forms.ModelChoiceField(queryset = Client.objects.all())
     #date = forms.DateTimeField(initial=datetime.date.today)
-    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
+    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label="Дата")    
     #end_date = forms.DateTimeField(initial=datetime.date.today)
     end_date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    status = forms.ModelChoiceField(queryset = WorkStatus.objects.all())
-    description = forms.CharField(label='Ticket', widget=forms.Textarea())
+    status = forms.ModelChoiceField(queryset = WorkStatus.objects.all(), label='Статус')
+    description = forms.CharField(label='Опис', widget=forms.Textarea())
     
     class Meta:
         model = WorkTicket
         fields = '__all__'
+        exclude = ['phone_date', 'phone_user', 'phone_status', 'user']
+        
 
+
+class PhoneStatusForm(forms.ModelForm):
+    name = forms.CharField(max_length=255)
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255)
+
+    class Meta:
+        model = PhoneStatus
+        fields = '__all__'
+    
 
 class ShopDailySalesForm(forms.ModelForm):
     #date = forms.DateTimeField(initial=datetime.date.today)
     date = forms.DateTimeField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата")
     price = forms.FloatField(initial=0, label="Сума в касі")    
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.all(), required=False, label='Користувач')
     cash = forms.FloatField(label="Готівка в касі")
     tcash = forms.FloatField(label="Термінал")
     ocash = forms.FloatField(label="Видано з каси")
+    
     class Meta:
         model = ShopDailySales
         fields = '__all__'
@@ -709,13 +806,30 @@ class RentForm(forms.ModelForm):
         exclude = ['cred', 'user', 'status', 'count']
 
 
-
 class WorkDayForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
     status = forms.IntegerField(min_value=0, initial = 0, label='Статус')
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
+    
     class Meta:
         model = WorkDay
         fields = '__all__'
+        
+        
+class DiscountForm(forms.ModelForm):
+    name = forms.CharField(max_length=255)
+    manufacture_id = forms.IntegerField(widget=forms.HiddenInput(), label="Виробник", required=False)
+    type_id = forms.CharField(widget=forms.HiddenInput(), label="", required=False)
+    date_start = forms.DateField( widget=forms.HiddenInput())
+    date_end = forms.DateField( widget=forms.HiddenInput())
+    sale = forms.IntegerField(min_value=0, initial = 0, label='Знижка %')
+    description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
+
+
+    class Meta:
+        model = Discount
+        fields = '__all__'
+#        exclude = ['name']
+            
     

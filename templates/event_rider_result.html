@@ -1,5 +1,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<meta name="description" content="Результати марафону <a href="{% url 'event-show' event.pk  %}">
+<meta name="keywords" content="{{event.name}}, МТБ марафон, Веломарафон, Велосипедний марафон, Вело, Рівело, Rivelo, Рівне, XCM, Marathon MTB, Start list">
+<meta name="author" content="Rivelo">
+
+<title>Результати марафону {{event.name}}</title>
+
 <link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
 <script src="/media/jquery.dataTables.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
@@ -405,6 +411,7 @@ $("body").on("click",".finish_add",function(e){
          event : "click",
          submitdata : function() {
           	return {rid : $(this).attr('rid'), point: 'finish'};
+          	//return { rid: $.trim($(this).attr('rid')),  point: 'finish' };
          },
         }).trigger("focus"); 
 });   
