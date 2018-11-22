@@ -1,0 +1,165 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script>
+        jQuery(document).ready(function ($) {
+            
+ 
+        });
+    </script>
+
+    <style>
+
+.blogo {
+    height: auto; 
+    width: auto; 
+    max-width: 250px; 
+    max-height: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    background: none;
+    cursor: pointer; 
+}         
+
+
+.card {
+{#  background-color: lightgrey; #}
+/*  width: 30%; */
+  margin: 0px;
+/*  flex: 1; */
+  border: 1px solid lightgrey;
+/*  display: flex;           /* new */
+  flex-direction: column;  /* new */
+}
+
+.card-block {
+  padding: 10px;
+  background-color: #fff;
+  flex: 1;                /* new */
+}
+
+.card-title {
+  font-size: 18px;
+  color: grey;
+  font-family: verdana, sans;
+}
+
+.card-footer {
+  padding: 15px;
+  border-top: 1px solid lightgrey;
+  background-color: lightgrey;
+}
+
+.card-columns {
+  @include media-breakpoint-only(xs) {
+    column-count: 5;
+  }
+
+  @include media-breakpoint-only(sm) {
+    column-count: 5;
+  }
+
+  @include media-breakpoint-only(lg) {
+    column-count: 6;
+  }
+  @include media-breakpoint-only(xl) {
+    column-count: 10;
+  }
+
+}  
+        
+    </style>
+
+
+{% load poll_extras %}
+
+{% block content %}
+
+<div class="post">
+	<h2 class="title"><a href="#">Виробники велосипедів</a></h2>
+	<div class="entry">
+
+<div class="card-columns">			
+{% for company in bicycle_companys %}
+	
+  <div class="card">
+  	<a href="{% url 'bicycle-list-bybrand' company.id %}"> 
+    <img class="card-img-top blogo" src="/media/{{company.logo}}" alt="{{company.name}}">
+    </a>
+    <div class="card-body">
+      <h5 class="card-title">{{company.name}}</h5>
+      <a href="{{company.www}}"><p class="card-text"><small class="text-muted">{{company.www}}</small></p></a>
+    </div>
+  </div>
+
+	
+{% endfor %}	
+</div>
+
+</div>
+</div>
+
+
+{% comment %}
+
+	<img src="/media/{{company.logo}}" class="blogo"/> 
+	<p align="justify" style="font-size: 120%"> {{bike}}
+	<a href="{% url 'bicycle-list-bybrand' company.id %}"> {{company.name}} ({{bike.www}})  {{bike.logo}} </a>  
+	</p>
+
+
+<div class="post">
+           
+<div class="entry">
+
+
+{# Список компаній #}
+{% if components_company %}
+<div class="card-columns">
+{% for component in components_company %}
+  <div class="card">
+  	<a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> 
+    <img class="card-img-top ilogo" src="/media/{{component.manufacturer__logo}}" alt="{{component.name}}/{{component.name_ukr}}">
+    </a>
+    <div class="card-body">
+      <h5 class="card-title">{{component.manufacturer__name}}</h5>
+{#      <p class="card-text">[{{component.manufacturer__id}}] {{component.manufacturer__name}} ({{component.brand_c}})  {{component.manufacturer__logo}}</p> #}
+      <p class="card-text"><small class="text-muted">Кількість - {{component.brand_c}}</small></p>
+    </div>
+  </div>
+{% endfor %}
+</div>	
+{% endif %}		
+
+
+
+{# Список категорій #} 
+{% if components_list_bytype %}
+<div class="card-columns card-columns_type">
+{% for component in components_list_bytype %}
+  <div class="card" style="width:128px">
+  	<a href="{% url 'components-list-bytype' component.id %}"> 
+    <img class="card-img-top ilogo" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" style="width:128px" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+    <div class="card-body">
+{#      <h5 class="card-title">{{component.name}}</h5> #}
+{#      <p class="card-text"><small class="text-muted">Кількість - {{component.get_discount}}</small></p> #}
+      <p class="card-text"><small class="text-muted">{{component}}</small></p> 
+    </div>
+  </div>
+
+{#    <p class="mb-1">{{component.type__description_ukr}} </p> #}
+
+{% endfor %}
+</div>
+{% endif %}		
+
+
+</div>
+</div>
+
+{% endcomment %}
+
+{% endblock %}
+
+
+

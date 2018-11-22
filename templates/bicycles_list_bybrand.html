@@ -1,0 +1,55 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<style>
+.bphoto {
+    height: auto; 
+    width: auto; 
+    max-width: 100px; 
+    max-height: 100px;
+    margin-left: auto;
+    margin-right: auto;
+/*    background: none;
+    cursor: pointer; */
+} 
+        
+</style>
+
+
+{% load poll_extras %}
+
+{% block content %}
+
+<div class="post">
+
+<div class="row">
+	<div class="col-9">
+	<h2 class="title">
+	<a href="{% url 'bicycle-company' %}">Велосипеди {{bicycle_bybrand.0.model.brand}}</a>
+	</h2>
+	</div>
+	<div class="col-auto">
+	<img src="/media/{{bicycle_bybrand.0.model.brand.logo}}" class="bphoto"/>
+	</div>
+</div>	
+
+{% if bicycle_bybrand %}
+{% for bike in bicycle_bybrand %}
+	<div style="float:left;background:#ddf2c6; width:200px; height:320px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
+	<img src="/media/{{bike.model.photo}}" width="200px"/>
+	<p align="justify" style="font-size: 100%"> 
+	<a href="{% url 'bicycle-show' bike.id %}"> {{bike.model}}  </a><br> Ціна {{bike.model.price}} грн.  Знижка {{bike.model.sale}}%
+	</p> 
+	</div>
+{% endfor %}	
+{% endif %}
+
+
+
+
+</div>
+
+
+{% endblock %}
+
+
+

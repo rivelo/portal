@@ -1,0 +1,183 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<script>
+$(function () {
+
+	$('[data-toggle="tooltip"]').tooltip()
+		
+})
+</script>
+
+<style>
+.image-component {
+	position	: relative;
+	width		: 100%; /* for IE 6 */
+}
+
+h5.sale {
+	color: white;
+	background-color: red;
+	font-weight: bold;
+	position	: absolute; 
+/*	float: right;*/
+	bottom		: 0px;
+	right		: 0px;
+/*	left		: 100px; */
+/*	width		: 50%; */
+}
+
+
+
+.card img {
+    height: auto; 
+    width: auto; 
+    max-width: 200px; 
+    max-height: 200px;
+    margin-left: auto;
+    margin-right: auto;
+/*    background: none;
+    cursor: pointer; */
+} 
+
+.card {
+{#  background-color: lightgrey; #}
+/*  width: 30%; */
+  margin: 0px;
+/*  flex: 1; */
+  border: 1px solid lightgrey;
+/*  display: flex;           /* new */
+  flex-direction: column;  /* new */
+}
+
+.card-block {
+  padding: 10px;
+  background-color: #fff;
+  flex: 1;                /* new */
+}
+
+.card-title {
+  font-size: 18px;
+  color: grey;
+  font-family: verdana, sans;
+}
+
+.card-footer {
+  padding: 15px;
+  border-top: 1px solid lightgrey;
+  background-color: lightgrey;
+}
+
+.card-columns {
+  @include media-breakpoint-only(xs) {
+    column-count: 5;
+  }
+
+  @include media-breakpoint-only(sm) {
+    column-count: 5;
+  }
+
+  @include media-breakpoint-only(lg) {
+    column-count: 6;
+  }
+  @include media-breakpoint-only(xl) {
+    column-count: 10;
+  }
+  
+.card-columns_type {
+  @include media-breakpoint-only(xs) {
+    column-count: 5;
+  }
+
+  @include media-breakpoint-only(sm) {
+    column-count: 6;
+  }
+
+  @include media-breakpoint-only(lg) {
+    column-count: 6;
+  }
+  @include media-breakpoint-only(xl) {
+    column-count: 8;
+  }  
+}
+        
+</style>
+
+{% load poll_extras %}
+
+{% block content %}
+
+<div class="post">
+	{% if components_bybrand %}
+	<h2 class="title"><a href="{% url 'components-company' %}">Виробники </a> >>> <a href="#"> Компанія {{components_bybrand.1.manufacturer.name}}</a> 
+	<img src="/media/{{components_bybrand.1.manufacturer.logo}}" class="img-fluid rounded float-right" alt="{{components_bybrand.1.manufacturer.name}}" style="max-height: 100px;"/>
+	</h2>
+
+	{% endif %}
+	{% if components_bytype %}
+	<h2 class="title"><a href="{% url 'components-type-list' %}">Категорія </a> >>> <a href="#"> {{components_bytype.1.type}} </a> </h2>
+	{% endif %}
+	{% if component %}
+	<h2 class="title">{{component.name}}</h2>
+	{% endif %}
+	{% if components_company %}
+	<a href="{% url 'components-company' %}"><h2 class="title">Виробники компонентів</h2></a>
+	{% endif %}
+	{% if components_list_bytype %}
+	<h2 class="title"><a href="{% url 'components-type-list' %}">Категорії </a> </h2></a>
+	{% endif %}
+           
+<div class="entry">
+
+
+{# Список компаній #}
+{% if components_company %}
+<div class="card-columns">
+{% for component in components_company %}
+  <div class="card">
+  	<a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> 
+    <img class="card-img-top ilogo" src="/media/{{component.manufacturer__logo}}" alt="{{component.name}}/{{component.name_ukr}}">
+    </a>
+    <div class="card-body">
+      <h5 class="card-title">{{component.manufacturer__name}}</h5>
+{#      <p class="card-text">[{{component.manufacturer__id}}] {{component.manufacturer__name}} ({{component.brand_c}})  {{component.manufacturer__logo}}</p> #}
+      <p class="card-text"><small class="text-muted">Кількість - {{component.brand_c}}</small></p>
+    </div>
+  </div>
+{% endfor %}
+</div>	
+{% endif %}		
+
+
+
+{# Список категорій #} 
+{% if components_list_bytype %}
+<div class="card-columns card-columns_type">
+{% for component in components_list_bytype %}
+  <div class="card" style="width:128px">
+  	<a href="{% url 'components-list-bytype' component.id %}"> 
+    <img class="card-img-top ilogo" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" style="width:128px" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+    <div class="card-body">
+{#      <h5 class="card-title">{{component.name}}</h5> #}
+{#      <p class="card-text"><small class="text-muted">Кількість - {{component.get_discount}}</small></p> #}
+      <p class="card-text"><small class="text-muted">{{component}}</small></p> 
+    </div>
+  </div>
+
+{#    <p class="mb-1">{{component.type__description_ukr}} </p> #}
+
+{% endfor %}
+</div>
+{% endif %}		
+
+
+</div>
+</div>
+
+
+{% endblock %}
+
+
+

@@ -323,14 +323,23 @@ a.active {
 /* Post */
 
 .post {
-	margin-bottom: 25px;
+	margin-bottom: 25px; 
+	padding-top: 15px;
 }
 
 .post .title {
 	margin-bottom: 3px;
-	padding: 2px 0px;
+	padding: 2px 0px; 
 	border-bottom: 1px dashed #B4F59D;
 }
+
+.posttitle {
+	color: #608F30;
+	margin-bottom: 3px;
+	padding: 2px 0px; 
+	border-bottom: 1px dashed #B4F59D;
+}
+
 
 .post .meta {
 	margin: 0 0 3px 0;

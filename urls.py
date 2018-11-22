@@ -81,7 +81,7 @@ urlpatterns = [ #patterns('',
     url(r'^rider/edit/email/$', event_calendar_views.regevent_edit), # change email
 
     url(r'^shop/$', event_calendar_views.shop_main, name='shop-main'),
-    url(r'^components/$', event_calendar_views.shop_components_company, name='components-company'),
+    url(r'^components/$', event_calendar_views.shop_company_list, name='components-company'),
     url(r'^components/type/list/$', event_calendar_views.shop_type_list, name='components-type-list'),
     url(r'^components/search/$', event_calendar_views.shop_search, name='components-search'),
     url(r'^components/sale/$', event_calendar_views.shop_components_sale, name='components-sale'),
@@ -89,6 +89,9 @@ urlpatterns = [ #patterns('',
     url(r'^blackfriday/$', event_calendar_views.shop_discount, name='components-discount'),
     url(r'^components/(?P<id>\d+)/brand/$', event_calendar_views.shop_components_brand, name='components-list-bybrand'),
     url(r'^components/(?P<id>\d+)/type/$', event_calendar_views.shop_components_type, name='components-list-bytype'),
+    url(r'^components/(?P<id>\d+)/brand/sale/$', event_calendar_views.shop_components_brand_sale, name='components-list-bybrand-sale'),
+    url(r'^components/(?P<id>\d+)/type/sale/$', event_calendar_views.shop_components_type_sale, name='components-list-bytype-sale'),
+
     url(r'^component/(?P<id>\d+)/$', event_calendar_views.shop_component, name='component-show'),
     url(r'^bicycles/$', event_calendar_views.shop_bicycle_company, name='bicycle-company'),
     url(r'^bicycles/(?P<id>\d+)/brand/$', event_calendar_views.shop_bicycle_brand, name='bicycle-list-bybrand'),

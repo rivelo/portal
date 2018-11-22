@@ -1,5 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <style>
       #map {
         height: 60%;
@@ -96,53 +98,104 @@ $(document).ready(function() {
 //	$(".photo-container").find('img').wrap('<div class="wrap-img"></div>');
 });
 </script>
-
-<body>
+{% load poll_extras %}
 
 {% block content %}
 
+<div class="row">
+<div class="col-auto">
+<img class="card-img-top" src="/media/upload/icons/bike-service4-gr.png" style="width:80px" alt="Майстерня" title="" data-toggle="tooltip" data-placement="top" data-original-title="Майстерня">
+</div>
+<div class="col-auto">
+<h2 class="posttitle"><span class="badge badge-secondary">Майстерня</span><br><span class="badge badge-success">Технічне обслуговування</span></h2>
+</div>
+</div>
+<hr align="left" width="100%" size="4" color="#B4F59D" />
+
+{% comment %}
 <div class="post">
 	<h2 class="title"><a href="#" title="Майстерня"> Майстерня </a> >> Технічне обслуговування</h2>
 </div>
+{% endcomment %}
 
 <div class="row">
 <div class="col-12">
 
 <figure class="imgteaser">
     <img src="/media/images/bicycle_season_repair.png" alt="конь"/>
-    <figcaption><strong>Технічне обслуговування велосипеда:<br> - Оцінка стану механізмів та їх зовнішня чистка</strong>***на обслуговування приймаються лише чисті велосипеди</figcaption>
+    <figcaption><strong>
+    <font size='5'>{{ serv_work.name }}:</font>><br> 
+	{% for work in serv_work.dependence_work.all %} 
+     -{{work.name}}<br>
+     {% endfor %}
+    </strong>
+     ***на обслуговування приймаються лише чисті велосипеди
+    </figcaption>
 </figure>
 </div>
-
-{% comment %}
-<div class="col-12">
-<div class="wrap-img" >
-<img src="/media/images/bicycle_season_repair.png" class="img-fluid" alt="Responsive image" style="content: 'Logo'">
-</div>
-</div>
-{% endcomment %}
 </div>
 
+<ul class="list-group">
+  <li class="list-group-item list-group-item-success font-weight-bold " style="font-size: 14px">Список робіт що входить до сезонного обслуговування:</li>
+{% for work in serv_work.dependence_work.all %}  
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{work.name}} <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5></li>
+{% endfor %}  
+  <li class="list-group-item list-group-item-info font-weight-bold d-flex justify-content-between align-items-center" style="font-size: 14px">Сума: 
+  {% if serv_work.sale > 0 %} 
+   
+  <h5><s>{{serv_work.sum_depend_work.depend_sum|floatformat:"0"}} грн</s> <span class="badge badge-warning ">{{serv_work.get_sale_price}} грн.</span> 
+  <p>Ви заощаджуєте {{serv_work.price|subtract:serv_work.get_sale_price|floatformat:"0"}} грн.</p></h5>
+  {% else %}
+  <h5><span class="badge badge-warning ">{{serv_work.sum_depend_work.depend_sum|floatformat:"0"}} грн.</span></h5>
+  {% endif %}
+{#  <p>Ви заощаджуєте {{serv_work.price|floatformat:"0"}} {{serv_work.price|subtract:get_sale_price|floatformat:"0"}} грн.</p> #}
+  </li>
+</ul>
 
+<div class="row pt-2">
+	<div class="col-auto">
+	<img class="card-img-top" src="/media/upload/icons/bike-service1-gr.png" style="width:80px" alt="Майстерня" title="" data-toggle="tooltip" data-placement="top" data-original-title="Майстерня">
+	</div>
+
+	<div class="col-auto">
 	<p align="justify" style="font-size: 110%">
-	Майстерня знаходиться за адресою: м.Рівне Кавказька 6
-	<br>
-	<a href="/about/" class="btn btn-success">Контакти >>> </a>
+	<a href="/about/" class="btn btn-success"><i class="material-icons">contact_phone</i><i class="material-icons">location_on</i>Контакти >>> </a>
+	<br> Майстерня знаходиться за адресою: м.Рівне Кавказька 6
 	</p>
+	</div>
+</div>
 
-
+{# Прайс майстерні #}
 <div class="list-group">
-  <a href="#" class="list-group-item list-group-item-action active">
+  <a href="#" class="list-group-item list-group-item-action list-group-item-secondary active">
     Групи робіт в майстерні:
   </a>
 {% for wgroup in workgroup %}
-<a href="#" class="list-group-item list-group-item-action disabled">{{wgroup}}</a>
+<a class="list-group-item list-group-item-action disabled font-weight-bold list-group-item-success display-5" data-toggle="collapse" href="#collapseExample{{wgroup.id}}" role="button" aria-expanded="false" aria-controls="collapseExample{{wgroup.id}}">{{wgroup}}
+ <span class="badge badge-secondary">{{wgroup.work_ingroup_count.work_count_sum}} робіт</span> </a>
+<div class="collapse" id="collapseExample{{wgroup.id}}">
+	<div class="card card-body">
+<ul class="list-group">
+{% for work in wgroup.worktype_set.all %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{work}}
+  {% if  work.price == 0 %}
+  <h5><span class="badge badge-info ">ціна договірна</span></h5>
+  {% else %}
+  <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5>
+  {% endif %}
+  </li>
+{% endfor %}
+
+</ul>
+	</div>  
+</div>
 {% endfor %}
 </div>
 
+
+
 {#    <div id="map"></div> #}
 
-</body>
 
 {% comment %}
 <script>
@@ -167,7 +220,7 @@ function initMap() {
  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> 
  {% endcomment %}
  
-</body>
+
 
 {% endblock %}
 

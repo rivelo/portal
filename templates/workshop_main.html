@@ -25,7 +25,8 @@ $(function () {
 {% block content %}
 
 
-<div class="post">
+<div> {# class="post"> #}
+
 	
 	<h2 class="title" >Майстерня</h2>
            
@@ -38,6 +39,36 @@ $(function () {
 	<a href="/about/" class="btn btn-success">Контакти >>> </a>
 	</p>
 	
+	
+{# Прайс майстерні #}
+<div class="list-group">
+  <a href="#" class="list-group-item list-group-item-action list-group-item-secondary active">
+    Групи робіт в майстерні:
+  </a>
+{% for wgroup in workgroup %}
+<a class="list-group-item list-group-item-action disabled font-weight-bold list-group-item-success display-5" data-toggle="collapse" href="#collapseExample{{wgroup.id}}" role="button" aria-expanded="false" aria-controls="collapseExample{{wgroup.id}}">{{wgroup}}
+ <span class="badge badge-secondary">{{wgroup.work_ingroup_count.work_count_sum}} робіт</span> </a>
+<div class="collapse" id="collapseExample{{wgroup.id}}">
+	<div class="card card-body">
+<ul class="list-group">
+{% for work in wgroup.worktype_set.all %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{work}}
+  {% if  work.price == 0 %}
+  <h5><span class="badge badge-info ">ціна договірна</span></h5>
+  {% else %}
+  <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5>
+  {% endif %}
+  </li>
+{% endfor %}
+
+</ul>
+	</div>  
+</div>
+{% endfor %}
+</div>
+	
+
+{% comment %}	
 <div class="list-group" id="myList" role="tablist">
   <span class="list-group-item list-group-item-action list-group-item-secondary active font-weight-bold">
     Групи робіт в майстерні:
@@ -56,10 +87,10 @@ $(function () {
 </a>
 {% endfor %}
 </div>	
+{% endcomment %}
 
 
-
-    <div id="map" ></div>  
+<div id="map" ></div>  
 
 <br>
     

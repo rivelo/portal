@@ -163,16 +163,18 @@ $(function () {
 <div class="card">
 	{% if sale.get_manufacture %}
 	{% if sale.get_manufacture.logo %}
-	<div class="link_catalog" tabindex="0" data-trigger="focus" data-toggle="popover" data-trigger="focus" data-html="true" title="Повідомлення" data-content="Посилання працюватиме<br> {{sale.date_start}}">
+	<div class="link_catalog" tabindex="0" data-trigger="focus" data-toggle="popover" data-trigger="focus" data-html="true" title="Повідомлення" data-content="Посилання працюватиме<br> з {{sale.date_start}}<br> по {{sale.date_end}}">
 {#	<h5 class="sale">Знижка {{sale.sale|floatformat:"0"}} %</h5> #}
+<a href="{% url 'components-list-bybrand' sale.manufacture_id %}"> 
 		<img class="card-img-top" src="/media/{{sale.get_manufacture.logo}}" class="ilogo" alt="{{sale.get_manufacture.name}}" title="{{sale.get_manufacture.name}}" data-toggle="tooltip" data-placement="top">
+</a>
 	</div>		
 	{% endif %}
 	{% endif %}
 
 	{% if sale.get_type %}
-	<div class="link_catalog" tabindex="0" class="badge badge-danger" data-trigger="focus" role="button" data-container="body" data-html="true" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}}">
-		<img class="card-img-top" src="{{ sale.get_type.get_icon_name}}" width="64px" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="top">
+	<div class="link_catalog" tabindex="0" class="badge badge-danger" data-trigger="focus" role="button" data-container="body" data-html="true" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}} <br>-<br> {{sale.date_end}}">
+		<img class="card-img-top" src="{{ sale.get_type.get_icon_name}}" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="top">
 	</div>
 	{% endif %}
     
@@ -181,11 +183,11 @@ $(function () {
       <h5 class="card-title">-{{sale.sale|floatformat:"0"}}%</h5>
       <p class="card-text">{{sale.name}}<br> {{sale.description}}</p>
     </div>
-
-{% endcomment %}    
+{% endcomment %}
+    
     <div class="card-footer">
     <h3 class="center">
-    <span tabindex="0" class="badge badge-danger link_catalog" data-container="body" data-html="true" data-trigger="focus" role="button" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}}">
+    <span tabindex="0" class="badge badge-danger link_catalog" data-container="body" data-html="true" data-trigger="focus" role="button" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> з {{sale.date_start}} <br>по {{sale.date_end}}">
     Знижка {{sale.sale|floatformat:"0"}}%
     </span>
     </h3>

@@ -24,7 +24,7 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 
-from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount 
+from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer
 
 import simplejson
 import googlemaps
@@ -39,6 +39,7 @@ from django.utils.translation.trans_real import catalog
 from django.db.models import Sum, Count, Max
 from django.db.models import Q
 from pyasn1.compat.octets import null
+#from gdata.contentforshopping.data import Manufacturer
 
 def admin_sendmail(request, id):
     photo1 = Photo.objects.random()
@@ -1576,11 +1577,13 @@ def year_results(request, year=2017):
 
 def shop_bicycle_company(request):
     #bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand__logo', 'model__brand', 'model__brand__name', 'model__brand__id').annotate(brand_c = Count('model__brand'))
-    bsc = Bicycle_Store.objects.filter(count__gte = 1).values('model__brand').annotate(brand_c = Count('model__brand__pk'))
-
+    bs_brand_list = Bicycle_Store.objects.filter(count__gte = 1).values_list('model__brand', flat=True) #values('model__brand')#.annotate(dcount=Count('model__brand')) #.annotate(brand_c = Count('model__brand__pk'))
+    m_list = list(set(bs_brand_list))
+    #m_list = [19, 1, 3, 68, 197, 199, 138, 11, 179, 155]
+    bsc = Manufacturer.objects.filter(pk__in = m_list).order_by('name')    
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_company': bsc, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'bicycles_company_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_companys': bsc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -1592,7 +1595,7 @@ def shop_bicycle_brand(request, id=None):
     bsb = Bicycle_Store.objects.filter(count__gte = 1, model__brand__pk = id)
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'bicycles_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bybrand': bsb, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'bicycles_list_bybrand.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bybrand': bsb, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -1611,12 +1614,12 @@ def shop_bicycle(request, id):
     return render(request, 'index.html', vars)        
 
 
-def shop_components_company(request):
+def shop_company_list(request):
     scc = Catalog.objects.filter(count__gte = 1) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
     scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__name') #annotate(brand_c = Count('manufacturer__id'))
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_company': scc, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_type_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_company': scc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -1624,11 +1627,12 @@ def shop_components_company(request):
 
 
 def shop_type_list(request):
-    scc = Catalog.objects.filter(count__gte = 1) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
-    scc = scc.values('type__id', 'type__name', 'type__name_ukr', 'type__description_ukr').distinct().annotate(type_c = Count('type__id')).order_by('type__name') #annotate(brand_c = Count('manufacturer__id'))
+#    scc = Catalog.objects.filter(count__gte = 1) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+#    scc = scc.values('type__id', 'type__name', 'type__name_ukr', 'type__description_ukr').distinct().annotate(type_c = Count('type__id')).order_by('type__name') #annotate(brand_c = Count('manufacturer__id'))
+    scc = Type.objects.all()
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list_bytype': scc, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_type_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list_bytype': scc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
@@ -1639,22 +1643,42 @@ def shop_components_brand(request, id):
     #scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__id') #annotate(brand_c = Count('manufacturer__id'))
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_bybrand': scb, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': scb, 'status_brand': True, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
     return render(request, 'index.html', vars)        
     
 
+def shop_components_brand_sale(request, id):
+    scb = Catalog.objects.filter(count__gte = 1, manufacturer__id = id, sale__gt = 0).order_by('type') #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': scb, 'status_brand': True, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
+
 def shop_components_type(request, id):
     sct = Catalog.objects.filter(count__gte = 1, type__id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
     #scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__id') #annotate(brand_c = Count('manufacturer__id'))
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_bytype': sct, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': sct, 'status_type': True,  'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)        
+
+
+def shop_components_type_sale(request, id):
+    sct = Catalog.objects.filter(count__gte = 1, type__id = id, sale__gt = 0) 
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': sct, 'status_type': True,  'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
     return render(request, 'index.html', vars)        
 
 
@@ -1662,7 +1686,7 @@ def shop_component(request, id):
     sc = Catalog.objects.get(id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'component': sc, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'component_view.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'component': sc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -1671,13 +1695,11 @@ def shop_component(request, id):
 
 def shop_components_sale(request):
     scs = Catalog.objects.filter(count__gt = 0, sale__gt = 0).order_by('-sale')    
-    #sc = Catalog.objects.filter(id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_sale_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
-    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
     return render(request, 'index.html', vars)        
     
 
@@ -1734,10 +1756,10 @@ def workshop_main(request):
 
 def workshop_service(request):
     wg = WorkGroup.objects.all().order_by('tabindex')
-     
+    service_work = WorkType.objects.get(pk = 649)
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'workshop_service.html', 'sel_menu': 'workshop', 'workgroup': wg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'workshop_service.html', 'sel_menu': 'workshop', 'serv_work': service_work, 'workgroup': wg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
