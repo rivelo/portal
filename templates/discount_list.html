@@ -123,7 +123,7 @@ h5.sale {
 .jumbotron{
     background-color: black;
 /*    min-height: 600px; */
-    height: 150px; 
+    height: auto;  
     width: 100%;
 }
  
@@ -146,15 +146,14 @@ $(function () {
 {% block content %}
 
 
-{# <div class="post">	<h2 class="title" >Чорна п'ятниця</h2> </div> #}
-{# <h2 class="title post"> #}
-
-<div class="jumbotron jumbotron-fluid">
-  <div class="container">
-	<h2 style="color:red;"  ><b>Чорна п'ятниця</b> <br> <span class="badge badge-pill badge-dark">{{d_list.0.date_start}}</span>-<span class="badge badge-pill badge-dark">{{d_list.0.date_end}}</span></h2>
+<div class="jumbotron ">
+<div class="container">
+  <h1 class="display-4 font-weight-bold" >Чорна п'ятниця</h1>
+  <p class="lead">
+  <span class="btn btn-outline-warning">{{d_list.0.date_start}}</span> - <span class="btn btn-outline-warning">{{d_list.0.date_end}}</span>
+  </p>
   </div>
 </div>
-
 
 
 <div class="card-columns">
@@ -174,7 +173,9 @@ $(function () {
 
 	{% if sale.get_type %}
 	<div class="link_catalog" tabindex="0" class="badge badge-danger" data-trigger="focus" role="button" data-container="body" data-html="true" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}} <br>-<br> {{sale.date_end}}">
+<a href="{% url 'components-list-bytype' sale.type_id %}">	
 		<img class="card-img-top" src="{{ sale.get_type.get_icon_name}}" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="top">
+</a>		
 	</div>
 	{% endif %}
     
