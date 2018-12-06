@@ -3,6 +3,7 @@ from django import template
 from portal.event_calendar.models import Events, ResultEvent
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
+from portal.accounting.models import Bicycle_Type, Type
 
 import datetime
 
@@ -71,3 +72,15 @@ def has_group(user, group_name):
 def update_variable(value):
     """Allows to update existing variable in template"""
     return value
+
+@register.simple_tag #(name='minustwo')
+def get_all_biketype():
+    types = Bicycle_Type.objects.filter(parent_id = None)
+    return types
+
+
+@register.simple_tag #(name='minustwo')
+def get_random_component_type():
+    types = Type.objects.filter(ico_status = True).order_by('?')[:1][0]
+    return types
+

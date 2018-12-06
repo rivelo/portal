@@ -387,7 +387,6 @@ class ResultEvent (models.Model):
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
     dnf = models.BooleanField(default=False)
-
 #    objects = filterManager()
     #objects = CustomQuerySetManager()
     objects = models.Manager() # The default manager.

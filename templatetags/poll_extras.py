@@ -64,21 +64,45 @@ def res_stat_bikes(event):
 
 @register.filter(name='res_stat_bikes_byyear')
 def res_stat_bikes_byyear(year):
-        #return ResultEvent.group_city.get_citys(event)
-        return ResultEvent.group_bikes.get_bikes_byyear(year)
+    #return ResultEvent.group_city.get_citys(event)
+    return ResultEvent.group_bikes.get_bikes_byyear(year)
+
+
+def format_timedelta(td):
+    hours, remainder = divmod(td.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    hours, minutes, seconds = int(hours), int(minutes), int(seconds)
+    if hours < 10:
+        hours = '0%s' % int(hours)
+    if minutes < 10:
+        minutes = '0%s' % minutes
+    if seconds < 10:
+        seconds = '0%s' % seconds
+    return '%s:%s:%s' % (hours, minutes, seconds)
     
 @register.simple_tag(name='time_plus_time')
 def time_plus_time(time1, time2, time3):
-        a = datetime.datetime.strptime(time1, '%H:%M:%S')
+#        time1 = time1
+#        time2 = time2
+#        time3 = time3
+        if time1 == '':
+            time1 = '00:00:00'
+        if time2 == '':
+            time2 = '00:00:00'
+        if time3 == '':
+            time3 = '00:00:00'
         try:
+            a = datetime.datetime.strptime(time1, '%H:%M:%S')
             b = datetime.datetime.strptime(time2, '%H:%M:%S')
             c = datetime.datetime.strptime(time3, '%H:%M:%S')
-            delta = datetime.timedelta(hours=b.hour, minutes=b.minute, seconds=b.second)
+            adelta = datetime.timedelta(hours=a.hour, minutes=a.minute, seconds=a.second)
+            bdelta = datetime.timedelta(hours=b.hour, minutes=b.minute, seconds=b.second)
             cdelta = datetime.timedelta(hours=c.hour, minutes=c.minute, seconds=c.second)
-            res = a + delta + cdelta
+            res = adelta + bdelta + cdelta
         except:
-            return time1 
-        return str((res.day-1)*24+res.hour)+":"+ str(res.minute) +":"+str(res.second)
+            return 'error' 
+        #return str((res.day-1)*24+res.hour)+":"+ str(res.minute) +":"+str(res.second)
+        return format_timedelta(res)
 #        return res.strftime("%d - %H:%M:%S")
 
 @register.assignment_tag #(name='minustwo')

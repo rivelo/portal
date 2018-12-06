@@ -94,6 +94,8 @@ urlpatterns = [ #patterns('',
 
     url(r'^component/(?P<id>\d+)/$', event_calendar_views.shop_component, name='component-show'),
     url(r'^bicycles/$', event_calendar_views.shop_bicycle_company, name='bicycle-company'),
+    url(r'^bicycles/kids/$', event_calendar_views.shop_bicycle_type),
+    url(r'^bicycles/(?P<type>\d+)/type/$', event_calendar_views.shop_bicycle_type, name='bike-type-show'),
     url(r'^bicycles/(?P<id>\d+)/brand/$', event_calendar_views.shop_bicycle_brand, name='bicycle-list-bybrand'),
     url(r'^bicycles/(?P<id>\d+)/model/$', event_calendar_views.shop_bicycle, name='bicycle-show'),
 #    url(r'^client/$', event_calendar_viewsshow_client'),
@@ -102,6 +104,7 @@ urlpatterns = [ #patterns('',
     url(r'^client/sale/$', event_calendar_views.client_sale),
     url(r'^client/(?P<user_name>[A-Za-z0-9_]+)/$', event_calendar_views.show_client, name='events_sale'),
     
+    url(r'^routes/$', event_calendar_views.routes_list, name='routes'),
     
     url(r'^location/$', event_calendar_views.google_location),
 #    url(r'^prod/$', portal.tools.view_product'),

@@ -337,6 +337,30 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 </div>
 {% endcomment %}
 
+
+
+<div class="row pt-4"> 
+<div class="col-12">
+<h2 class=""><a href="/components/type/list/">Компоненти:</a></h2>
+
+{% get_random_component_type as rcomp_list1 %}
+{% get_random_component_type as rcomp_list2 %}
+{% get_random_component_type as rcomp_list3 %}
+
+  	<a href="{% url 'components-list-bytype' rcomp_list1.id %}"> 
+    <img class="card-img-top ilogo" src="{{rcomp_list1.get_icon_name}}" alt="{{rcomp_list1.name_ukr}}" style="width:32%" title="{{ rcomp_list1.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+  	<a href="{% url 'components-list-bytype' rcomp_list2.id %}"> 
+    <img class="card-img-top ilogo" src="{{rcomp_list2.get_icon_name}}" alt="{{rcomp_list2.name_ukr}}" style="width:32%" title="{{ rcomp_list2.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+  	<a href="{% url 'components-list-bytype' rcomp_list3.id %}"> 
+    <img class="card-img-top ilogo" src="{{rcomp_list3.get_icon_name}}" alt="{{rcomp_list3.name_ukr}}" style="width:32%" title="{{ rcomp_list3.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+    
+</div>
+</div>
+
+
 <br>
 <div class="row"> 
 <div class="col-12">
@@ -344,7 +368,7 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 </div>
 
 {% if photo1 %}
-<div class="col-xs-12 col-md-6">
+<div class="col-xs-12 col-md-6 pr-0">
 <span class="photo_url1" src="{{photo1.get_full_image}}" data-toggle="modal" data-target="#exampleModalCenter1"><img src="{{photo1.image}}" alt="{{photo1.album.title}}" class="img-thumbnail" title="{{photo1.album}}" url="/photo/album/{{photo1.album.album_id}}/"/></span>
 </div>
 <div class="col-xs-12 col-md-6">

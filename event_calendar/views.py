@@ -24,7 +24,7 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 
-from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer
+from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer, Bicycle_Type
 
 import simplejson
 import googlemaps
@@ -1602,6 +1602,21 @@ def shop_bicycle_brand(request, id=None):
     return render(request, 'index.html', vars)        
 
 
+def shop_bicycle_type(request, type=None):
+#    type = None
+    if type:
+        typeid = Bicycle_Type.objects.filter(id = type)
+    else:
+        typeid = Bicycle_Type.objects.filter(id = 8) #Kids
+    bst = Bicycle_Store.objects.filter(count__gte = 1, model__type__pk = typeid)
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'bicycles_list_bytype.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bytype': bst, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
+
 def shop_bicycle(request, id):
     id = id
     bs = Bicycle_Store.objects.get(id = id)
@@ -1723,20 +1738,11 @@ def shop_search(request):
             rider_s = request.GET.get( 'rider_s' )
             photo1 = Photo.objects.random()
             photo2 = Photo.objects.random()
-            
             scs = Catalog.objects.filter(Q(ids__icontains = rider_s) | Q(dealer_code__icontains = rider_s) | Q(name__icontains = rider_s)).exclude(count = 0).order_by('-sale')
-            #scs = Catalog.objects.filter(count__gt = 0, sale__gt = 0).order_by('-sale')
-            
-#            list = RegEvent.objects.filter(Q(lname__icontains = rider_s) | Q(fname__icontains = rider_s) | Q(phone__icontains=rider_s) | Q(nickname__icontains=rider_s))
             message = message + rider_s
-            #return HttpResponse(message, content_type="text/plain;charset=utf-8")
-            vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'search_str': rider_s, 'components_sale': scs, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
-            #vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}            
+            vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'search_str': rider_s, 'components_list': scs, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
             calendar = embeded_calendar()
             vars.update(calendar)        
-
-            #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
-        #    return render(request, 'index_result.html', vars)
             return render(request, 'index.html', vars)
         
     return HttpResponse(message, content_type="text/plain;charset=utf-8")
@@ -1767,7 +1773,6 @@ def workshop_service(request):
 
 def shop_discount(request):
     d_list = Discount.objects.all().order_by('type_id')
-     
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     vars = {'weblink': 'discount_list.html', 'sel_menu': 'workshop', 'd_list': d_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
@@ -1775,6 +1780,16 @@ def shop_discount(request):
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
 
+
+def routes_list(request):
+    r_list = None 
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'routes.html', 'sel_menu': 'other', 'r_list': r_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+    
         
 
 import csv

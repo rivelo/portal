@@ -47,6 +47,7 @@ class Type(models.Model):
     synonym = models.CharField(max_length=255, blank=True, null=True)
     synonym_ukr = models.CharField(max_length=255, blank=True, null=True)
     ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
+#    ranking = models.FloatField()
 #    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 #    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 
@@ -434,7 +435,7 @@ class Catalog(models.Model):
         for photo in p_url:
             if photo.local:
                 photos_list.append(photo.local)
-            if photo.url:
+            if photo.url and not photo.local:
                 photos_list.append(photo.url)
         if photos_list:
             return photos_list
@@ -488,11 +489,12 @@ class Dealer(models.Model):
     name = models.CharField(max_length=255)
     country = models.ForeignKey(Country)
     city = models.CharField(max_length=255)
-    street = models.CharField(max_length=255)
+    street = models.CharField(max_length=255, blank=True, null=True)
 #    brand = models.ManyToManyFields(Manufacturer)
     www = models.URLField(null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
     
     def __unicode__(self):
         return u'%s' % self.name
@@ -504,9 +506,9 @@ class Dealer(models.Model):
 # postach Dealer manager (Ukraine)
 class DealerManager(models.Model):
     name = models.CharField(max_length=255)
-    email = models.CharField(max_length=100)
-    description = models.TextField()
-    phone = models.CharField(max_length=100)
+    email = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    phone = models.CharField(max_length=100, null=True, blank=True)
     company = models.ForeignKey(Dealer)
     
     def __unicode__(self):
@@ -515,6 +517,18 @@ class DealerManager(models.Model):
     class Meta:
         ordering = ["company", "name"]    
 
+
+
+class ListManager(models.Manager):
+#    def get_queryset(self):
+#        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1).count()
+
+    def get_year_list(self):
+        #list = DealerInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+        return super(ListManager, self).get_queryset().filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+
+#    def get_male_byyear(self, year):
+#        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1, reg_event__event__date__year = year).count()
 
 # Dealer invoice (Ukraine)
 class DealerInvoice(models.Model):
@@ -528,6 +542,18 @@ class DealerInvoice(models.Model):
     received = models.BooleanField(default=False, verbose_name="Товар отримано?")
     payment = models.BooleanField(default=False, verbose_name="Оплачено?")
     description = models.TextField(blank = True, null = True)
+    objects = models.Manager() # The default manager.
+    list_objects = ListManager() # The specific manager.
+    
+    def check_recived_invoice(self):
+        list = self.invoicecomponentlist_set.all()
+        return list
+
+    def get_year_list(self):
+#        list = DealerInvoice.objects.values('date__year').order_by('date__year').annotate(count=Count('date__year'))
+        list = DealerInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+#         Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
+        return list 
             
     def __unicode__(self):
         return "%s - %s - %s [%s %s]" % (self.origin_id, self.company, self.manager, self.price, self.currency) 
@@ -553,7 +579,6 @@ class InventoryList(models.Model):
         cur_date = datetime.datetime.now()
         if (self.check_all == True) and ( self.date > cur_date-datetime.timedelta(days=int(nday)) ):
              return True
-
         return False 
             
     def __unicode__(self):
@@ -886,7 +911,7 @@ class Bicycle(models.Model):
     warranty = models.PositiveIntegerField(default = 12, blank=True)
     warranty_frame = models.PositiveIntegerField(default = 12)
     geometry = models.ImageField(upload_to = 'upload/bicycle/geometry/', max_length=255, blank=True, null=True)
-    internet = models.BooleanField(default=False,)
+    internet = models.BooleanField(default=False)
     youtube_url = models.ManyToManyField(YouTube, blank=True)
     bikeparts = models.ManyToManyField(Bicycle_Parts, blank=True)# name, catalog, part_type, order_num,  )
     rating = models.IntegerField(default = 0)
@@ -910,6 +935,11 @@ class Bicycle(models.Model):
             #return qs #self.youtube_url.split('/') #[3]
         except:
             return 'test None'
+
+    def get_saleprice(self):
+        percent_sale = (100-self.sale)*0.01
+        price = self.price * percent_sale
+        return price
         
     @property
     def photo_count(self):
@@ -1182,6 +1212,12 @@ class WorkShop(models.Model):
     pay = models.BooleanField(default = False, verbose_name="Оплачено?")
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def check_depence_category(self):
+        if self.work_type.component_type.exists():
+            return True
+        else:
+            return False
     
     def __unicode__(self):
         return self.description

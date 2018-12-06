@@ -378,7 +378,7 @@ h5.sale {
 	<span style="font-size: 120%; font-weight: bold; color: red;">Ціна товару: {{component.price|floatformat}} грн. <br>	
 {% endif %}
 	</span>
-{% if component.get_discount < component.get_saleprice %}
+{% if component.get_discount < component.get_saleprice and component.get_discount %}
 <h4><span class="badge badge-myinfo"> {{component.get_discount_item.name}}: {{component.get_discount|floatformat:"0"}} грн. </span></h4>
 {% endif %}
 </div> {# 1-col#}

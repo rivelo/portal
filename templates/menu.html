@@ -4,6 +4,7 @@
 
 
 {% comment %}
+
 <style>
 #primary_nav_wrap
 {
@@ -88,7 +89,7 @@
 	display:block
 }
 
-
+/*
 .dropdown-menu {
     max-height: 500px;
     overflow-y: auto;
@@ -102,20 +103,101 @@
        }
     }
 
-
+*/
 </style>
 {% endcomment %}
 
 
+
 <style>
-.dropdown-menu {
+/*.dropdown-menu {
     max-height: 500px;
     max-width: 500px;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: hidden; 
+}*/
+
+/*.dropdown-submenu {
+  position: relative;
 }
 
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+}
+ */
+ /*
+.dropdown-submenu { 
+    position: relative; 
+} 
+
+.dropdown-submenu a::after { 
+    transform: rotate(-90deg); 
+    position: absolute; 
+    right: 6px; 
+    top: .8em; 
+} 
+ 
+
+ 
+.dropdown-submenu .dropdown-menu { 
+    top: 0; 
+    left: 100%; 
+    margin-left: .1rem; 
+    margin-right: .1rem; 
+}
+ */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu a::after {
+  transform: rotate(-90deg);
+  position: absolute;
+  right: 6px;
+  top: .8em;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-left: .1rem;
+  margin-right: .1rem;
+} 
+    
 </style>
+
+<script type="text/javascript">
+/*
+$('.dropdown-submenu > a').on("click", function(e) {
+    var submenu = $(this);
+    $('.dropdown-submenu .dropdown-menu').removeClass('show');
+    submenu.next('.dropdown-menu').addClass('show');
+    e.stopPropagation();
+});
+
+$('.dropdown').on("hidden.bs.dropdown", function() {
+    // hide any open menus when parent closes
+    $('.dropdown-menu.show').removeClass('show');
+});
+*/
+$('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
+	  if (!$(this).next().hasClass('show')) {
+	    $(this).parents('.dropdown-menu').first().find('.show').removeClass("show");
+	  }
+	  var $subMenu = $(this).next(".dropdown-menu");
+	  $subMenu.toggleClass('show');
+
+
+	  $(this).parents('li.nav-item.dropdown.show').on('hidden.bs.dropdown', function(e) {
+	    $('.dropdown-submenu .show').removeClass("show");
+	  });
+
+
+	  return false;
+	});
+</script>
 
 
 
@@ -124,7 +206,7 @@
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item
       {% ifequal sel_menu "main" %} 
@@ -145,13 +227,12 @@
       <li class="nav-item">
       	<a class="nav-link" href="/forum/index.php">Форум
       </a></li>
-
     
 {% load mytags %}
 
 {% get_current_year as cur_year %}
-	
-	
+
+ 	
 	<li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle 
         {% ifequal sel_menu "calendar" %}
@@ -201,11 +282,18 @@
          Магазин
          </a>
          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-	      	<a class="dropdown-item" href="{% url 'bicycle-company' %}">Велосипеди</a>
+	      	<a class="dropdown-item dropdown-toggle" href="{% url 'bicycle-company' %}">Велосипеди</a>
+<ul class="dropdown-menu">	      	
+{% get_all_biketype as type_list %}
+        
+{% for itype in type_list %}
+	<li class="dropdown-item"> <a href="{% url 'bike-type-show' itype.pk %}">{{itype}}</a> </li>
+{% endfor %}          
+</ul>
     	  	<a class="dropdown-item" href="{% url 'components-company' %}">Виробники</a>
     	  	<a class="dropdown-item" href="{% url 'components-type-list' %}">Компоненти</a>
       		<a class="dropdown-item" href="{% url 'components-sale' %}" >Акційні товари</a>
-      		<a class="dropdown-item" href="{% url 'components-discount' %}" >Чорна п'ятниця </a>
+{#      		<a class="dropdown-item" href="{% url 'components-discount' %}" >Чорна п'ятниця </a> #}
          </div>
        </li>
 
@@ -224,14 +312,24 @@
 {#      		<a class="dropdown-item" href="{% url 'components-sale' %}" >Акційні товари </a> #}
          </div>
        </li>
-       				
 
-      
-{% comment %}      
-      <li class="nav-item">
-        <a class="nav-link disabled" href="#">Disabled</a>
-      </li>
-{% endcomment %}
+
+      <li class="nav-item dropdown
+         {% ifequal sel_menu "other" %}
+      		active
+         {% endifequal %}
+      ">      
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      	Інше
+      	{#  <img src="/media/images/route-gr.png" style="width: 36px;"> #}
+         </a>
+         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	      	<a class="dropdown-item" href="{% url 'routes' %}">Куди поїхати</a>
+    	  	<a class="dropdown-item" href="">Технічні питання</a> 
+    	  	<a class="dropdown-item" href="">Відеогляди</a>
+      		<a class="dropdown-item" href="">Посилання на корисні ресурси</a> {# https://velokyiv.com/lis/posilannya-na-korisni-resursi #} 
+         </div>
+       </li>
 
       <li class="nav-item
       		{% ifequal sel_menu "about" %}
@@ -244,7 +342,9 @@
 
       
     </ul>
-  </div>
+</div>
+
+
 
 {% comment %}
 <div id="menu">
@@ -350,4 +450,6 @@
 </nav>
 
 </div>
+
+
 {% endcomment %}

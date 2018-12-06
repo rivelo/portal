@@ -37,6 +37,13 @@ h5.sale {
         
 </style>
 
+<script>
+$(function () {
+
+	$('[data-toggle="tooltip"]').tooltip()
+		
+})
+</script>
 
 {% load poll_extras %}
 
@@ -46,19 +53,23 @@ h5.sale {
 
 <div class="row">
 	<div class="col-9">
-	<h2 class="title">
-	<a href="{% url 'bicycle-company' %}">Велосипеди {{bicycle_bybrand.0.model.brand}}</a>
-	</h2>
+	<h1 class="title">
+	 
+	<span class="badge badge-success">{{bicycle_bytype.0.model.type.type}}</span>
+	{% if bicycle_bytype.0.model.type.ukr_name %}
+	<span class="badge badge-success">{{bicycle_bytype.0.model.type.ukr_name}}</span><a href="{% url 'bicycle-company' %}"></a>
+	{% endif %}
+	</h1>
 	</div>
 	<div class="col-auto">
-	<img src="/media/{{bicycle_bybrand.0.model.brand.logo}}" class="bphoto"/>
+{#	<img src="/media/{{bicycle_bybrand.0.model.brand.logo}}" class="bphoto"/> #}
 	</div>
 </div>	
 
 <div class="row">
 <div class="col">
-{% if bicycle_bybrand %}
-{% for bike in bicycle_bybrand %}
+{% if bicycle_bytype.exists %}
+{% for bike in bicycle_bytype %}
 	<div style="float:left;background:#ddf2c6; width:200px; height:320px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
 	<div class="image-component">
 
@@ -67,10 +78,11 @@ h5.sale {
 	{% else %}
 	
 	{% endif %}
-	
+	<a href="{% url 'bicycle-show' bike.id %}" title="{{bike.model}}" data-toggle="tooltip" data-placement="top">
 		<div style="background-color: white; ">
 		<img src="/media/{{bike.model.photo}}" width="200px"/>
 		</div>
+	</a>
 	</div>
 	<p align="justify" style="font-size: 100%"> 
 	<a href="{% url 'bicycle-show' bike.id %}" title="{{bike.model}}" data-toggle="tooltip" data-placement="top"> {{bike.model}}  </a>

@@ -91,20 +91,16 @@ h5.discount {
 </h1>
 </div>
 {% endif %} 
-
-{% comment %}
-<div>
-    <span class="badge badge-secondary">Badge 1</span>
+{% if search_str %}
+<div class="col-auto my-auto">
+<h2>За вашим запитом <span class="badge badge-info"> {{search_str}}</span> <br> Знайдено:</h2>
 </div>
-<div>
-    <span class="badge badge-secondary">Badge 2</span>
-</div>
-{% endcomment %}
-
+{% endif %}
 </div> 
 
-<div class="row post ml-1">
 
+
+<div class="row post ml-1">
  
 {% for component in components_list %}
 	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
