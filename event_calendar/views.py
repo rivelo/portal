@@ -23,8 +23,9 @@ from forms import EventsForm, RegEventsForm, PayRegEventsForm
 
 from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
+from portal.news.models import Route
 
-from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer, Bicycle_Type
+from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer, Bicycle_Type, YouTube
 
 import simplejson
 import googlemaps
@@ -1751,7 +1752,6 @@ def shop_search(request):
 def workshop_main(request):
     wg = WorkGroup.objects.all().order_by('tabindex')
 #    WorkType.objects.filter()
-    print "WG = " + str(wg)
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     vars = {'weblink': 'workshop_main.html', 'sel_menu': 'workshop', 'workgroup': wg,  'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
@@ -1782,10 +1782,20 @@ def shop_discount(request):
 
 
 def routes_list(request):
-    r_list = None 
+    r_list = Route.objects.all()
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'routes.html', 'sel_menu': 'other', 'r_list': r_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'routes.html', 'sel_menu': 'other', 'routes': r_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
+
+def video_list(request):
+    youtube_list = YouTube.objects.all().order_by('-date') #values('url').distinct()
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'video_list.html', 'sel_menu': 'other', 'youtube_list': youtube_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        

@@ -105,6 +105,7 @@ urlpatterns = [ #patterns('',
     url(r'^client/(?P<user_name>[A-Za-z0-9_]+)/$', event_calendar_views.show_client, name='events_sale'),
     
     url(r'^routes/$', event_calendar_views.routes_list, name='routes'),
+    url(r'^video/$', event_calendar_views.video_list, name='video'),
     
     url(r'^location/$', event_calendar_views.google_location),
 #    url(r'^prod/$', portal.tools.view_product'),

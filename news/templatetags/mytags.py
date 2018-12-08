@@ -84,3 +84,14 @@ def get_random_component_type():
     types = Type.objects.filter(ico_status = True).order_by('?')[:1][0]
     return types
 
+
+@register.filter(name='format_datetime')
+def format_datetime(value):
+    print "Value = " + str(value.seconds)
+    hours = round(value.seconds/3600.0)
+    #hours, rem = divmod(value.seconds, 3600)
+    #minutes, seconds = divmod(rem, 60)
+    #return '{} годин'.format(hours)
+    return '%s годин' % int(hours)
+
+

@@ -39,7 +39,6 @@ class News(models.Model):
     category = models.ForeignKey(Category)
     comments = models.ManyToManyField(Comments, blank=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    
     img_url = models.CharField(max_length=255, blank=True, null=True)
     #url_desc = models.TextField(blank=True, null=True) # положення до заходу
     
@@ -48,3 +47,24 @@ class News(models.Model):
 
     class Meta:
         ordering = ["date"]    
+
+
+class Route(models.Model):
+    title = models.CharField(max_length=255) 
+    description = models.TextField(blank = True, null = True)
+    year = models.PositiveSmallIntegerField()
+    gpsies = models.CharField(blank=True, null = True, max_length=255)
+    comments = models.ManyToManyField(Comments, blank=True)
+    ranking = models.FloatField(default = 0)
+    level = models.PositiveIntegerField() # Рівень підготовки
+    season = models.CharField(blank=True, null = True, max_length=255) 
+    bike_type = models.CharField(blank=True, null = True, max_length=255) 
+    duration = models.DurationField(default = 0)
+    distance = models.PositiveSmallIntegerField()
+    photo_google = models.CharField(blank=True, null = True, max_length=255)
+    
+    def __unicode__(self):
+        return u'%s - %s рік' % (self.title, self.year) 
+
+    class Meta:
+        ordering = ["level"]    

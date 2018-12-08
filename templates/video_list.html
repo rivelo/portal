@@ -1,0 +1,187 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+      
+.modal-dialog {
+      max-width: 800px;
+      margin: 30px auto;
+}
+
+.modal-body {
+  position:relative;
+  padding:0px;
+}
+
+.close {
+  position:absolute;
+  right:-30px;
+  top:0;
+  z-index: 999;
+  font-size: 2rem;
+  font-weight: normal;
+  color: #fff;
+  opacity:1;
+}
+      
+.close:HOVER {
+  color: red;
+/*  background-color: #fff; */
+}      
+      
+</style>
+
+
+<script>
+$(document).ready(function(){
+	
+{% comment %}	
+$("div.gps").click(function(){
+//	console.log("THIS html = " + $(this).find("h5").parent("button").hasClass("btn-outline-success"))
+	var gps_c = $(this).find(".gps_content")
+if ($(this).find("h5").parent("button").hasClass("btn-outline-success")){
+//	if ($(this).find("h5").html() == 'Показати маршрут') {
+		$(this).find("button").removeClass('btn-outline-success').addClass('btn-outline-danger');
+		$(this).find("h5").html("Приховати маршрут");
+		console.log("Iframe = " + gps_c.attr('sframe'));
+		if (gps_c.find('iframe').length == 0){
+			//s_iframe = '<iframe class="gpsies mt-1" src="//www.gpsies.com/mapOnly.do?fileId=terhgkbukmaivhry" width="100%" height="400" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>'
+			s_iframe = gps_c.attr('sframe');		
+			gps_c.append(s_iframe);
+		}
+		gps_c.show();
+/*        $.ajax({
+            type: "POST",
+            url: "/event/gps/get/",
+            data: { eid: $(this).attr("ids") },
+            dataType: "json",
+            success:function(msg){
+            	$.each(msg,function(index,item){
+					gps_c.html(item['gps_track'])
+					console.log("GPS TRACK = " + item['gps_track'])
+                });
+            },
+            error:function(xhr, ajaxOptions, thrownError){
+                alert( xhr.responseText );
+            }
+        });*/
+     }
+     else {
+     	$(this).find("h5").html("Показати маршрут")
+     	$(this).find("button").removeClass('btn-outline-danger').addClass('btn-outline-success');
+     	gps_c.hide();
+     }
+{% endcomment %}
+
+})
+
+
+
+
+var $videoSrc;  
+$('.video-btn').click(function() {
+    $videoSrc = $(this).data( "src" );
+});
+//console.log($videoSrc);
+
+  
+// when the modal is opened autoplay it  
+$('#myModal').on('shown.bs.modal', function (e) {
+    
+// set the video src to autoplay and not to show related video. Youtube related video is like a box of chocolates... you never know what you're gonna get
+$("#video").attr('src',$videoSrc + "?rel=0&amp;showinfo=0&amp;modestbranding=1&amp;autoplay=1" ); 
+})
+  
+// stop playing the youtube video when I close the modal
+$('#myModal').on('hide.bs.modal', function (e) {
+    // a poor man's stop video
+    $("#video").attr('src',$videoSrc); 
+}) 
+
+
+//document ready
+})
+
+</script>
+
+{% load mytags %}
+
+{% block content %}
+
+
+<div class="post">
+
+<div class= "row" style="height:64px">
+{# <img class="ml-3" src="/media/images/route-gr.png" style="height:64px"> #}
+<div class="col-auto my-auto">
+<h2>Відео огляди</h2>
+</div>
+</div> 
+
+</div>
+
+
+<div class="entry col-12 col-lg-12 col-xl-8">
+
+
+{% for youtube in youtube_list %} 
+<div class="embed-responsive embed-responsive-16by9 mt-2">
+  <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/{{youtube.youtube_hash}}" allowfullscreen></iframe>
+</div>
+{% endfor %}
+
+{% comment %}
+{% endcomment %}
+
+<div class="row gps align-items-center align-middle gps mt-2 ml-1 mr-1 mb-1" >
+
+
+{% for youtube in youtube_list %}
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-danger video-btn w-100 mt-1" data-toggle="modal" data-src="https://www.youtube.com/embed/{{youtube.youtube_hash}}" data-target="#myModal">
+  YouTube Video {% if youtube.description %} - {{youtube.description}}. {{youtube.date|date:"j E Y"}} {% else %} {{forloop.counter}} {% endif %}
+</button>
+{% endfor %}
+
+ 
+  
+ <!-- Button trigger modal -->
+{#<button type="button" class="btn btn-primary video-btn" data-toggle="modal" data-src="https://player.vimeo.com/video/237284378?badge=0" data-target="#myModal">#}
+<button type="button" class="btn btn-primary video-btn w-100 mt-1" data-toggle="modal" data-src="https://player.vimeo.com/video/237284378?title=0&byline=0&portrait=0" data-target="#myModal">
+Play Vimeo Video - PEDAL
+</button>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-body">
+
+       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>        
+        <!-- 16:9 aspect ratio -->
+<div class="embed-responsive embed-responsive-16by9">
+  <iframe class="embed-responsive-item" src="" id="video"  allowscriptaccess="always">></iframe>
+</div>
+        
+      </div>
+
+    </div>
+</div>
+</div>
+
+
+</div>
+
+
+<!-- entry end -->
+</div>
+
+{% endblock %}
+
+
+
+

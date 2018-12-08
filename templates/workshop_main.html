@@ -12,6 +12,16 @@
 /* height: 50%; 
  top: 0; */
 }      
+
+
+.workrule li{
+	font-size: 15px;
+}
+
+.workrule span{
+font-size: 20px;
+font-weight: bold;
+}
 </style>
 
 <script>
@@ -37,12 +47,15 @@ $(function () {
 	Майстерня знаходиться за адресою: м.Рівне Кавказька 6
 	<br>
 	<a href="/about/" class="btn btn-success">Контакти >>> </a>
+	<a href="#works" class="btn btn-success">Роботи майстерні</a>
+	<a href="#rules" class="btn btn-success">Правила майстерні</a>
+	<a name="works"></a>
 	</p>
 	
 	
 {# Прайс майстерні #}
 <div class="list-group">
-  <a href="#" class="list-group-item list-group-item-action list-group-item-secondary active">
+  <a href="#" class="list-group-item list-group-item-action list-group-item-secondary active" >
     Групи робіт в майстерні:
   </a>
 {% for wgroup in workgroup %}
@@ -68,27 +81,67 @@ $(function () {
 </div>
 	
 
-{% comment %}	
-<div class="list-group" id="myList" role="tablist">
-  <span class="list-group-item list-group-item-action list-group-item-secondary active font-weight-bold">
-    Групи робіт в майстерні:
-  </span>
-{% for wgroup in workgroup %}
-<a href="#" class="list-group-item list-group-item-action disabled" data-container="body" data-toggle="popover" data-html="true" data-placement="top" title="{{wgroup.name}}" role="tab" data-content='
-<ul class="list-group">
-{% for work in wgroup.worktype_set.all %}
-  <li class="list-group-item">{{work}} <h5><span class="badge badge-info badge-pill">{{work.price}}грн.</span></h5></li>
-{% endfor %}
-</ul>
-' id="wg{{wgroup.id}}">
-{{wgroup}} <span class="badge badge-primary badge-pill">{{wgroup.work_ingroup_count.work_count_sum}}</span>
-</a>
-{#<a href="#wg{{wgroup.id}}" class="list-group-item list-group-item-action disabled" data-toggle="list" role="tab" >{{wgroup}} <span class="badge badge-primary badge-pill">{{wgroup.work_ingroup_count.work_count_sum}}</span>#}
-</a>
-{% endfor %}
-</div>	
-{% endcomment %}
+<a name="rules"></a>
+<div class="list-group pt-5">
+  <a href="#" class="list-group-item list-group-item-action list-group-item-secondary active" >
+Правила роботи веломайстерні:
+ </a>
+   <a class="list-group-item list-group-item-action ">
 
+<ul class="list-group workrule">
+  <li class="list-group-item d-flex justify-content-start align-items-center" >
+        <span class="badge badge-success mr-2" >1.</span> 
+	Велосипеди на ремонт приймаються у чистому вигляді та без аксесуарів (світло, велоком’ютери, сумочки, фляги тощо). Мийка та чистка велосипедів – за окрему плату.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >2.</span> 
+	Вартість ремонту велосипедів, які давно не ремонтувались, а також ремонт велосипедів після невдалого ремонту в інших майстрів, розраховується з врахуванням витраченого на ремонт часу та матеріалів.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >3.</span> 
+	В прайс-листі вказана лише вартість самих робіт. Заміна комплектуючих та запчастин обговорюється і оплачується замовником окремо.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >4.</span> 
+	Вартість робіт, які не відображені у прайс-листі, розраховуються, виходячи зі складності робіт, витраченого часу та матеріалів.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >5.</span> 
+	Майстерня не займається пошуком б/в запчастин. Якщо необхідні запчастини відсутні в магазині або на складах постачальників, замовник займається пошуком необхідних запчастин самостійно.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >6.</span> 
+	Інструмент з майстерні для самостійного виконання робіт замовником не видається.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >7.</span> 
+	Ремонт в присутності замовника виконується зі 100% надбавкою вартості виконуваних робіт.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >8.</span> 
+	Терміновий ремонт проводиться зі 100% надбавкою вартості виконуваних робіт.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+        <span class="badge badge-success mr-2"  >9.</span> 
+	Якщо замовник з якої-небудь причини протягом трьох календарних днів після закінчення робіт не забрав велосипед, з нього стягується вартість зберігання велосипеда в сумі 10 грн./доба.
+  </li>
+  <li class="list-group-item d-flex justify-content-start align-items-center"  >
+  {#      <span class="badge badge-success mr-2"  >***</span> #}
+       <ul> <span style="font-size: 16px; font-weight: bold;">Велосипедна майстерня залишає за собою право відмовити в ремонті в наступних випадках:</span>
+<li type="square">	відсутність спеціалізованого інструменту для окремого виду ремонтних робіт;</li>
+<li type="square">	відсутність потрібних для встановлення запасних частин чи заміни витратних матеріалів; </li>
+<li type="square">	дуже брудне обладнання, а також обладнання, яке не підлягає ремонту; </li>
+<li type="square">	нестандартне обладнання; </li>
+<li type="square">	інші підстави, виявлені при оцінці механіком.</li> 
+	</ul>
+  </li>
+</ul>   
+	
+</a>
+</div>
+
+
+{% comment %}
 
 <div id="map" ></div>  
 
@@ -114,7 +167,7 @@ function initMap() {
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
   
- 
+ {% endcomment %}
 
 {% endblock %}
 

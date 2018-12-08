@@ -142,3 +142,7 @@ def update_variable_v2(value):
 @register.filter
 def subtract(value, arg):
     return value - arg
+
+@register.simple_tag
+def get_filename_icontype(obj, param):
+    return obj.get_icon_name(param)

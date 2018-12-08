@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from portal.news.models import News, Category, Comments 
+from portal.news.models import News, Category, Comments, Route 
 
 
 class NewsAdmin(admin.ModelAdmin):
@@ -30,6 +30,12 @@ class CommentsAdmin(admin.ModelAdmin):
 admin.site.register(Comments, CommentsAdmin)
 
 
+class RouteAdmin(admin.ModelAdmin):
+    ordering = ('-year',)
+    search_fields = ('title',)
+
+
+admin.site.register(Route, RouteAdmin)
 
 
 
