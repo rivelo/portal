@@ -245,27 +245,28 @@ $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
 {#        <a class="dropdown-item" href="{% url 'calendar-year' cur_year|add:"-1" %}">Архів заходів {{cur_year|add:"-1"}}</a> #}
 
 <a class="dropdown-item" href="/calendar/">Календар {{year}}</a>
-<a class="dropdown-item" href="{% url 'year-result' cur_year %}">Результати серії марафонів</a>    
+<a class="dropdown-item " href="{% url 'year-result' cur_year %}">Результати серії марафонів</a>    
 
                 
       <div class="dropdown-divider"></div>
       {% get_current_event as event_list %}
       {% for event in event_list %}
-      	<a class="dropdown-item" href="{% url 'event-show' event.pk %}">{{ event.name }}</a>
+      	<a class="dropdown-item" href="{% url 'event-show' event.pk %}" >{{ event.name }}</a>
       {% endfor %}
 		
 	<div class="dropdown-divider"></div>
 	
-	<a class="dropdown-item dropdown-toggle" href="#">
+	<a class="dropdown-item dropdown-toggle dropup" href="#" >
           Архів заходів {{cur_year|add:"-1"}}
 	</a>
-     <ul class="dropdown-menu">
+     <ul class="dropdown-menu" style="overflow:scroll; overflow-y:auto; overflow-x:hidden; max-height:200px;">
+     <li><a class="dropdown-item" href="{% url 'year-result' cur_year|add:"-1" %}">Результати серії марафонів {{cur_year|add:"-1"}}</a></li>	
+     <div class="dropdown-divider"></div>
       {% get_archive_event as arch_event_list %}
       {% for event in arch_event_list %}
       	<li><a class="dropdown-item" href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
       {% endfor %}
-        <div class="dropdown-divider"></div>
-		<li><a class="dropdown-item" href="{% url 'year-result' cur_year|add:"-1" %}">Результати серії марафонів {{cur_year|add:"-1"}}</a></li>    
+		    
      </ul>        
 
 		
@@ -282,8 +283,9 @@ $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
          Магазин
          </a>
          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-	      	<a class="dropdown-item dropdown-toggle" href="{% url 'bicycle-company' %}">Велосипеди</a>
-<ul class="dropdown-menu">	      	
+         	<a class="dropdown-item" href="{% url 'bicycle-company' %}">Велосипеди</a>
+	      	<a class="dropdown-item dropdown-toggle" href="{% url 'bicycle-company' %}">Типи велосипедів</a>
+<ul class="dropdown-menu " >	      	
 {% get_all_biketype as type_list %}
         
 {% for itype in type_list %}

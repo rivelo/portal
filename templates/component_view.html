@@ -252,7 +252,8 @@ body.scrollable {
 
 <div class="row">
 <div class="col">
-<h2><span class="badge badge-secondary">[{{component.manufacturer.name}}]  {{component.name}}</span></h2>
+{# <h2><p class="badge badge-secondary" style="white-space: normal;">[{{component.manufacturer.name}}]  {{component.name}}</p></h2> #}
+<h2><span class="badge badge-secondary" style="white-space: normal;">[{{component.manufacturer.name}}]  {{component.name}}</span></h2>
 	<p>Рейтинг користувачів: 
 	<i class="material-icons" style="font-size:14px;">star</i>
 	<i class="material-icons" style="font-size:14px;">star_half</i>
@@ -267,7 +268,7 @@ body.scrollable {
 
 <div class="row">
 
-<div class="col-8">
+<div class="col-xs-12 col-sm-8">
 
 {% if component.get_photos %}
 <!-- Photo slide show  -->
