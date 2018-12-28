@@ -1,4 +1,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>{{event.name}} [{{event.date|date:"d.m.Y"}}]</title>
+
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -19,89 +21,6 @@
 
 </style>
 
-{% comment %}
-
-<script>
-$(document).ready(function(){
-//    $("img.poster").hide();
-	$("#map").hide();
-
-    $("div.poster").click(function(){
-    	var div_p = $(this)
-    	var id = $(this).attr("ids")
-    	if ($(this).find("b").html() == "Показати афішу") {
-    		$(this).find("b").html("Приховати афішу");
-    		$(this).find("div.poster_content").html('<img src="'+ div_p.attr("img") + '" width="660px" class="img_poster" id="pimg_'+ id +'">')
-    	}
-    	else {
-    		$(this).find("b").html("Показати афішу")
-    		$(this).find("div.poster_content").empty();
-    	}
-        // $("#pimg_"+id).toggle();
-    });
-
-
-    $("div.gps").click(function(){
-    	var gps_c = $(this).find(".gps_content")
-    	if ($(this).find("b").html() == "Показати маршрут") {
-    		$(this).find("b").html("Приховати маршрут");    	
-            $.ajax({
-                type: "POST",
-                url: "/event/gps/get/",
-                data: { eid: $(this).attr("ids") },
-                dataType: "json",
-                success:function(msg){
-//                	$(this).find("div.gps_content").empty();
-                	$.each(msg,function(index,item){
-						gps_c.html(item['gps_track'])
-                    });
-                },
-                error:function(xhr, ajaxOptions, thrownError){
-                    alert( xhr.responseText );
-                }
-            });
-         }
-         else {
-         	$(this).find("b").html("Показати маршрут")
-    	 	gps_c.empty();
-         }
-    })
-
-	$("div.map").click(function(){
-		$(this).find("div.map_content").html($("#map"));
-		$("#map").show();
-//		initMap($(this).attr("lat"), $(this).attr("lng"));
-		initMap();
-	})
-
-});
-
-
-function initMap(x,y) {
-	if (x == null){
-		x = 50.627250;
-	} 
-	if (y == null) {
-		y = 26.2509700
-	}
-  var myLatLng = {lat: x, lng: y};
-
-  var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 17,
-    center: myLatLng
-  });
-
-  var marker = new google.maps.Marker({
-    position: myLatLng,
-    map: map,
-    title: 'Веломагазин-майстерня Рівело'
-  });
-}
-
-
-</script>
-
-{% endcomment %}
 
 <script>
 $(document).ready(function(){
@@ -215,7 +134,7 @@ function initMap(x,y) {
 
 </div>
 
-<div class="row h-100" >
+<div class="row" >
 <div class="col-12"> 
 {% autoescape off %}
 {{event.text}}
@@ -231,7 +150,7 @@ function initMap(x,y) {
 </h5>
 {% endif %}
 
-<div class="row h-100" >
+<div class="row " >
 {# <div class="col-12"> #} 
 
 {% if event.forum_url %}
@@ -283,10 +202,9 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </div>
 {% endif %}
 
-<div class="row h-100" >
+<div class="row" >
 <h5> Дата та час: {{event.date|date:"d-m-Yр. H:i"}} <small class="text-danger"> (До заходу залишилось {{event.days_left}} днів)</small></h5>
 </div>
-
 
 </div> {# end container #}
 

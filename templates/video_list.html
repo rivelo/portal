@@ -34,49 +34,6 @@
 
 <script>
 $(document).ready(function(){
-	
-{% comment %}	
-$("div.gps").click(function(){
-//	console.log("THIS html = " + $(this).find("h5").parent("button").hasClass("btn-outline-success"))
-	var gps_c = $(this).find(".gps_content")
-if ($(this).find("h5").parent("button").hasClass("btn-outline-success")){
-//	if ($(this).find("h5").html() == 'Показати маршрут') {
-		$(this).find("button").removeClass('btn-outline-success').addClass('btn-outline-danger');
-		$(this).find("h5").html("Приховати маршрут");
-		console.log("Iframe = " + gps_c.attr('sframe'));
-		if (gps_c.find('iframe').length == 0){
-			//s_iframe = '<iframe class="gpsies mt-1" src="//www.gpsies.com/mapOnly.do?fileId=terhgkbukmaivhry" width="100%" height="400" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>'
-			s_iframe = gps_c.attr('sframe');		
-			gps_c.append(s_iframe);
-		}
-		gps_c.show();
-/*        $.ajax({
-            type: "POST",
-            url: "/event/gps/get/",
-            data: { eid: $(this).attr("ids") },
-            dataType: "json",
-            success:function(msg){
-            	$.each(msg,function(index,item){
-					gps_c.html(item['gps_track'])
-					console.log("GPS TRACK = " + item['gps_track'])
-                });
-            },
-            error:function(xhr, ajaxOptions, thrownError){
-                alert( xhr.responseText );
-            }
-        });*/
-     }
-     else {
-     	$(this).find("h5").html("Показати маршрут")
-     	$(this).find("button").removeClass('btn-outline-danger').addClass('btn-outline-success');
-     	gps_c.hide();
-     }
-{% endcomment %}
-
-})
-
-
-
 
 var $videoSrc;  
 $('.video-btn').click(function() {
@@ -123,6 +80,7 @@ $('#myModal').on('hide.bs.modal', function (e) {
 
 <div class="entry col-12 col-lg-12 col-xl-8">
 
+{% comment %}
 
 {% for youtube in youtube_list %} 
 <div class="embed-responsive embed-responsive-16by9 mt-2">
@@ -130,7 +88,7 @@ $('#myModal').on('hide.bs.modal', function (e) {
 </div>
 {% endfor %}
 
-{% comment %}
+
 {% endcomment %}
 
 <div class="row gps align-items-center align-middle gps mt-2 ml-1 mr-1 mb-1" >
@@ -139,7 +97,8 @@ $('#myModal').on('hide.bs.modal', function (e) {
 {% for youtube in youtube_list %}
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-danger video-btn w-100 mt-1" data-toggle="modal" data-src="https://www.youtube.com/embed/{{youtube.youtube_hash}}" data-target="#myModal">
-  YouTube Video {% if youtube.description %} - {{youtube.description}}. {{youtube.date|date:"j E Y"}} {% else %} {{forloop.counter}} {% endif %}
+{#  YouTube Video {% if youtube.description %} - {{youtube.description}} ({{youtube.date|date:"j E Y"}}) {% else %} {{forloop.counter}} {% endif %} #}
+   {% if youtube.description %} {{youtube.description}} ({{youtube.date|date:"j E Y"}}) {% else %} Відео {{forloop.counter}} {% endif %}  
 </button>
 {% endfor %}
 
