@@ -11,8 +11,8 @@ class EventTypeAdmin(admin.ModelAdmin):
 
 
 class EventsAdmin(admin.ModelAdmin):
-    list_display = ('name', 'text', 'url', 'reg_url', 'photo', 'icon', 'forum_url', 'lat', 'lng', 'description', 'date', 'user', 'pub_date')
-    ordering = ( 'pub_date', 'date',)
+#    list_display = ('name', 'text', 'url', 'reg_url', 'photo', 'icon', 'forum_url', 'lat', 'lng', 'description', 'date', 'user', 'pub_date')
+    ordering = ( '-pub_date', 'date',)
     search_fields = ('name', 'date')
 
 

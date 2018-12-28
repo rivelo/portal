@@ -244,21 +244,23 @@ def embeded_calendar(year=datetime.date.today().year, month = datetime.date.toda
 #            'prev_month': prev_date, 'next_month': next_date, 'month_events': month_events , 'year': year, 'events_date': list}
     
     
-def calendar_page(request, year=datetime.datetime.now().year):
-    photo1 = Photo.objects.random()
-    photo2 = Photo.objects.random()
-    calendar = embeded_calendar()
-    vars = {'weblink': 'event_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
-    calendar = embeded_calendar()
-    vars.update(calendar)    
-    events = Events.objects.filter(date__year = year).order_by('date') #.all().order_by('date')
-    evnt = {'events': events}
-    vars.update(evnt)
-    return render(request, 'index.html', vars)
-    #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+#===============================================================================
+# def calendar_page(request, year=datetime.datetime.now().year):
+#     photo1 = Photo.objects.random()
+#     photo2 = Photo.objects.random()
+#     calendar = embeded_calendar()
+#     vars = {'weblink': 'event_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
+#     calendar = embeded_calendar()
+#     vars.update(calendar)    
+#     events = Events.objects.filter(date__year = year).order_by('date') #.all().order_by('date')
+#     evnt = {'events': events}
+#     vars.update(evnt)
+#     return render(request, 'index.html', vars)
+#     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+#===============================================================================
 
-
-def calendar_filter(request, year, month=None):
+#def calendar_filter(request, year=datetime.datetime.now().year, month=None):
+def calendar_page(request, year=datetime.datetime.now().year, month=None):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     calendar = embeded_calendar()
@@ -310,6 +312,7 @@ def get_event(request):
 #from django.contrib.auth.models import User
 
 def add_event(request):
+    print "Form WORK"
     if auth_group(request.user, 'moder')==False:
     #if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
@@ -342,13 +345,13 @@ def add_event(request):
             city = form.cleaned_data['city']
             description = form.cleaned_data['description']
             date = form.cleaned_data['date']
+            cup = form.cleaned_data['cup']
             user = request.user
             if lat == None:
                 lat = 0 
             if lng == None:
                 lng = 0 
-               
-            evt = Events(name=name, text=text, url=url, reg_url=reg_url, reg_status=reg_status, photo=photo, icon=icon, forum_url=forum_url, lat=lat, lng=lng, description=description, date=date, city=city, user = user)
+            evt = Events(name=name, text=text, url=url, reg_url=reg_url, reg_status=reg_status, photo=photo, icon=icon, forum_url=forum_url, lat=lat, lng=lng, description=description, date=date, city=city, user = user, cup=cup)
             evt.save()
             
             for t in type: 
@@ -368,7 +371,7 @@ def add_event(request):
     vars.update(evnt)
     return render(request, 'index.html', vars)
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
-    
+  
 
 
 def edit_event(request, id):

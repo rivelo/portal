@@ -49,6 +49,12 @@ def get_current_event():
     event = Events.objects.filter(date__year = c_year)
     return event
 
+@register.simple_tag 
+def get_year_event(sel_year):
+    c_year = sel_year
+    event = Events.objects.filter(date__year = c_year).order_by('date')
+    return event
+
 #@register.simple_tag #(name='minustwo')
 @register.simple_tag
 def get_archive_event():

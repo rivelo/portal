@@ -18,156 +18,6 @@
 
 </style>
 
-{% comment %}
-#map {
-     height: 60%;
-}
-
-/*------------------------------------*\
-	НАВИГАЦИЯ
-\*------------------------------------*/
-#nav{
-	float:left;
-	width:100%;
-	list-style:none;
-	font-weight:bold;
-	margin-bottom:10px;
-	-webkit-padding-start: 0px;	
-}
-#nav li{
-	float:left;
-	margin-right:0px;
-	position:relative;
-	display:block;
-}
-#nav li a{
-	display:block;
-	padding:5px;
-	color:#fff;
-//	color: black;
-	background:#6b0c36; //#99f67c;
-	text-decoration:none;
-	
-	text-shadow:1px 1px 1px rgba(0,0,0,0.75); /* Тень текста, чтобы приподнять его на немного */
-	-moz-border-radius:2px;
-	-webkit-border-radius:2px;
-	border-radius:2px;
-}
-#nav li a:hover{
-	color:#fff;
-	background:#6b0c36;
-	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
-	text-decoration:underline;
-}
-
-/*--- ВЫПАДАЮЩИЕ ПУНКТЫ ---*/
-#nav ul{
-	list-style:none;
-	position:absolute;
-	left:-9999px; /* Скрываем за экраном, когда не нужно (данный метод лучше, чем display:none;) */
-	opacity:0; /* Устанавливаем начальное состояние прозрачности */
-	-webkit-transition:0.25s linear opacity; /* В Webkit выпадающие пункты будут проявляться */
-}
-#nav ul li{
-	padding-top:1px; /* Вводим отступ между li чтобы создать иллюзию разделенных пунктов меню */
-	float:none;
-//	background:url(dot.gif);
-}
-#nav ul a{
-	white-space:nowrap; /* Останавливаем перенос текста и создаем многострочный выпадающий пункт */
-	display:block;
-}
-#nav li:hover ul{ /* Выводим выпадающий пункт при наведении курсора */
-	left:0; /* Приносим его обратно на экран, когда нужно */
-	opacity:1; /* Делаем непрозрачным */
-}
-#nav li:hover a{ /* Устанавливаем стили для верхнего уровня, когда выводится выпадающий список */
-	background: #6b0c36;
-	background:rgba(107,12,54,0.75); /* Выглядит полупрозрачным */
-	text-decoration:underline;
-}
-#nav li:hover ul a{ /* Изменяем некоторые стили верхнего уровня при выводе выпадающего пункта */
-	text-decoration:none;
-	-webkit-transition:-webkit-transform 0.075s linear;
-}
-#nav li:hover ul li a:hover{ /* Устанавливаем стили для выпадающих пунктов, когда курсор наводится на конкретный пункт */
-	background: #333;
-	background:rgba(51,51,51,0.75); /* Будет полупрозрачным */
-	text-decoration:underline;
-	-moz-transform:scale(1.05);
-	-webkit-transform:scale(1.05);
-}
-
-.column {
-    float: left;
-    padding: 1px;
-    box-sizing: border-box;
-}
-.clearfix {
-    content: "";
-    clear: both;
-    display: table;
-    background: #eeeee5; 
-	border: 1px dashed #abab9a; 
-	padding: 5px; 
-	width: 100%;
-	box-sizing: border-box;
-}
-.menu {
-    width: 18%;
-}
-.content {
-    width: 82%;
-}
-
-/* Style The Dropdown Button */
-.dropbtn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 16px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-}
-
-/* The container <div> - needed to position the dropdown content */
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-/* Dropdown Content (Hidden by Default) */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-/* Links inside the dropdown */
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-/* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #f1f1f1}
-
-/* Show the dropdown menu on hover */
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* Change the background color of the dropdown button when the dropdown content is shown */
-.dropdown:hover .dropbtn {
-    background-color: #3e8e41;
-}
-</style>
-{% endcomment %}
 
 <script>
 $(document).ready(function(){
@@ -265,7 +115,7 @@ function initMap(x,y) {
 
 {% for item in events %}
 <div class="container-fluid " >
-<div class="row  event_title h-100" >
+<div class="row  event_title " >
 <div class="col-2 my-auto" style="padding-left: 0px;">
 {% if item.icon %}
   <img class="img-thumbnail" src="/media/{{item.icon}}" height="120px" width="120px"></img>	
@@ -296,7 +146,7 @@ function initMap(x,y) {
 {% endif %} 
 
 
-<div class="row h-100" >
+<div class="row" >
 <div class="col-12"> 
 {% autoescape off %}
 {{item.text}}
@@ -305,7 +155,7 @@ function initMap(x,y) {
 </div>
 
 
-<div class="row h-100" >
+<div class="row" >
 {# <div class="col-12"> #} 
 
 {% if item.forum_url %}
@@ -343,7 +193,7 @@ action=TEMPLATE
 &sprop=rivelo.com.ua
 &trp=false&sprop=&sprop=name:
 "
-target="_blank" rel="nofollow">Add to Calendar</a>
+target="_blank" rel="nofollow" title="Додати нагадування в Google календар"><i class="material-icons">alarm_add</i></a>
 </h5>
 </div>
 
@@ -357,7 +207,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </div>
 {% endif %}
 
-<div class="row h-100" >
+<div class="row">
 <h5> Дата та час: {{item.date|date:"d-m-Yр. H:i"}} <small class="text-danger"> (До заходу залишилось {{item.days_left}} днів)</small></h5>
 </div>
 

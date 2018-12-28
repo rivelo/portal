@@ -72,7 +72,7 @@ class BikeType(models.Model):
         ordering = ["name"]    
 
 
-class Events (models.Model):
+class Events(models.Model):
     name = models.CharField(max_length=255)
     type = models.ManyToManyField(EventType, blank=True) # ForeignKey(Type, blank=True, null=True, on_delete=models.SET_NULL)
     text = models.TextField()

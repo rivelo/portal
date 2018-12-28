@@ -262,13 +262,24 @@ $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
      <ul class="dropdown-menu" style="overflow:scroll; overflow-y:auto; overflow-x:hidden; max-height:200px;">
      <li><a class="dropdown-item" href="{% url 'year-result' cur_year|add:"-1" %}">Результати серії марафонів {{cur_year|add:"-1"}}</a></li>	
      <div class="dropdown-divider"></div>
-      {% get_archive_event as arch_event_list %}
+{#      {% get_archive_event as arch_event_list %} #}
+	  {% get_year_event 2018 as arch_event_list %}      
       {% for event in arch_event_list %}
       	<li><a class="dropdown-item" href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
       {% endfor %}
-		    
      </ul>        
 
+	<a class="dropdown-item dropdown-toggle dropup" href="#" >
+          Архів заходів {{cur_year|add:"-2"}}
+	</a>
+     <ul class="dropdown-menu" style="overflow:scroll; overflow-y:auto; overflow-x:hidden; max-height:200px;">
+     <li><a class="dropdown-item" href="{% url 'year-result' cur_year|add:"-2" %}">Результати серії марафонів {{cur_year|add:"-2"}}</a></li>	
+     <div class="dropdown-divider"></div>
+      {% get_year_event 2017 as arch_event_list %}
+      {% for event in arch_event_list %}
+      	<li><a class="dropdown-item" href="{% url 'event-show' event.pk %}">{{ event.name }}</a></li>
+      {% endfor %}
+     </ul>        
 		
         </div>
       </li>
