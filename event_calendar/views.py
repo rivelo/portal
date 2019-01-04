@@ -264,7 +264,7 @@ def calendar_page(request, year=datetime.datetime.now().year, month=None):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     calendar = embeded_calendar()
-    vars = {'weblink': 'event_list.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
+    vars = {'weblink': 'event_list.html', 'sel_menu': 'calendar', 'month': month, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn()}
     calendar = embeded_calendar()
     calendar['year'] = year
     vars.update(calendar)    
@@ -345,6 +345,9 @@ def add_event(request):
             city = form.cleaned_data['city']
             description = form.cleaned_data['description']
             date = form.cleaned_data['date']
+            time_e = form.cleaned_data['time']
+            date.replace(hour=time_e.hour, minute=time_e.minute)
+            date = datetime.datetime.combine(date, time_e)
             cup = form.cleaned_data['cup']
             user = request.user
             if lat == None:
@@ -1261,21 +1264,24 @@ def event_start(request):
 
 def show_client(request, user_name='rivno100'):
     if auth_group(request.user, 'admin')==False:
-        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+        #vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'У вас не вистачає повноважень!'}
+        vars = {'sel_menu': 'calendar', 'error_data': 'У вас не вистачає повноважень, або ви не увійшли на портал!'}
+        return render(request, 'index.html', vars)
+#        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
     client = None
     c_invoice = None
     if user_name == 'med':
         client = Client.objects.get(pk = 2533) # medov trail
-        c_invoice = ClientInvoice.objects.filter(client__pk = 2533) #2533 - медовий трейл / 2010 - поліська січ
+        c_invoice = ClientInvoice.objects.filter(client__pk = 2533, pay = False) #2533 - медовий трейл / 2010 - поліська січ
     if user_name == 'rivno100':        
         client = Client.objects.get(pk = 1943) # rivno100
-        c_invoice = ClientInvoice.objects.filter(client__pk = 1943, date__year = datetime.datetime.today().year) #2533 - медовий трейл / 2010 - поліська січ
+        c_invoice = ClientInvoice.objects.filter(client__pk = 1943, pay = False, date__year = datetime.datetime.today().year) #2533 - медовий трейл / 2010 - поліська січ
     if user_name == 'pol_sich':        
         client = Client.objects.get(pk = 2010) # поліська січ
-        c_invoice = ClientInvoice.objects.filter(client__pk = 2010) #2533 - медовий трейл / 2010 - поліська січ
+        c_invoice = ClientInvoice.objects.filter(client__pk = 2010, pay = False) #2533 - медовий трейл / 2010 - поліська січ
     if user_name == '100mile':        
         client = Client.objects.get(pk = 2615) # 100 миль
-        c_invoice = ClientInvoice.objects.filter(client__pk = 2615) #2533 - медовий трейл / 2010 - поліська січ
+        c_invoice = ClientInvoice.objects.filter(client__pk = 2615, pay = False) #2533 - медовий трейл / 2010 - поліська січ
     vars = {'weblink': 'shop_client.html', 'sel_menu': 'calendar', 'list': c_invoice, }    
     evnt = {'client': client}
     vars.update(evnt)
@@ -1287,7 +1293,8 @@ def show_client(request, user_name='rivno100'):
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 #    return HttpResponse("Клієнт << " + cl.name, content_type='text/plain')
 
-    
+
+@csrf_exempt
 def client_sale(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1297,9 +1304,11 @@ def client_sale(request):
             if POST.has_key('cid'):
                 cid = request.POST['cid']
                 val = request.POST['value']
+                c_id = request.POST['client']
                 cat = Catalog.objects.get(pk = cid)
                 #client = Client.objects.get(pk = 2010)
-                ci = ClientInvoice(date__year = 2017)
+                client = Client.objects.get(pk = c_id)
+                ci = ClientInvoice()
                 ci.client = client
                 ci.catalog = cat
                 ci.count = int(val)

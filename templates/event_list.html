@@ -16,6 +16,21 @@
 	box-sizing: border-box;
 }
 
+div.poster{
+	cursor: pointer;
+}
+
+      #map {
+        height: 450px !important;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+
 </style>
 
 
@@ -66,11 +81,17 @@ $(document).ready(function(){
     })
 
 	$("div.map").click(function(){
-		console.log("MAP click")
-		$(this).find("div.map_content").html($("#map"));
+		//console.log("MAP click = " + $(this).parents('div.start_place').html() )
+		//$("#map").appendTo( $(this).find("div.map_content").next() );
+		//$("#map").appendTo( $(this).find("div.start_place") );
+		$(this).parents('div.start_place').append("<span> Append test </span>");
+		$(this).parents('div.start_place').append( $("#map") );
 		$("#map").show();
-//		initMap($(this).attr("lat"), $(this).attr("lng"));
-		initMap();
+		console.log("LAT = " + $(this).attr("lat") + " LNG = " + $(this).attr("lng"))
+		initMap( parseFloat($(this).attr("lat")), parseFloat($(this).attr("lng")) );
+		var lat = 50.619939;
+		var lng =  26.250323;
+//		initMap(lat, lng);
 	})
 
 });
@@ -104,7 +125,7 @@ function initMap(x,y) {
 {% block content %}
 
 <div class="post">
-<h1 class="title">Календар заходів на {{year}} рік
+<h1 class="title">Календар заходів {% if month %} на місяць {{events.0.date|date:"F"}} {% endif %} {{year}} року. 
 {% if user.is_authenticated and user|has_group:"moder" %}
 			<a href="/event/add/" title="Створити"><i class="material-icons">add_circle</i></a>
 {% endif %}
@@ -167,7 +188,7 @@ function initMap(x,y) {
 {#</div>#}
 </div>
 
-
+{% comment %}
 {% if item.photo %}
         <div class="row align-items-center poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
             <div class="col-xs-10" ><h5>Показати афішу</h5></div>
@@ -175,14 +196,14 @@ function initMap(x,y) {
             <div class="col-xs-12 poster_content"></div>
         </div>
 {% endif %} 
-
+{% endcomment %}
 
 
 
 {# [start-custom format='Ymd\\THi00\\Z']/[end-custom format='Ymd\\THi00\\Z'] #}
 
 
-<div class="row align-items-center poster" ids="{{item.pk}}" img="/media/{{item.photo}}">
+<div class="row align-items-center" ids="{{item.pk}}" img="/media/{{item.photo}}">
 <h5> Додати подію в календар
 <a href="http://www.google.com/calendar/event?
 action=TEMPLATE
@@ -263,9 +284,10 @@ target="_blank" rel="nofollow" title="Додати нагадування в Goo
 </h5>
 {% endif %}
 
-<div class="container-fluid " >
-{# <div class="row align-items-center gps" ids="{{item.pk}}"> #}
-<div class="row map align-items-center" lat="{{item.lat}}" lng="{{item.lng}}">
+{% load l10n %}
+
+<div class="container-fluid start_place" >
+<div class="row map align-items-center" lat="{{item.lat|unlocalize}}" lng="{{item.lng|unlocalize}}">
 <div class="col-xs-10" ><h5>Показати місце старту</h5></div>
 <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img></div>
 <br>
@@ -286,9 +308,42 @@ target="_blank" rel="nofollow" title="Додати нагадування в Goo
 <p class="meta"><em>{ Опубліковано <a href="#"> {{item.user.username}} </a>, {{item.pub_date}} }</em></p>
 {% endfor %}
 
-
 <div id="map"></div>
-{# <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> #}
+
+   <script>
+/*   
+    function initMap() {
+    	  var myLatLng = {lat: 50.619939, lng: 26.250323};
+    	  var myLatLng1 = {lat: 50.619939, lng: 26.250323};
+    	  var myLatLng2 = {lat: 50.627250, lng: 26.2509700};    	  
+    	  {# var myLatLng = {lat: {{event.lat|unlocalize}}, lng: {{event.lng|unlocalize}} }; #}
+
+    	  var map = new google.maps.Map(document.getElementById('map'), {
+    	    zoom: 17,
+    	    center: myLatLng
+    	  });
+
+    	  var marker = new google.maps.Marker({
+    	    position: myLatLng,
+    	    map: map,
+    	    title: 'Місце стартового містечка'
+    	  });
+    	  var marker1 = new google.maps.Marker({
+      	    position: myLatLng1,
+      	    map: map,
+      	    title: 'Місце стартового містечка 1'
+      	  });
+    	  var marker2 = new google.maps.Marker({
+        	    position: myLatLng2,
+        	    map: map,
+        	    title: 'Місце стартового містечка 2'
+        	  });
+    	  
+    	}*/
+    </script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDi7un6YABjbV1566j5i8qhpRD9F83f1TQ&callback=initMap" async defer></script>     
+	
+{# <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> #} 
   
 	
 {% endblock %}

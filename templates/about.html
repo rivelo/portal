@@ -2,7 +2,9 @@
 
 <style>
       #map {
-        height: 60%;
+        /*height: 60%;*/
+        height: 500px !important;  /* The height is 400 pixels */
+        width: 100%;  /* The width is the width of the web page */
       }
 </style>
 
@@ -40,16 +42,18 @@
 	<li> (096)813-94-40 </li>
 	<li> (0362)26-27-47 </li>
 	<li> (093)545-42-59
-	<br /> 
+	</p>
 	
 	<img src="https://lh4.googleusercontent.com/-Scf3lN1lIXE/UzYNLF1QG_I/AAAAAAAACP0/eak6f7OnnSQ/w762-h496-no/map.jpg" width="550px">
-	</p>
 
 	</div>
 </div>
 
 
-    <div id="map"></div>
+    <div id="map" ></div>
+
+
+    
 <script>
 
 function initMap() {
@@ -71,7 +75,6 @@ function initMap() {
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
   
  
-
 {% endblock %}
 
 

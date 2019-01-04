@@ -180,17 +180,17 @@ $("body").on("click", ".sale", function(e) {
 		$.ajax({
         type: "POST",
         url: "/client/sale/",
-        data: {cid : $(this).attr('cid'), value: $("#dsedit").val() },
+        data: {cid : $(this).attr('cid'), value: $("#dsedit").val(), client: {{ client.id }} },
         success:function(data){
         	$(this).css("opacity", 1);
         	$("#cat_price").append('<h3>' + data +'</h3>');
-        	console.log("Товар" +data+ " продано " );
+//        	console.log("Товар" +data+ " продано " );
         },
         error:function(data){
-            alert("++++ При отправке возникли проблемы" + data);
+            alert("При відправці виникли проблеми " + data);
         }
     	});
-    console.log("Натиснуто ОК" + $("#msg_text").val()); 
+//    console.log("Натиснуто ОК" + $("#msg_text").val()); 
    // })
 },
 "Відмінити": function() {
@@ -208,6 +208,7 @@ $("body").on("click", ".sale", function(e) {
 
 </script>
 
+
 {% load poll_extras %}
 
 {% block content %}
@@ -215,9 +216,12 @@ $("body").on("click", ".sale", function(e) {
 
 <!-- dialog for client message -->
 <div id="dialog_count" title="Кількість">
-<input type="text" id="dsedit" name="mytext[]" cols="40" value=1> </input>
+<form>
+{% csrf_token %}
+<input type="text" id="dsedit" name="mytext" cols="40" value=1> </input>
 <div style="float:left;" id="div_price" width = "15px">Ціна <b id="div_price"></b> грн. </div>
 <div style="float:right;" id="cat_price">Сума  грн. </div>
+</form>
 </div>	
 
 

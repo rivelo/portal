@@ -19,8 +19,24 @@
 	box-sizing: border-box;
 }
 
-</style>
+div.poster, div.gps, div.map 
+{
+	cursor: pointer;
+}
 
+
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 450px !important;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
 
 <script>
 $(document).ready(function(){
@@ -69,43 +85,28 @@ $(document).ready(function(){
     })
 
 	$("div.map").click(function(){
-		console.log("MAP click")
-		$(this).find("div.map_content").html($("#map"));
-		$("#map").show();
+		if ($(this).find("h5").html() == "Показати місце старту") {
+    		$(this).find("h5").html("Приховати місце старту");    
+		}
+		else {
+			$(this).find("h5").html("Показати місце старту");
+		}
+		//console.log("MAP click")
+		//$(this).find("div.map_content").html($("#map"));
+		//$("#map").show();
+		$("#map").toggle();
 //		initMap($(this).attr("lat"), $(this).attr("lng"));
-		initMap();
+		//initMap();
 	})
 
 });
-
-function initMap(x,y) {
-	if (x == null){
-		x = 50.627250;
-	} 
-	if (y == null) {
-		y = 26.2509700
-	}
-  var myLatLng = {lat: x, lng: y};
-
-  var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 17,
-    center: myLatLng
-  });
-
-  var marker = new google.maps.Marker({
-    position: myLatLng,
-    map: map,
-    title: 'Веломагазин-майстерня Рівело'
-  });
-}
-
 
 </script>
 
 {% block content %}
 
 
-<div class="container-fluid " >
+<div class="container-fluid mt-1" >
 <div class="row event_title align-items-center poster" >
 <div class="col-2 my-auto" style="padding-left: 0px;">
 {% if event.icon %}
@@ -135,14 +136,23 @@ function initMap(x,y) {
 </div>
 
 <div class="row" >
-<div class="col-12"> 
+<div class="col-12">
+
+{% if event.photo %}
+        <div class="row align-items-center poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
+            <div class="col-xs-10" ><h5>Показати афішу</h5></div>
+            <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/poster-icon.png" class="img-responsive" alt="Афіша" width="48px"></div>            
+            <div class="col-xs-12 poster_content"></div>
+        </div>
+{% endif %} 
+ 
 {% autoescape off %}
 {{event.text}}
 {% endautoescape %} 
 </div>
 </div>
 
-{% if user.is_authenticated and user|has_group:"moder" %}
+{% if user.is_authenticated and user|has_group:"moder" and event.cup %}
 <h5>
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'rivno100' %}">Список товарів "Рівно100"</a>
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'med' %}">Список товарів "Медовий трейл"</a>
@@ -153,6 +163,7 @@ function initMap(x,y) {
 <div class="row " >
 {# <div class="col-12"> #} 
 
+
 {% if event.forum_url %}
 <h5>Посилання на форум:
 <small> <a href="{{event.forum_url}}">{{event.forum_url}}</a> </small>
@@ -161,16 +172,6 @@ function initMap(x,y) {
 
 {#</div>#}
 </div>
-
-
-{% if event.photo %}
-        <div class="row align-items-center poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
-            <div class="col-xs-10" ><h5>Показати афішу</h5></div>
-            <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/poster-icon.png" class="img-responsive" alt="Афіша" width="48px"></div>            
-            <div class="col-xs-12 poster_content"></div>
-        </div>
-{% endif %} 
-
 
 
 
@@ -255,7 +256,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </h5>
 {% endif %}
 
-{% if user.is_authenticated and user|has_group:"moder" %}
+{% if user.is_authenticated and user|has_group:"moder" and event.cup %}
 <a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  
 <a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  
 <a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp3' %}"><<Проста версія КП3>></a>  
@@ -270,124 +271,36 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 <div class="col-xs-12 map_content"></div>
 </div>
 
+<div id="map">  </div>
+
 </div>
-
-{% comment %}
-<div class="map row align-items-center" lat="{{item.lat}}" lng="{{item.lng}}">
-<img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
-<b> Показати місце старту </b>
-<br>
-<div class="map_content"> </div>
-</div>
-{% endcomment %}
-
-<p class="meta"><em>{ Опубліковано <a href="#"> {{event.user.username}} </a>, {{event.pub_date}} }</em></p>
-
-
-<div id="map"></div>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script> 
-  
-
-{% comment %}
-<br>
- 
-<div class="clearfix"> 
-{% if event.icon %}
-  <div class="column menu">	<img src="/media/{{event.icon}}" ></img> </div>
-{% endif %}
-{% if user.is_authenticated %} 
-<div class="column content"><h2><a href="/event/{{event.pk}}/edit/">{{event.name}} [{{event.date|date:"d.m.Y"}}] ({{event.city}})</a></h2></div>
-{% else %}
-<div class="column content">
-<h2><a href="{% url 'event-show' event.pk %}" >{{event.name}} [{{event.date|date:"d.m.Y"}}] ({{event.city}})</a></h2>
-</div>
-{% endif %}
-</div>
-
-<div > 
-{% autoescape off %}
-{{event.text}}
-{% endautoescape %} 
-</div>
-
-{% if event.forum_url %}
-<br>
-<p style="font-weight:bold;">Посилання на форум:  
-<a href="{{event.forum_url}}">{{event.forum_url}}</a>
-</p>
-{% endif %}
-
-{% if event.photo %}
-<div class="poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
-<!-- 	<button class="poster" ids="{{event.id}}">Показати афішу</button>  -->
-	<img src="/media/images/poster-icon.png" alt="" title="Показати афішу" width="48px" style="vertical-align:middle;" ></img>
-	<b> Показати афішу </b>
-	<div class="poster_content"></div>
-</div>
-{% endif %} 
-
-{% if event.gps_track %}
-<div class="gps" ids="{{event.pk}}">
-<img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img>
-<b> Показати маршрут </b>
-<br>
-<div class="gps_content"> </div>
-</div>
-{% endif %}
-
-
-<h4> Дата та час: {{event.date|date:"d-m-Yр. H:i"}} <p style="color: grey; font-size:11px">*До заходу залишилось {{event.days_left}} днів</p> </h4>
-
-
-{% if event.reg_status == True %}
-<h4>Реєстрація:  
-<a href="{% url 'event-registration' event.pk %}">Перейти до реєстрації</a>
-</h4>
-<ul class="rules">
-<b>Вартість реєстрації:</b>
-{% for rule in event.rules.all %}
-<li> - {{rule}}
-{% if  rule.cur_date_rule %}
-<b style="color: red;">*{{rule.cur_date_rule}}</b>
-{% endif %}
-</li> 
-{% endfor %}
-* можливість вибрати стартовий номер <b>+5грн</b>
-</ul>
-<h4>Учасники:  
-<a href="/event/{{event.pk}}/registration/list/">Список зареєстрованих учасників >>> ({{event.riders_count}} чоловік)</a> 
-</h4>
-{% endif %}
-
-{% if event.reg_url != '' %}
-<h4>Реєстрація:  
-<a href="{{event.reg_url}}">Перейти до реєстрації</a>
-</h4>
-{% else %}
-{% endif %}
-
-{% if user.is_authenticated %}
-<a href="{% url 'event-result-light' event.pk %}">Відмітка на КП/Фініші</a>
-{% endif %} 
-<h4>Результати:  
-<a href="{% url 'event-result' event.pk %}">Результати</a>
-</h4>
-
-<div class="map" lat="{{event.lat}}" lng="{{event.lng}}">
-<img src="/media/images/Map-Markers.ico" alt="" title="Показати місце старту" width="35px" style="vertical-align:middle;" ></img>
-<b> Показати місце старту </b>
-<br>
-<div class="map_content"> </div>
-</div>
-
 
 <p class="meta"><em>{ Опубліковано <a href="#"> {{event.user.username}} </a>, {{event.pub_date}} }</em></p>
 
 
 
-<div id="map"></div>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR8YRTxz9xNV1F75RQp1IwKA4Dt6MBUKQ&signed_in=true&callback=initMap"></script>
-{% endcomment %}  
+
+{% load l10n %}
+
+    <script>
+    function initMap() {
+    	  var myLatLng = {lat: {{event.lat|unlocalize}}, lng: {{event.lng|unlocalize}} };
+
+    	  var map = new google.maps.Map(document.getElementById('map'), {
+    	    zoom: 17,
+    	    center: myLatLng
+    	  });
+
+    	  var marker = new google.maps.Marker({
+    	    position: myLatLng,
+    	    map: map,
+    	    title: 'Місце стартового містечка'
+    	  });
+    	  
+    	}
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDi7un6YABjbV1566j5i8qhpRD9F83f1TQ&callback=initMap" async defer></script> 
+
 	
 {% endblock %}
 

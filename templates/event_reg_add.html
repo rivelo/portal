@@ -4,7 +4,9 @@
  
 <script>
 $(document).ready(function(){
-//    $("#id_event").prop( "disabled", true );
+
+$("#id_event").attr('disabled', 'disabled'); // disable select event_list
+
 phone_f = $("#id_phone").parents('li');
 $("#gaddr").insertAfter(phone_f);
 $("#id_birthday_month").insertAfter($("#id_birthday_day"));
