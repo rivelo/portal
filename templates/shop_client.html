@@ -160,15 +160,17 @@ $("body").on("click",".sale1",function(e){
 
 $( "#dsedit" ).change(function() {
 	var sum
-	sum = $('#div_price').html() * $("#dsedit").val()
-	$("#cat_price").html("Сума = " + sum + " грн")  
+	sum = parseFloat($('#div_price').attr('val')) * $("#dsedit").val()
+	console.log( "SUm = " + $('#div_price').attr('val') )
+	$("#cat_sum_price").html("Сума = " + sum + " грн")  
 	});
 
 $("body").on("click", ".sale", function(e) {
 //		$( ".sale" ).click(function() {
 	$( "#dialog_count" ).attr("cid", $(this).attr('cid'));
-	$("#cat_price").html("Ціна = " + $(this).attr('price') + " грн")
-	$("#div_price").html($(this).attr('price'))
+	$("#cat_sum_price").html("Сума = " + $(this).attr('price') + " грн")
+	$("#div_price").html("Ціна " + $(this).attr('price') + "грн.")
+	$("#div_price").attr("val", $(this).attr('price'))
 	$( "#dialog_count" ).dialog({
 	resizable: false,
   	modal: true,
@@ -183,7 +185,7 @@ $("body").on("click", ".sale", function(e) {
         data: {cid : $(this).attr('cid'), value: $("#dsedit").val(), client: {{ client.id }} },
         success:function(data){
         	$(this).css("opacity", 1);
-        	$("#cat_price").append('<h3>' + data +'</h3>');
+        	$("#cat_sum_price").append('<h3>' + data +'</h3>');
 //        	console.log("Товар" +data+ " продано " );
         },
         error:function(data){
@@ -217,10 +219,21 @@ $("body").on("click", ".sale", function(e) {
 <!-- dialog for client message -->
 <div id="dialog_count" title="Кількість">
 <form>
+<div class="row">
 {% csrf_token %}
-<input type="text" id="dsedit" name="mytext" cols="40" value=1> </input>
-<div style="float:left;" id="div_price" width = "15px">Ціна <b id="div_price"></b> грн. </div>
-<div style="float:right;" id="cat_price">Сума  грн. </div>
+<div class="col-12">
+<input type="text" id="dsedit" name="mytext" value=1> </input>
+</div>
+
+<div class="col-12">
+<div id="div_price" val="0" >Ціна <b id="div_price"></b> грн. </div>
+</div>
+
+<div class="col-12">
+<h3><div id="cat_sum_price" class="badge">Сума  грн. </div></h3>
+</div>
+
+</div>
 </form>
 </div>	
 
@@ -245,7 +258,7 @@ $("body").on("click", ".sale", function(e) {
 
 <table id="rtable" class="display" cellspacing="0" width="100%">
 <thead>
-<tr>
+<tr align="center">
 {% if user.is_authenticated %}
 <th title="номер по порядку">№</th>
 <th>Товар</th>
@@ -253,7 +266,7 @@ $("body").on("click", ".sale", function(e) {
 <th>Ціна</th>
 <th>Знижка</th>
 <th>ціна зі знижкою</th>
-<th>Продано</th>
+<th>Залишок в магазині</th>
 <th>Дія</th>
 <th>Примітки</th>
 {% endif %}
@@ -269,7 +282,7 @@ $("body").on("click", ".sale", function(e) {
 <th>Ціна</th>
 <th>Знижка</th>
 <th>ціна зі знижкою</th>
-<th>Продано</th>
+<th>Залишок в магазині</th>
 <th>Дія</th>
 <th>Примітки</th>
 {% endif %}
@@ -296,21 +309,20 @@ $("body").on("click", ".sale", function(e) {
 {{forloop.counter}}
 </td>
 <td>{{rider.catalog}}</td>
-<td class="sale" cid="{{rider.catalog.pk}}" name="{{rider.catalog}}" price="{{rider.price}}">{{rider.count}}</td>
-<td>{{rider.price}} грн.</td>
+<td class="sale" cid="{{rider.catalog.pk}}" name="{{rider.catalog}}" price="{{rider.price}}" align="center">{{rider.count}}</td>
+<td align="center">{{rider.price}} грн.</td>
 
 {% if rider.sale == 0 or rider.sale == None %}
-<td>0</td>
+<td align="center">0</td>
 <td align="center">{{rider.price}} грн.
 {% else %}
-<td>{{rider.sale}}</td>
+<td align="center">{{rider.sale}}</td>
 <td align="center">
 {{rider.sale|div:100|sub:1|mul:rider.price|mul:-1}}
 </td>
 {% endif %}
 
-
-<td align="center">{{rider.count}}</td>
+<td align="center">{{rider.catalog.count}} - {{rider.catalog.get_realshop_count}}</td>
 <td align="center" rid="{{rider.reg_event.id}}"> {{rider.catalog.description}} </td>
 <td align="center">{{rider.description}}</td>
 

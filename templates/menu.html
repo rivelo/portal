@@ -215,7 +215,8 @@ $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
       ">
       	<a class="nav-link" href="/">Головна</a>
       </li>
-	
+
+{% comment %}	
 	<li class="nav-item
 	{% ifequal sel_menu "photo" %}
       active
@@ -224,9 +225,11 @@ $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
 		<a class="nav-link" href="/photo/">Фото
     </a></li>
 
-      <li class="nav-item">
-      	<a class="nav-link" href="/forum/index.php">Форум
-      </a></li>
+    <li class="nav-item">
+    	<a class="nav-link" href="/forum/index.php">Форум
+    </a></li>
+{% endcomment %}
+
     
 {% load mytags %}
 
@@ -340,7 +343,9 @@ $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
 	      	<a class="dropdown-item" href="{% url 'routes' %}">Куди поїхати</a>
     	  	<a class="dropdown-item" href="">Технічні питання</a> 
     	  	<a class="dropdown-item" href="{% url 'video' %}">ВідеоОгляди</a>
-      		<a class="dropdown-item" href="">Посилання на корисні ресурси</a> {# https://velokyiv.com/lis/posilannya-na-korisni-resursi #} 
+      		<a class="dropdown-item" href="">Посилання на корисні ресурси</a> {# https://velokyiv.com/lis/posilannya-na-korisni-resursi #}
+		<a class="dropdown-item" href="/photo/">Фото</a>
+    	<a class="dropdown-item" href="/forum/index.php">Форум</a>
          </div>
        </li>
 
