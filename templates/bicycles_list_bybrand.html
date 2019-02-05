@@ -1,5 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
+<title>Велосипеди {{bicycle_bybrand.0.model.brand}} {% if sale_status %} - Акційні {% endif %}</title>
 <style>
 
 .image-component {
@@ -24,6 +24,23 @@ h5.sale {
 
 }
 
+h5.sale_title {
+	color: white;
+	background-color: red;
+	font-weight: bold;
+	position	: absolute ;  
+/*	float: right; */
+	top: -15px;
+/*	bottom		: 100px;*/
+/*	right		: 0px; */
+	left		: 2px; 
+/*	width		: 50%; */
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-right: 3px;
+
+}
+
 .bphoto {
     height: auto; 
     width: auto; 
@@ -37,6 +54,12 @@ h5.sale {
         
 </style>
 
+<script>
+$(function () {
+	$('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+
 
 {% load poll_extras %}
 
@@ -47,7 +70,7 @@ h5.sale {
 <div class="row">
 	<div class="col-9">
 	<h2 class="title">
-	<a href="{% url 'bicycle-company' %}">Велосипеди {{bicycle_bybrand.0.model.brand}}</a>
+	<a href="{% url 'bicycle-company' %}">Велосипеди {{bicycle_bybrand.0.model.brand}} {% if sale_status %} <h5 class="sale_title">Розпродаж/Акція</h5>  {% endif %}</a>
 	</h2>
 	</div>
 	<div class="col-auto">
@@ -56,10 +79,10 @@ h5.sale {
 </div>	
 
 <div class="row">
-<div class="col">
+<div class="col d-flex align-content-around flex-wrap m-1">
 {% if bicycle_bybrand %}
 {% for bike in bicycle_bybrand %}
-	<div style="float:left;background:#ddf2c6; width:200px; height:320px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
+	<div class="mr-auto" style="float:left;background:#ddf2c6; width:200px; height:320px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
 	<div class="image-component">
 
 	{% if bike.model.sale %}
@@ -67,10 +90,11 @@ h5.sale {
 	{% else %}
 	
 	{% endif %}
-	
+	<a href="{% url 'bicycle-show' bike.id %}" title="{{bike.model}}" data-toggle="tooltip" data-placement="top">
 		<div style="background-color: white; ">
 		<img src="/media/{{bike.model.photo}}" width="200px"/>
 		</div>
+	</a>
 	</div>
 	<p align="justify" style="font-size: 100%"> 
 	<a href="{% url 'bicycle-show' bike.id %}" title="{{bike.model}}" data-toggle="tooltip" data-placement="top"> {{bike.model}}  </a>

@@ -1603,12 +1603,14 @@ def shop_bicycle_company(request):
     return render(request, 'index.html', vars)        
 
 
-def shop_bicycle_brand(request, id=None):
+def shop_bicycle_brand(request, id=None, sale=None):
     id = id
     bsb = Bicycle_Store.objects.filter(count__gte = 1, model__brand__pk = id)
+    if sale:
+        bsb = bsb.filter(model__sale__gt = 0)
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'bicycles_list_bybrand.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bybrand': bsb, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'bicycles_list_bybrand.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'bicycle_bybrand': bsb, 'sale_status': sale, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -1784,7 +1786,8 @@ def workshop_service(request):
 
 
 def shop_discount(request):
-    d_list = Discount.objects.all().order_by('type_id')
+    curr_date = datetime.date.today()
+    d_list = Discount.objects.filter(date_start__lte = curr_date, date_end__gte = curr_date).order_by('type_id')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     vars = {'weblink': 'discount_list.html', 'sel_menu': 'workshop', 'd_list': d_list, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}

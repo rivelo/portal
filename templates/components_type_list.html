@@ -1,4 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Перелік категорії товарів в інтернет магазині</title>
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -150,7 +151,22 @@ h5.sale {
 {% endif %}		
 
 
+{# Список категорій #} 
+<div class="d-flex align-content-around flex-wrap">
+{% for component in components_list_bytype %}
+  <div class="card mr-auto mb-1" style="width:128px">
+  	<a href="{% url 'components-list-bytype' component.id %}"> 
+    <img class="card-img-top ilogo p-1" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" style="width:128px" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+    <div class="card-body">
+      <p class="card-text"><small class="text-muted">{{component}}</small></p> 
+    </div>
+  </div>
+{% endfor %}
+</div>
 
+
+{% comment %}
 {# Список категорій #} 
 {% if components_list_bytype %}
 <div class="card-columns card-columns_type">
@@ -171,7 +187,7 @@ h5.sale {
 {% endfor %}
 </div>
 {% endif %}		
-
+{% endcomment %}
 
 </div>
 </div>

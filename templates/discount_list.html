@@ -1,9 +1,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
+<title>Дисконтні програми</title>
 <style>
 
 .center {
-
     margin-left: auto;
     margin-right: auto;
 /*    width: 50%; */
@@ -11,7 +10,6 @@
     background: none;
     cursor: pointer;
     font-size: 24px;
-
 }
 
 .card img {
@@ -146,13 +144,74 @@ $(function () {
 {% block content %}
 
 
+{% for sale in d_list %}
+
+<div class="jumbotron mt-2 mb-1 pt-3 pb-3">
+<div class="container">
+  <h1 class="display-4 font-weight-bold" >{{sale.name}}</h1>
+  <p class="lead">
+  <span class="btn btn-outline-warning">{{sale.date_start}}</span> - <span class="btn btn-outline-warning">{{sale.date_end}}</span>
+  </p>
+	{% if sale.get_manufacture %}
+	{% if sale.get_manufacture.logo %}
+	<div class="link_catalog" tabindex="0" data-trigger="focus" data-toggle="popover" data-trigger="focus" data-html="true" title="Повідомлення" data-content="Посилання працюватиме<br> з {{sale.date_start}}<br> по {{sale.date_end}}">
+{#	<h5 class="sale">Знижка {{sale.sale|floatformat:"0"}} %</h5> #}
+<a href="{% url 'components-list-bybrand' sale.manufacture_id %}"> 
+{#		<img class="card-img-top w-50" src="/media/{{sale.get_manufacture.logo}}" class="ilogo" alt="{{sale.get_manufacture.name}}" title="{{sale.get_manufacture.name}}" data-toggle="tooltip" data-placement="top"> #}
+<div class="container"><div class="col-md-4 px-0">
+{#        <img class="img-fluid" src="{{ sale.get_type.get_icon_name}}" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="top"> #}
+        <img class="img-fluid" src="/media/{{sale.get_manufacture.logo}}" class="ilogo" alt="{{sale.get_manufacture.name}}" title="{{sale.get_manufacture.name}}" data-toggle="tooltip" data-placement="top"> 
+    <h3>
+    <span tabindex="0" class="badge badge-danger link_catalog" data-container="body" data-html="true" data-trigger="focus" role="button" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> з {{sale.date_start}} <br>по {{sale.date_end}}">
+    Знижка {{sale.sale|floatformat:"0"}}%
+    </span>
+    </h3>
+    </div>
+</div>
+</a>
+
+	</div>		
+	{% endif %}
+	{% endif %}
+
+	
+	{% if sale.get_type %}
+	<div class="link_catalog" tabindex="0" class="badge badge-danger" data-trigger="focus" role="button" data-container="body" data-html="true" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> {{sale.date_start}} <br>-<br> {{sale.date_end}}">
+<a href="{% url 'components-list-bytype' sale.type_id %}">	
+<div class="container"><div class="col-md-4 px-0">
+        <img class="img-fluid w-50" src="{{ sale.get_type.get_icon_name}}" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    <h3>
+    <span tabindex="0" class="badge badge-danger link_catalog" data-container="body" data-html="true" data-trigger="focus" role="button" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> з {{sale.date_start}} <br>по {{sale.date_end}}">
+    Знижка {{sale.sale|floatformat:"0"}}%
+    </span>
+    </h3>
+
+    </div>
+</div>
+		
+</a>		
+	</div>
+	{% endif %}
+
+	
+</div>
+</div>
+
+{% endfor %}
+
+
+
+
+
+{% comment %}
 <div class="jumbotron ">
 <div class="container">
   <h1 class="display-4 font-weight-bold" >Чорна п'ятниця</h1>
   <p class="lead">
   <span class="btn btn-outline-warning">{{d_list.0.date_start}}</span> - <span class="btn btn-outline-warning">{{d_list.0.date_end}}</span>
   </p>
-  </div>
+ 
+</div>
 </div>
 
 
@@ -178,14 +237,7 @@ $(function () {
 </a>		
 	</div>
 	{% endif %}
-    
-{% comment %}    
-    <div class="card-body" style="background-color: black;">
-      <h5 class="card-title">-{{sale.sale|floatformat:"0"}}%</h5>
-      <p class="card-text">{{sale.name}}<br> {{sale.description}}</p>
-    </div>
-{% endcomment %}
-    
+   
     <div class="card-footer">
     <h3 class="center">
     <span tabindex="0" class="badge badge-danger link_catalog" data-container="body" data-html="true" data-trigger="focus" role="button" data-toggle="popover" data-placement="left" data-content="Посилання працюватиме<br> з {{sale.date_start}} <br>по {{sale.date_end}}">
@@ -211,7 +263,7 @@ $(function () {
 
 <br>
     
-  
+ {% endcomment %} 
  
 
 {% endblock %}

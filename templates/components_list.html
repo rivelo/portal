@@ -1,5 +1,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
+{% if status_brand %}
+<title>Виробник {{components_list.0.manufacturer}}</title>
+{% endif %}
+{% if status_type %}
+<title>{{components_list.0.type}}</title>
+{% endif %}
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <script>
@@ -32,6 +37,24 @@ h5.sale {
     margin-right: 3px;
 
 }
+
+
+h5.sale_discount {
+	color: white;
+	background-color: red;
+	font-weight: bold;
+	position	: absolute; 
+/*	float: right;*/
+	bottom		: 25px;
+	right		: 0px;
+/*	left		: 100px; */
+/*	width		: 50%; */
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-right: 3px;
+
+}
+
 
 h5.discount {
 	color: white;
@@ -81,6 +104,7 @@ h5.discount {
 <img class="ml-3" src="/media/{{components_list.0.manufacturer.logo}}" style="height:64px">
 <div class="col-auto my-auto">
 <h2>Виробник - {{components_list.0.manufacturer}}</h2>
+<span class="badge badge-danger">{{components_list.0.manufacturer.get_discount.1}}</span>
 </div>
 {% endif %}
 {% if status_type %}
@@ -89,8 +113,13 @@ h5.discount {
 <h1 class="h-100 my-auto" >
  <span class="badge badge-secondary my-auto">{{components_list.0.type}}</span>
 </h1>
+<span class="badge badge-danger">{{components_list.0.type.get_discount.0}}</span>
 </div>
 {% endif %} 
+
+     
+     
+
 {% if search_str %}
 <div class="col-auto my-auto">
 <h2>За вашим запитом <span class="badge badge-info"> {{search_str}}</span> <br> Знайдено:</h2>
@@ -100,10 +129,12 @@ h5.discount {
 
 
 
-<div class="row post ml-1">
+{#<div class="row post ml-1">#}
+<div class="row post d-flex align-content-around flex-wrap m-1">
  
 {% for component in components_list %}
-	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
+{#	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;"> #}
+	<div class="mb-1 mr-auto" style="background:#ddf2c6; width:200px; height:330px; padding: 5px 5px 5px 5px; margin: 10px 10px 0px 0px;">
 <div class="image-component">
 	<div style="background-color: white; height:200px;">
 	<a href="{% url 'component-show' component.id %}">
@@ -120,8 +151,10 @@ h5.discount {
 	{% if component.sale %}
 	<h5 class="sale">Знижка {{component.sale|floatformat:"0"}} %</h5>
 	{% else %}
-	{% if component.get_discount %}
-		<h5 class="discount"><span class="badge badge-myinfo"> {{component.get_discount_item.name}}: {{component.get_discount|floatformat:"0"}} грн. </span></h5>
+	{% if component.get_discount.0 %}
+		<h5 class="sale_discount">Знижка {{component.get_discount.1|floatformat:"0"}} %</h5>
+{#		<h5 class="discount"><span class="badge badge-myinfo"> {{component.get_discount_item.name}}: {{component.get_discount|floatformat:"0"}} грн. </span></h5> #}
+		<h5 class="discount"><span class="badge badge-myinfo"> <font size="1" color="white"> {{component.get_discount.2}}: </font> {{component.get_discount.0|floatformat:"0"}} грн. </span></h5>
 	{% endif %}
 	{% endif %}
 </div>	
