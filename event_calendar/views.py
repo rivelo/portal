@@ -560,7 +560,7 @@ def add_reg(request, id):
             description = form.cleaned_data['description']
             event = a
             
-            regevt = RegEvent(event=event, fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, sex=sex, description = description)
+            regevt = RegEvent(event=Events.objects.get(pk=id), fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, sex=sex, description = description)
             regevt.save()
             reg_code = hashlib.sha256(str(regevt.pk)).hexdigest()
             regevt.reg_code = reg_code 

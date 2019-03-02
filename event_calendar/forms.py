@@ -41,7 +41,7 @@ MONTH_CHOISES = {1:("Січень"), 2:("Лютий"), 3:("Березень"), 4
 SEX_CHOICES = ((1, 'Чоловіча'), (0, 'Жіноча'))
         
 class RegEventsForm(forms.ModelForm):
-    event = forms.ModelChoiceField(queryset = Events.objects.all(), label='Захід') 
+    event = forms.ModelChoiceField(queryset = Events.objects.filter(date__year__gte = cur_year.year), label='Захід', required=False) 
     fname = forms.CharField(label='Імя', max_length=100, widget=forms.TextInput(attrs={'size': '50'}), error_messages={'required': 'Заповніть поле Імя. Це є обовязкове поле.'})
     lname = forms.CharField(label='Прізвище', widget=forms.TextInput(attrs={'size': '50'}), required=True, error_messages={'required': 'Заповніть поле Прізвище. Це є обовязкове поле.'})
     sex = forms.ChoiceField(label='Стать', choices=SEX_CHOICES)

@@ -5,7 +5,9 @@
 <script>
 $(document).ready(function(){
 
-$("#id_event").attr('disabled', 'disabled'); // disable select event_list
+ $("#id_event").attr('disabled', 'disabled'); // disable select event_list 
+ $("#id_event").val({{event.pk}})
+
 
 phone_f = $("#id_phone").parents('li');
 $("#gaddr").insertAfter(phone_f);
