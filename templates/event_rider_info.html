@@ -104,6 +104,11 @@ label {float:left; padding-right:10px;}
 <li>
  на картку А-банку (4323 3552 0025 8937 - Панчук Ігор)
 </li>
+<li>
+ на картку Monoбанку 
+ - за номером (5375 4141 0424 4396 - Панчук Ігор)
+ - за посиланням https://send.monobank.com.ua/9AzoShj3
+</li>
 <li> 
 оплатити в магазині <a href="http://www.rivelo.com.ua/about/" >Рівело </a> (місто Рівне, вул.Кавказька 6 ) </h3>
 </li>
@@ -216,7 +221,7 @@ label {float:left; padding-right:10px;}
 <a href="{{ default_domain }}{% url 'event-registration-edit'  rider.pk rider.reg_code %}">Змінити дані</a><br>
 <a href="{{ default_domain }}{% url 'event-rider-list'  rider.event.pk %}" >Список зареєстрованих учасників</a><br>
 <a href="{{ default_domain }}{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
-<a href="{{ default_domain }}{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a>
+{# <a href="{{ default_domain }}{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a> #}
 </div>
 {% endif %}
 {% if reg_ok %}         
@@ -224,7 +229,7 @@ label {float:left; padding-right:10px;}
 <a href="{% url 'event-registration-edit'  rider.pk rider.reg_code %}">Змінити дані</a><br>
 <a href="{% url 'event-rider-list'  rider.event.pk %} " >Список зареєстрованих учасників</a><br>
 <a href="{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
-<a href="{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a>
+{# <a href="{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a> #}
 </div>
 {% endif %}
 {% if register_all %}
