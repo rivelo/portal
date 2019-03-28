@@ -193,10 +193,22 @@ class Manufacturer(models.Model):
         curdate = datetime.date.today()
         dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.pk).order_by("-sale")
         if dateDiscount.exists():
-            max_sale = dateDiscount.aggregate(Max('sale'))
+            pass
+            return dateDiscount
         else:
            return 0
-        return (max_sale, dateDiscount[0])         
+
+    #===========================================================================
+    # def get_discount(self):
+    #     max_sale = None
+    #     curdate = datetime.date.today()
+    #     dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.pk).order_by("-sale")
+    #     if dateDiscount.exists():
+    #         max_sale = dateDiscount.aggregate(Max('sale'))
+    #     else:
+    #        return 0
+    #     return (max_sale, dateDiscount[0])         
+    #===========================================================================
     
     def natural_key(self):
         return (self.id, self.name)
@@ -384,9 +396,11 @@ class Catalog(models.Model):
         sum = 0
         for item in cc:
             sum = sum + item.get_uaprice() * item.count
+            print "ITEM UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
             ic_count = ic_count + item.count
         if ic_count != 0:
             ua = sum / ic_count
+            print "UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
         if (self.currency.ids_char == 'UAH'):
             percent_sale = (100-self.sale)*0.01
             profit = self.price * percent_sale - ua 
@@ -436,7 +450,7 @@ class Catalog(models.Model):
     def get_photos(self):
         photos_list = []
         if self.photo:
-            photos_list.append(self.photo)
+            photos_list.append("/media/" + str(self.photo))
         if self.photo_url:
             p_url = self.photo_url.all()
         for photo in p_url:

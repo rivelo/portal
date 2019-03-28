@@ -90,7 +90,7 @@ class Events(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
     lng = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
     city = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True) # положення 
     date = models.DateTimeField()
     duration = models.PositiveSmallIntegerField(default=1, help_text="тривалість заходу, кількість днів")
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)

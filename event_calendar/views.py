@@ -533,13 +533,15 @@ def add_reg(request, id):
 #    r = RegEvent()
     if request.method == 'POST':
         form = RegEventsForm(request.POST, instance=r)
-        gr = grecaptcha_verify(request)
-        if gr['status'] == False:
-            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
-            vars.update(calendar)        
-            evnt = {'event': a}
-            vars.update(evnt)
-            return render(request, 'index.html', vars)
+        #=======================================================================
+        # gr = grecaptcha_verify(request)
+        # if gr['status'] == False:
+        #     vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
+        #     vars.update(calendar)        
+        #     evnt = {'event': a}
+        #     vars.update(evnt)
+        #     return render(request, 'index.html', vars)
+        #=======================================================================
             
             # https://developers.google.com/recaptcha/docs/verify
         if form.is_valid():

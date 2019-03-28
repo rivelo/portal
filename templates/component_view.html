@@ -1,5 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<title>[{{component.ids}}] {{component.name}}</title>
+
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <script>
@@ -298,7 +300,7 @@ body.scrollable {
 </div>
 <!-- end Photo slide show  -->
 {% else %}
- 	<img src='{% get_filename_icontype component.type False %}' />
+ 	<img src='{% get_filename_icontype component.type False %}' data-toggle="tooltip" data-placement="right" title="немає фотографії" data-html="true"/>
 {% endif %}
 	
 {% if component.youtube_url.all.exists %}
