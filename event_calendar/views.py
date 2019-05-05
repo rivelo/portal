@@ -18,7 +18,7 @@ from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
 from django.core.exceptions import ObjectDoesNotExist
 
-from models import Events, RegEvent, ResultEvent
+from models import Events, RegEvent, ResultEvent, EventDistance
 from forms import EventsForm, RegEventsForm, PayRegEventsForm
 
 from portal.gallery.models import Album, Photo
@@ -531,8 +531,11 @@ def add_reg(request, id):
             return render(request, 'index.html', vars)
 #            return HttpResponse("Реєстрацію завершено, або ви не авторизувались для даної функції. До старту заходу " + str(a.days_left()) + " днів", content_type="text/plain")
 #    r = RegEvent()
+    
+    
     if request.method == 'POST':
-        form = RegEventsForm(request.POST, instance=r)
+        #form = RegEventsForm(request.POST, dist, instance=r, event_id = a.pk)
+        form = RegEventsForm(request.POST, instance=r, event_id = a.pk)
         #=======================================================================
         # gr = grecaptcha_verify(request)
         # if gr['status'] == False:
@@ -545,7 +548,7 @@ def add_reg(request, id):
             
             # https://developers.google.com/recaptcha/docs/verify
         if form.is_valid():
-#            event = form.cleaned_data['event']
+            event = form.cleaned_data['event']
             fname = form.cleaned_data['fname']
             lname = form.cleaned_data['lname']
             nickname = form.cleaned_data['nickname']
@@ -560,9 +563,11 @@ def add_reg(request, id):
             #date = form.cleaned_data['date']
             sex = form.cleaned_data['sex']
             description = form.cleaned_data['description']
-            event = a
+            distance_type = form.cleaned_data['distance_type']
+#            event = a
             
-            regevt = RegEvent(event=Events.objects.get(pk=id), fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, sex=sex, description = description)
+            regevt = RegEvent(event=Events.objects.get(pk=id), fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, sex=sex, distance_type=distance_type, description = description)
+#            regevt = RegEvent(event=event, fname=fname, lname=lname, nickname=nickname, email=email, phone=phone, country=country, city=city, club=club, bike_type=bike_type, birthday=birthday, sex=sex, distance_type=distance_type, description = description)            
             regevt.save()
             reg_code = hashlib.sha256(str(regevt.pk)).hexdigest()
             regevt.reg_code = reg_code 
@@ -587,7 +592,8 @@ def add_reg(request, id):
                 error = "відсутній параметр reg_email"
             return HttpResponseRedirect('/event/rider/'+str(regevt.pk)+'/info/')
     else:
-        form = RegEventsForm(instance=r)
+        form = RegEventsForm(instance=r, event_id = a.pk)
+        #form = RegEventsForm(instance=r)
         
     vars = {'weblink': 'event_reg_add.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'form': form}
     vars.update(calendar)        
@@ -609,18 +615,22 @@ def edit_reg(request, id, hash):
         return render(request, 'index.html', vars)
 
     if request.method == 'POST':
-        form = RegEventsForm(request.POST, instance=revent)
-        gr = grecaptcha_verify(request)
-        if gr['status'] == False:
-            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
-            vars.update(calendar)        
-            evnt = {'event': a}
-            vars.update(evnt)
-            return render(request, 'index.html', vars)
+        form = RegEventsForm(request.POST, instance=revent, event_id = a.id, edit=True)
+        #=======================================================================
+        # gr = grecaptcha_verify(request)
+        # if gr['status'] == False:
+        #     vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
+        #     vars.update(calendar)        
+        #     evnt = {'event': a}
+        #     vars.update(evnt)
+        #     return render(request, 'index.html', vars)
+        #=======================================================================
             
             # https://developers.google.com/recaptcha/docs/verify
         if form.is_valid():
             form.save()
+            revent.event = a
+            revent.save()
 #            reg_code = hashlib.sha256(str(revent.pk)).hexdigest()
 #            regevt.reg_code = reg_code 
 #            regevt.save()
@@ -643,7 +653,7 @@ def edit_reg(request, id, hash):
             request.session["registration_subject"] = 'Реєстрація. Редагування даних'            
             return HttpResponseRedirect('/event/rider/'+str(revent.pk)+'/info/')
     else:
-        form = RegEventsForm(instance=revent)
+        form = RegEventsForm(instance=revent, event_id = a.id, edit=True)
         
     vars = {'weblink': 'event_reg_add.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'form': form}
     vars.update(calendar)        
@@ -746,21 +756,27 @@ def get_event_rider(request, id):
     if request.session.test_cookie_worked():
         request.session.delete_test_cookie()
         return HttpResponse("У вашому браузері не працюють куки/Cookie. ")
+
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
     
     revent = RegEvent.objects.get(pk = id)
     code = request.session.get("registrationcode")
-    print "CODE#1 = ", revent.pk
+#    print "CODE#1 = ", revent.pk
     if not code and auth_group(request.user, 'admin')==False:
-#    if "registrationcode" in request.session : 
-        return HttpResponse("Ваше посилання вже не є актуальним! model = " + revent.reg_code, content_type="text/plain")
+#    if "registrationcode" in request.session :
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним!'}
+        return render(request, 'index.html', vars)
+#        return HttpResponse("Ваше посилання вже не є актуальним! model = " + revent.reg_code, content_type="text/plain")
 
     if request.session.get('registrationcode') != revent.reg_code and auth_group(request.user, 'admin')==False:
+        vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Ваше посилання вже не є актуальним!'}
+        return render(request, 'index.html', vars)
     #if request.session['registrationcode'] != revent.reg_code :
-        return HttpResponse("Ваше посилання вже не є актуальним!!! model = " + revent.reg_code + "  SESSION_ID = "+ str(request.session.get('registrationcode'))+ "AUTH = " + str(auth_group(request.user, 'admin')), content_type="text/plain") 
+#        return HttpResponse("Ваше посилання вже не є актуальним!!! model = " + revent.reg_code + "  SESSION_ID = "+ str(request.session.get('registrationcode'))+ "AUTH = " + str(auth_group(request.user, 'admin')), content_type="text/plain")
+     
                             #request.COOKIES['sessionid'], content_type="text/plain")
     everules = revent.event.rules.all()
-    photo1 = Photo.objects.random()
-    photo2 = Photo.objects.random()
     vars = {'weblink': 'event_rider_info.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'rider': revent, 'reg_ok': True, 'event_rules': everules}
     calendar = embeded_calendar()
     vars.update(calendar)        

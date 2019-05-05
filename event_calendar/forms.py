@@ -3,7 +3,7 @@ from django import forms
 from django.forms import widgets
 from django.forms.extras.widgets import SelectDateWidget
 from django.forms import ModelForm
-from models import Events, RegEvent, BikeType, EventType
+from models import Events, RegEvent, BikeType, EventType, EventDistance
 
 from django.contrib.auth.models import User
 import datetime
@@ -52,6 +52,8 @@ class RegEventsForm(forms.ModelForm):
     club = forms.CharField(max_length=255, required=False, label='Команда')
     bike_type = forms.ModelChoiceField(label='Тип велосипеду', queryset = BikeType.objects.all()) 
     birthday = forms.DateField( widget=SelectDateWidget(years=YEAR_CHOICES, months=MONTH_CHOISES), label='Дата народження',) #input_formats=['%d.%m.%Y'],
+    #distance_type = forms.ModelChoiceField(queryset = EventDistance.objects.filter(event = 25), label='Дистанція', required=False)
+    #distance_type = forms.ModelChoiceField(queryset = EventDistance.objects.none(), label='Дистанція', required=False)
     description = forms.CharField(widget=forms.Textarea(attrs={'cols': 93, 'rows': 8}), required=False, label='Примітки')
 
     def clean(self):
@@ -59,13 +61,36 @@ class RegEventsForm(forms.ModelForm):
         chk_phone = cleaned_data.get("phone")
         chkevent = cleaned_data.get("event")
         chkcity = cleaned_data.get("city")
-        res = RegEvent.objects.filter(event = chkevent, phone = chk_phone)
+        res = None
+        try:
+            if self.edit:
+                pass
+            else:
+                res = RegEvent.objects.filter(event = self.event_id, phone = chk_phone)
+        except:
+            pass
         if res :
             raise forms.ValidationError("Користувач з таким телефоном вже існує")
         if chkcity == '':
             raise forms.ValidationError("Виберіть місто з автодоповнення")
         # Always return the full collection of cleaned data.
         return cleaned_data
+
+    #def __init__(self, dist_list, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        try:
+            self.event_id = kwargs.pop('event_id')
+            self.edit = kwargs.pop('edit')
+            print "EVENT 1 = " + str(self.event_id)
+        except:
+            pass    
+        super(RegEventsForm, self).__init__(*args, **kwargs)
+        try:
+            self.fields['event'] = forms.ModelChoiceField(queryset = Events.objects.filter(pk = self.event_id), label='Захід', required=False)
+            self.fields['distance_type'] = forms.ModelChoiceField(queryset = EventDistance.objects.filter(event = self.event_id), label='Дистанція', required=False)
+        except:
+            pass
+       #self.fields['distance_type'] = forms.ModelChoiceField(queryset = dist_list, label='Дистанція', required=False)
 
     class Meta:
         model = RegEvent
@@ -129,5 +154,5 @@ class PayRegEventsForm(forms.ModelForm):
     class Meta:
         model = RegEvent
         fields = '__all__'
-        exclude = ['user', 'status', 'reg_code', 'event', 'fname', 'lname', 'sex', 'nickname', 'email', 'phone', 'country', 'city', 'club', 'bike_type', 'birthday', 'date', 'start_status']
+        exclude = ['user', 'status', 'reg_code', 'event', 'fname', 'lname', 'sex', 'nickname', 'email', 'phone', 'country', 'city', 'club', 'bike_type', 'birthday', 'date', 'start_status', 'distance_type']
                     

@@ -1,6 +1,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>{{event.name}} [{{event.date|date:"d.m.Y"}}]</title>
 
+<meta name="description" content='{{event.name}} [{{event.date|date:"d.m.Y"}}]'>
+<meta name="keywords" content="Захід {{event.name}}, Веломарафон, Велосипедний марафон, Вело, Рівне, Сотка">
+<meta name="author" content="Rivelo">
+
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -42,6 +46,7 @@ div.poster, div.gps, div.map
 $(document).ready(function(){
 //    $("img.poster").hide();
 	$("#map").hide();
+	$("#main_doc").hide();
 
     $("div.poster").click(function(){
     	var div_p = $(this)
@@ -99,6 +104,10 @@ $(document).ready(function(){
 		//initMap();
 	})
 
+	$("#div_show_doc").click(function(){
+    	$("#main_doc").toggle();
+    })
+	
 });
 
 </script>
@@ -193,6 +202,14 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </h5>
 </div>
 
+<div class="row" id="div_show_doc">
+<h2>
+<span class="badge badge-info" >Положення</span>
+</h2>
+<div class="col-xs-12 doc_content" id="main_doc">
+{{ event.description|safe }}
+</div>
+</div>
 
 {% if event.gps_track %}
 <div class="row align-items-center gps" ids="{{event.pk}}">

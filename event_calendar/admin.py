@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from portal.event_calendar.models import Events, EventType, Rules, GroupBikeType, BikeType, RegEvent, ResultEvent
+from portal.event_calendar.models import Events, EventType, Rules, GroupBikeType, BikeType, RegEvent, ResultEvent, EventDistance
 
 
 class EventTypeAdmin(admin.ModelAdmin):
@@ -35,6 +35,8 @@ class RegEventAdmin(admin.ModelAdmin):
 class ResultEventAdmin(admin.ModelAdmin):
     pass
 
+class EventDistanceAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(BikeType, BikeTypeAdmin)
 admin.site.register(GroupBikeType, GroupBikeTypeAdmin)
@@ -43,3 +45,4 @@ admin.site.register(Events, EventsAdmin)
 admin.site.register(Rules, RulesAdmin)
 admin.site.register(RegEvent, RegEventAdmin)
 admin.site.register(ResultEvent, ResultEventAdmin)
+admin.site.register(EventDistance, EventDistanceAdmin)

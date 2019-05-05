@@ -1,4 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список зареєстрованих на {{event.name}}</title>
 
 <meta name="description" content="Список зареєстрованих на марафон <a href="{% url 'event-show' event.pk  %}">{{event.name}}">
 <meta name="keywords" content="{{event.name}}, МТБ марафон, Веломарафон, Велосипедний марафон, Вело, Рівело, Rivelo, Рівне, XCM, Marathon MTB, Start list">
@@ -88,11 +89,36 @@ cursor: pointer;
     display:block;
 } 
 
+
+span.city {
+     cursor:pointer;
+//     color:blue;
+//     text-decoration:underline;
+}
+
+span.city:hover {
+     text-decoration:none;
+     text-shadow: 1px 1px 1px #555;
+}
+
+span.bike_type {
+     cursor:pointer;
+}
+
+span.bike_type:hover {
+     text-decoration:none;
+     text-shadow: 1px 1px 1px #555;
+}
+
+
 </style>
 
 
 <script>
 $(document).ready(function(){
+	
+	$('[data-toggle="tooltip"]').tooltip();
+	
 	$( "#tabs" ).tabs();
 	$( "#tabs" ).hide()
 
@@ -401,6 +427,32 @@ $( "#img_start" ).click(function() {
 	});
 });
 
+$("body").on("click", ".city", function(e){
+//	console.log("THIS - " + $(this).attr('cityname')) 
+	$("#rtable_filter").find('input').val($(this).attr('cityname'))
+	rtable.column( 4 ).search( $(this).attr('cityname') ).draw();
+//	$("#rtable_filter").find('input').focus();
+//	$("#rtable_filter").find('input').select();
+})
+
+
+$("body").on("click", "#clearcity", function(e){
+	rtable.column( 4 ).search( '' ).draw();
+})
+
+
+$("body").on("click", ".bike_type", function(e){
+//	console.log("THIS - " + $(this).attr('cityname')) 
+	$("#rtable_filter").find('input').val($(this).attr('biketypename'))
+	rtable.column( 7 ).search( $(this).attr('biketypename') ).draw();
+})
+
+
+$("body").on("click", "#clearbiketype", function(e){
+	rtable.column( 7 ).search( '' ).draw();
+})
+
+
 
 $("#table_cat0_wrapper").hide();
 $("#table_cat1_wrapper").hide();    
@@ -592,6 +644,7 @@ style="background-color: white;"
 {% endfor %}
 {% if user.is_authenticated and user|has_group:"moder" %}
 	<div class="dropdown-divider"></div>
+	<a href="{% url 'event-rider-info' rider.pk %}" class="dropdown-item" type="button" >Змінити дані</a>
 	<a href="{% url 'rider-reg-delete' rider.pk %}" class="dropdown-item" type="button" onclick="return confirm('Ви впевненні що хочете видалити запис {{rider.fname}} {{rider.lname}}?')">Видалити реєстрацію</a>
 {% endif %}	
   </div>
@@ -636,26 +689,39 @@ style="background-color: white;"
 	чоловіків - {{ event|rider_statistic:"1" }}
     </p>
   </div>
+  
   <div id="tabs-2">
 	<p>
 	{% for city in event.riders_city %}
-		{{city.city}} - {{city.num_city}}<br>
+		<span class="city" cityname="{{city.city}}" data-toggle="tooltip" data-placement="right" data-html="true" title="Показати учасників з міста <u><b>{{city.city}}</b></u>">{{city.city}} - {{city.num_city}}</span><br>
 	{% endfor %}
 	</p>
+	<span id="clearcity" class="badge badge-dark">Показати всі міста</span>
   </div>
+  
   <div id="tabs-3">
     <p>
 	{% for bike in event.riders_bike %}
-		{{bike.bike_type__name}} - {{bike.num_bike}}<br>
+	<span class="bike_type" biketypename="{{bike.bike_type__name}}" data-toggle="tooltip" data-placement="right" title="Показати учасників на велосипедах <br><u><b>{{bike.bike_type__name}}</b></u>" data-html="true"> {{bike.bike_type__name}} - {{bike.num_bike}} </span><br>
 	{% endfor %}
     </p>
+    <span id="clearbiketype" class="badge badge-dark" data-toggle="tooltip" data-placement="right" title="Показати учасників на всіх типах велосипедів">Показати всі типи велосипедів</span>
   </div>
+  
   <div id="tabs-4">
     <p>
     Оплачених - {{ event.riders_pay_count }}
 	<br>    
     {% if user.is_authenticated %}
-    Сума - {{ event.riders_pay_sum }}
+    Сума - {{ event.riders_pay_sum }} 
+    {% endif %}
+    {% if user.is_authenticated and user|has_group:"admin" %}
+<ul>
+  <li> Магазин - {{event.riders_pay_sum_shop}} грн. </li>
+  <li> Картка - {{event.riders_pay_sum_card}} грн. </li>
+  <li>Інші - {{event.riders_pay_sum_other}} грн. </li>
+</ul>
+
     {% endif %}
     </p>
   </div>

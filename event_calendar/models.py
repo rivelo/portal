@@ -134,6 +134,21 @@ class Events(models.Model):
          psum = r.values()[0]
          return psum
 
+    def riders_pay_sum_card(self):
+         r = self.regevent_set.filter(status=True, pay_type='card').aggregate(total_pay=Sum('pay'))
+         psum = r.values()[0]
+         return psum
+
+    def riders_pay_sum_shop(self):
+         r = self.regevent_set.filter(status=True, pay_type='shop').aggregate(total_pay=Sum('pay'))
+         psum = r.values()[0]
+         return psum
+
+    def riders_pay_sum_other(self):
+         r = self.regevent_set.filter(status=True, pay_type='any').aggregate(total_pay=Sum('pay'))
+         psum = r.values()[0]
+         return psum
+
     def riders_city(self):
         r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
         return r
@@ -142,7 +157,7 @@ class Events(models.Model):
         r = self.regevent_set.values('bike_type', 'bike_type__name').annotate(num_bike=Count('bike_type')).order_by('-num_bike')
         return r
 
-    def cur_reg_sum(self, today=datetime.date.today()):
+    def cur_reg_sum(self, today=datetime.date.today):
         #today = datetime.date.today()
         try:
             rule = self.rules.get(date_in__lte = today, date_out__gte = today)

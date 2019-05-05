@@ -1,4 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Завершення реєстрації {{rider.event.name}}</title>
 
 {% if thismail or add_pay %}
 <!DOCTYPE html>
@@ -17,7 +18,7 @@ $(".reg_filed").prop('disabled', true);
 
 
 if (!navigator.cookieEnabled) {
-  alert( 'Включите cookie для комфортной работы с этим сайтом' );
+  alert( 'Увімкніть cookie для роботи з порталом Рівело' );
 }
 
 });
@@ -79,7 +80,7 @@ label {float:left; padding-right:10px;}
 </div>
 {% endif %}
 {% if reg_ok %}
-<h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}" [{{rider.event.date}}]</h2>
+<h2 class="title">Вітаємо ви успішно зареєструвались на марафон "{{rider.event.name}}" <br>[{{rider.event.date}}]</h2>
 </div>	
 	{% if rider.event.icon %}
 	<div style="float:right;">
@@ -102,14 +103,14 @@ label {float:left; padding-right:10px;}
 <ul style="font-size:14; padding: 0px 0 0 20px;">
 <h3>Оплату марафону можна здійснити:</h3>
 <li>
- на картку А-банку (4323 3552 0025 8937 - Панчук Ігор)
+ на картку А-банку (4323 3552 0025 8937 - Панчук Ігор) <font size="3"><span class="badge badge-warning" style="white-space: normal;">можна оплачувати як на картку приватбанку тільки не підтягує ПІБ власника картки</span></font>
 </li>
 <li>
  на картку Monoбанку 
  <br>
  - за номером (5375 4141 0424 4396 - Панчук Ігор)
  <br>
- - <a href="https://send.monobank.com.ua/9AzoShj3">за посиланням</a> 
+ - <a href="https://send.monobank.com.ua/9AzoShj3">за посиланням</a>  <font size="3"><span class="badge badge-warning" style="white-space: normal;">оплата з будь-яких карт Українських банків без комісії через онлайн сервіс Monobank-у</span></font>
 </li>
 <li> 
 оплатити в магазині <a href="http://www.rivelo.com.ua/about/" >Рівело </a> (місто Рівне, вул.Кавказька 6 ) </h3>
@@ -127,8 +128,14 @@ label {float:left; padding-right:10px;}
 * можливість вибрати стартовий номер <b>+5грн</b>
 </ul>
 </div>
-
+{% if reg_ok %}
+<h4>
+<span class="badge badge-info" style="white-space: normal;">На вашу електронну адресу <span class="badge badge-light">{{rider.email}}</span> було відправоено лист в якому є всі реквізити по оплаті (фактично копія даної сторінки).</span>
 <br>
+<span class="badge badge-info mt-1" style="white-space: normal;">Також не забувайте внести дані про вашу оплату за посиланням у листі <span class="badge badge-light">Внесення даних про оплату</span> або прямо на цій сторінці <span class="badge badge-success"><a href="#addpay_data" style="color: white;">знизу</a></span></span>
+{% endif %}
+<br>
+</h4>
 
 {% if register_all %}
 <div style="float:left; padding-right:30px;">
@@ -210,6 +217,12 @@ label {float:left; padding-right:10px;}
    <input type="text" id="a" class="reg_filed" value="{{rider.start_number}}"/>
 </div>
 {% endif %}
+{% if rider.distance_type %}
+<div class="field">
+   <label for="a">Дистанція</label>
+   <input type="text" id="a" class="reg_filed" value="{{rider.distance_type}}"/>
+</div>
+{% endif %}
 <div class="field">
    <label for="a">Опис</label>
    <input type="text" id="a" class="reg_filed" value="{{rider.description}}"/>
@@ -230,7 +243,7 @@ label {float:left; padding-right:10px;}
 <div class="urlcss" style="float:none;">
 <a href="{% url 'event-registration-edit'  rider.pk rider.reg_code %}">Змінити дані</a><br>
 <a href="{% url 'event-rider-list'  rider.event.pk %} " >Список зареєстрованих учасників</a><br>
-<a href="{% url 'rider-pay-submit' rider.pk rider.reg_code %}" >Внесення даних про оплату</a><br>
+<a href="{% url 'rider-pay-submit' rider.pk rider.reg_code %}" id="addpay_data">Внесення даних про оплату</a><br>
 {# <a href="{% url 'other-event-registration' rider.reg_code %}" >Зареєструватись на інші марафони</a> #}
 </div>
 {% endif %}
