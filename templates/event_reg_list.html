@@ -1,7 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Список зареєстрованих на {{event.name}}</title>
 
-<meta name="description" content="Список зареєстрованих на марафон <a href="{% url 'event-show' event.pk  %}">{{event.name}}">
+<meta name="description" content="Список зареєстрованих на марафон {{event.name}}">
 <meta name="keywords" content="{{event.name}}, МТБ марафон, Веломарафон, Велосипедний марафон, Вело, Рівело, Rivelo, Рівне, XCM, Marathon MTB, Start list">
 <meta name="author" content="Rivelo">
 
@@ -120,7 +120,10 @@ $(document).ready(function(){
 	$('[data-toggle="tooltip"]').tooltip();
 	
 	$( "#tabs" ).tabs();
-	$( "#tabs" ).hide()
+	$( "#tabs" ).hide();
+	$("#clearcity").hide();
+	$("#clearbiketype").hide();
+	$("#clearteamselect").hide();
 
 	$( "#event_stat" ).click(function() {
 //  		$( "#tabs" ).show()
@@ -431,13 +434,21 @@ $("body").on("click", ".city", function(e){
 //	console.log("THIS - " + $(this).attr('cityname')) 
 	$("#rtable_filter").find('input').val($(this).attr('cityname'))
 	rtable.column( 4 ).search( $(this).attr('cityname') ).draw();
+//	console.log( "Print Search = " + rtable.column( 4 ).search() );
+	if (rtable.column( 4 ).search()) {
+		$("#clearcity").show();
+	}
+		
 //	$("#rtable_filter").find('input').focus();
 //	$("#rtable_filter").find('input').select();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 500);
 })
 
 
 $("body").on("click", "#clearcity", function(e){
 	rtable.column( 4 ).search( '' ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 500);
+	$("#clearcity").hide();
 })
 
 
@@ -445,12 +456,37 @@ $("body").on("click", ".bike_type", function(e){
 //	console.log("THIS - " + $(this).attr('cityname')) 
 	$("#rtable_filter").find('input').val($(this).attr('biketypename'))
 	rtable.column( 7 ).search( $(this).attr('biketypename') ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 500);
+	if (rtable.column( 7 ).search()) {
+		$("#clearbiketype").show();
+	}
 })
 
 
 $("body").on("click", "#clearbiketype", function(e){
 	rtable.column( 7 ).search( '' ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 500);
+	$("#clearbiketype").hide();
 })
+
+
+$("body").on("click", ".teams", function(e){
+//	console.log("THIS - " + $(this).attr('cityname')) 
+	$("#rtable_filter").find('input').val($(this).attr('teamname'))
+	rtable.column( 5 ).search( $(this).attr('teamname') ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 400);
+	if (rtable.column( 5 ).search()) {
+		$("#clearteamselect").show();
+	}
+})
+
+
+$("body").on("click", "#clearteamselect", function(e){
+	rtable.column( 5 ).search( '' ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 500);
+	$("#clearteamselect").hide();
+})
+
 
 
 
@@ -525,7 +561,7 @@ $("#table_cat5_wrapper").hide();
 </div>
 <br>
 
-<div class="row">
+<div class="row" id="tablepanel">
 <div class="col-12" id="rtable_length_panel">
 
 </div>
@@ -680,7 +716,13 @@ style="background-color: white;"
     <li><a href="#tabs-1">Стать</a></li>
     <li><a href="#tabs-2">Місто</a></li>
     <li><a href="#tabs-3">Велосипед</a></li>
+    <li><a href="#tabs-5">Команда</a></li>
+    <li><a href="#tabs-7">Дистанція</a></li>
     <li><a href="#tabs-4">Інше</a></li>
+    {% if user.is_authenticated and user|has_group:"admin" %}
+    <li><a href="#tabs-6">Реєстрація</a></li>
+    {% endif %}
+    
   </ul>
   <div id="tabs-1">
     <p>
@@ -707,6 +749,15 @@ style="background-color: white;"
     </p>
     <span id="clearbiketype" class="badge badge-dark" data-toggle="tooltip" data-placement="right" title="Показати учасників на всіх типах велосипедів">Показати всі типи велосипедів</span>
   </div>
+
+  <div id="tabs-5">
+    <p>
+	{% for team in event.riders_team %}
+	<span class="teams" teamname="{{team.club}}" data-toggle="tooltip" data-placement="right" title="Показати учасників з команди <br><u><b>{{team.club}}</b></u>" data-html="true"> {{team.club}} - {{team.num_club}} </span><br>
+	{% endfor %}
+    </p>
+    <span id="clearteamselect" class="badge badge-dark" data-toggle="tooltip" data-placement="right" title="Показати учасників всіх команд">Показати всі команди</span>
+  </div>
   
   <div id="tabs-4">
     <p>
@@ -721,8 +772,30 @@ style="background-color: white;"
   <li> Картка - {{event.riders_pay_sum_card}} грн. </li>
   <li>Інші - {{event.riders_pay_sum_other}} грн. </li>
 </ul>
-
     {% endif %}
+    </p>
+  </div>
+
+    {% if user.is_authenticated and user|has_group:"admin" %}
+  <div id="tabs-6">
+    <p>
+    {% for day in event.riders_reg_by_month %}
+	<span class="teams" datename="{{day.date}}" data-toggle="tooltip" data-placement="right" title="Показати учасників <br><u><b>{{team.club}}</b></u>" data-html="true"> {{day.registered_date|date:"F Y" }} - {{day.day_count}} чоловік </span><br>    
+	{% endfor %}	    
+    </p>
+    <p>
+    {% for day in event.riders_reg_by_date %}
+	<span class="teams" datename="{{day.date}}" data-toggle="tooltip" data-placement="right" title="Показати учасників <br><u><b>{{team.club}}</b></u>" data-html="true"> {{day.date}} {{day.registered_date}} - {{day.day_count}} чоловік </span><br>    
+	{% endfor %}	    
+	</p>
+  </div>
+  	{% endif %}
+
+  <div id="tabs-7">
+	<p>
+    {% for dist in event.riders_distance %}
+	<span class="teams" datename="{{dist.distance_type}}" data-toggle="tooltip" data-placement="right" title="Показати учасників <br><u><b>{{dist.distance_type}}</b></u>" data-html="true"> {{dist.distance_type__name }} ({{dist.distance_type}}) - {{dist.num_distance}} чоловік </span><br>    
+	{% endfor %}	    
     </p>
   </div>
   

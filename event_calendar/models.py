@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.db.models import Count, Sum
 #from portal.news.models import Category
 
+from django.db.models.functions import TruncMonth, TruncDate
+
 import datetime
 
 # Create your models here.
@@ -149,6 +151,20 @@ class Events(models.Model):
          psum = r.values()[0]
          return psum
 
+    def riders_reg_by_month(self):
+        r = self.regevent_set.annotate(registered_date=TruncMonth('date')).order_by('registered_date').values('registered_date').annotate(**{'day_count': Count('date')})
+        return r
+
+    def riders_reg_by_date(self):
+        #r = self.regevent_set.filter('date__date').values('date__date').annotate(day_count=Count('pk'))
+        r = self.regevent_set.annotate(registered_date=TruncDate('date')).order_by('registered_date').values('registered_date').annotate(**{'day_count': Count('date')})
+        #r = self.regevent_set.annotate(registered_date=TruncMonth('date')).order_by('registered_date').values('registered_date').annotate(**{'day_count': Count('date')})
+        return r
+
+    def riders_distance(self):
+        r = self.regevent_set.values('distance_type', 'distance_type__name', 'distance_type__description').annotate(num_distance=Count('distance_type')).order_by('-num_distance')
+        return r
+
     def riders_city(self):
         r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
         return r
@@ -156,6 +172,11 @@ class Events(models.Model):
     def riders_bike(self):
         r = self.regevent_set.values('bike_type', 'bike_type__name').annotate(num_bike=Count('bike_type')).order_by('-num_bike')
         return r
+
+    def riders_team(self):
+        r = self.regevent_set.exclude(club = '').values('club').annotate(num_club=Count('club')).order_by('-num_club')
+        return r
+
 
     def cur_reg_sum(self, today=datetime.date.today):
         #today = datetime.date.today()

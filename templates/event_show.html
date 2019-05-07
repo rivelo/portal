@@ -174,7 +174,7 @@ $(document).ready(function(){
 
 
 {% if event.forum_url %}
-<h5>Посилання на форум:
+<h5>Посилання на форум/facebook:
 <small> <a href="{{event.forum_url}}">{{event.forum_url}}</a> </small>
 </h5>
 {% endif %}
@@ -202,6 +202,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </h5>
 </div>
 
+{% if event.description %}
 <div class="row" id="div_show_doc">
 <h2>
 <span class="badge badge-info" >Положення</span>
@@ -210,6 +211,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {{ event.description|safe }}
 </div>
 </div>
+{% endif %}
 
 {% if event.gps_track %}
 <div class="row align-items-center gps" ids="{{event.pk}}">

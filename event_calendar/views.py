@@ -40,6 +40,9 @@ from django.utils.translation.trans_real import catalog
 from django.db.models import Sum, Count, Max
 from django.db.models import Q
 from pyasn1.compat.octets import null
+
+from django.views.decorators.csrf import csrf_exempt
+
 #from gdata.contentforshopping.data import Manufacturer
 
 def admin_sendmail(request, id):
@@ -287,8 +290,12 @@ def google_location(request):
 #    return HttpResponse("Список міст:" + res[0]['terms'][0]['value'])
     return HttpResponse("<b>Список міст:</b>" + str)
 
-
+@csrf_exempt
 def get_event(request):
+    if auth_group(request.user, 'moder')==False:
+    #if request.user.is_authenticated()==False:
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+
 #    date_before = datetime.datetime.today() - datetime.timedelta(days=180)
     if request.is_ajax():
         if request.method == 'POST':  
@@ -298,7 +305,7 @@ def get_event(request):
                 date_y = int(d[6:])
                 date_m = int(d[3:5])
                 date_d = int(d[:2])
-                elist = Events.objects.filter(date__year = date_y, date__month = date_m, date__day = date_d).values("name", "text", "type", "icon", "date", "photo", "user__username", "pub_date", "forum_url", "reg_url", "pk")
+                elist = Events.objects.filter(date__year = date_y, date__month = date_m, date__day = date_d).values("name", "text", "type", "icon", "date", "photo", "user__username", "pub_date", "forum_url", "reg_url", "pk", "reg_status")
                 json = list(elist)
                 for x in json:  
                     x['date'] = x['date'].strftime("%d/%m/%Y")
@@ -312,7 +319,7 @@ def get_event(request):
 #from django.contrib.auth.models import User
 
 def add_event(request):
-    print "Form WORK"
+#    print "Form WORK"
     if auth_group(request.user, 'moder')==False:
     #if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
@@ -468,7 +475,7 @@ def show_event(request, id):
     return render(request, 'index.html', vars)
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))    
     
-from django.views.decorators.csrf import csrf_exempt    
+    
 @csrf_exempt
 def get_event_gps(request):
     if request.is_ajax():
@@ -536,15 +543,13 @@ def add_reg(request, id):
     if request.method == 'POST':
         #form = RegEventsForm(request.POST, dist, instance=r, event_id = a.pk)
         form = RegEventsForm(request.POST, instance=r, event_id = a.pk)
-        #=======================================================================
-        # gr = grecaptcha_verify(request)
-        # if gr['status'] == False:
-        #     vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
-        #     vars.update(calendar)        
-        #     evnt = {'event': a}
-        #     vars.update(evnt)
-        #     return render(request, 'index.html', vars)
-        #=======================================================================
+        gr = grecaptcha_verify(request)
+        if gr['status'] == False:
+            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
+            vars.update(calendar)        
+            evnt = {'event': a}
+            vars.update(evnt)
+            return render(request, 'index.html', vars)
             
             # https://developers.google.com/recaptcha/docs/verify
         if form.is_valid():
@@ -616,15 +621,13 @@ def edit_reg(request, id, hash):
 
     if request.method == 'POST':
         form = RegEventsForm(request.POST, instance=revent, event_id = a.id, edit=True)
-        #=======================================================================
-        # gr = grecaptcha_verify(request)
-        # if gr['status'] == False:
-        #     vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
-        #     vars.update(calendar)        
-        #     evnt = {'event': a}
-        #     vars.update(evnt)
-        #     return render(request, 'index.html', vars)
-        #=======================================================================
+        gr = grecaptcha_verify(request)
+        if gr['status'] == False:
+            vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
+            vars.update(calendar)        
+            evnt = {'event': a}
+            vars.update(evnt)
+            return render(request, 'index.html', vars)
             
             # https://developers.google.com/recaptcha/docs/verify
         if form.is_valid():

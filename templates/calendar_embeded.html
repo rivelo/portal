@@ -49,23 +49,33 @@
                 dataType: "json",
                 success:function(msg){
                 	$("#content").empty();
+                	if (msg == '') {
+                		$("#titleModalLabel").empty()
+                	}
+                	else {
+                		$('#ModalDialog').modal('toggle');
+                	}
                 	$.each(msg,function(index,item){
-						$("#content").append('<div class="center">' + item['name'] + '[' + item['date'] + ']</div>');
-						$("#content").append('<div>' + item["text"] + '</div>');
+						//$("#titleModalLabel").append('<div class="center">' + item['name'] + '[' + item['date'] + ']</div>');
+						$("#titleModalLabel").html('<a href="/event/'+item['pk']+'/show/" >' + item['name'] + ' [' + item['date'] + ']' + '</a>');
+						$("#content").html(item["text"]);
 						if (item['photo']) {
-							$("#content").append('<img src="/media/' + item['photo'] + '" width="650px"> </img>');
+							//$("#content").append('<img class="img-fluid" style="max-width:460px;" src="/media/' + item['photo'] + '"> </img>');
+							$("#img_content").attr("src", "/media/' + item['photo']")
 						}
 						$("#content").append('<br><p style="font-weight:bold;">Посилання на форум: <a href="'+item['forum_url']+'">'+item['forum_url']+'</a></p>');
-						$("#content").append('<h4> Дата та час: '+ item['date'] +'</h4>');
-						if (item['reg_url'] != '') {
-							$("#content").append('<h4>Реєстрація: <a href="'+item['reg_url']+'">Перейти до реєстрації</a> </h4>');
-							$("#content").append('<h4>Учасники: <a href="/event/'+ item['pk']+ '/registration/list/">Список зареєстрованих учасників</a></h4>');
+						$("#dfooter").html('<h3> Дата та час: '+ item['date'] +'</h3>');
+						
+						if (item['reg_status'] != '') {
+							$("#content").append('<h4><span class="badge badge-success w-100"><a href="/event/'+item['pk']+'/registration/" style="font-size: 14px;color:white;">Перейти до реєстрації</a> </span></h4>');
+							$("#content").append('<h4><a type="button" class="btn btn-success btn-lg w-100" style="font-size: 14px;color:white;" href="/event/'+ item['pk']+ '/registration/list/">Список зареєстрованих учасників</a></h4>');
 						}
 						
+						console.log("SEL date = " + item['name']);
 						
-						
-						$("#content").append('<p class="meta"><em>{ Опубліковано <a href="#">' + item['user__username'] + ' </a>, ' + item['pub_date'] + '</em></p>'); 
+//						$("#content").append('<p class="meta"><em>{ Опубліковано <a href="#">' + item['user__username'] + ' </a>, ' + item['pub_date'] + '</em></p>'); 
                     });
+                	
                 },
                 error:function(xhr, ajaxOptions, thrownError){
                     alert( xhr.responseText );
@@ -112,7 +122,6 @@ $("body").on("click", "#datepicker .ui-datepicker-month", function(e){
         break;
     case 'Лютий':
         month = 2;
-        console.log("MONTH = " + month);
         break;
     case 'Березень':
         month = 3;
@@ -156,10 +165,40 @@ $("body").on("click", "#datepicker td[data-handler='selectDay']", function(e){
 });
 */
 
+$('#ModalDialog').on('show.bs.modal', function () {
+    $(this).find('.modal-body').css({
+           width:'auto', //probably not needed
+           height:'auto', //probably not needed 
+           'max-height':'100%'
+    });
+});
+
 
   });
 </script>
 
+<!-- Modal -->
+<div class="modal fade" id="ModalDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="titleModalLabel">Modal title</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <img class="img-fluid mt-2" src="" id="img_content"> </img>
+      <div class="modal-body" id="content">
+        
+      </div>
+      <div class="modal-footer" > 
+      <span id="dfooter">
+      </span>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+      </div>
+    </div>
+  </div>
+</div>
  	
 <h2><a href="/calendar/" >Календар заходів:</a></h2>
 <div id="calendar_wrap">
