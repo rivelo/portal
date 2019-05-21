@@ -1178,6 +1178,7 @@ def result_add(request):
                 #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
 
+import json
 
 @csrf_exempt
 def rider_regstatus(request):
@@ -1185,12 +1186,13 @@ def rider_regstatus(request):
 #        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
     if request.is_ajax() or request.method == 'POST':
         if request.method == 'POST':  
-            POST = request.POST  
-            if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
-                rid = request.POST['rid']
+            POST = json.loads(request.body)
+            if (('rid' in POST) and ('chkhash' in POST)) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
+                rid = POST['rid']
                 chkhash = None
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
-                    chkhash = request.POST['chkhash']
+                    #chkhash = request.POST['chkhash']
+                    chkhash = POST['chkhash']
                 else:
                     chkhash = 'Rivelo256haSh+1234567890-2019'
                 if chkhash <> 'Rivelo256haSh+1234567890-2019':
@@ -1199,12 +1201,16 @@ def rider_regstatus(request):
                 try:
                     rev = RegEvent.objects.get(pk = rid)
                     #return HttpResponse("Учасник - " + rid + ". Номер  " + rid.start_number + "Pay status = " + rid.status, content_type='text/plain')
-                    json = dict(rider = rid, pay_status = rid.status, status = rid.start_status, start_number = rid.start_number)
-                    return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                    
+                    json_data = dict(rider = rev.fname + " " + rev.lname, pay_status = rev.status, status = rev.start_status, start_number = rev.start_number, event=rev.event.name)
+                    return HttpResponse(simplejson.dumps(json_data), content_type='application/json')
             
                 except RegEvent.DoesNotExist:
-                    HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
-    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')       
+                    return HttpResponse("Id "+ rid +" is not found", content_type='text/plain')
+    else:
+        return HttpResponse("it's not POST request", content_type='text/plain;charset=utf-8')
+#    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')       
+    return HttpResponse("Щось пішло не так", content_type='text/plain;charset=utf-8')
 
 
 @csrf_exempt
