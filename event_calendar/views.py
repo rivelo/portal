@@ -1114,8 +1114,8 @@ def result_add(request):
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
                     chkhash = request.POST['chkhash']
                 else:
-                    chkhash = 'Rivelo256haSh+123-2018'
-                if chkhash <> 'Rivelo256haSh+123-2018':
+                    chkhash = 'Rivelo256haSh+123-2019'
+                if chkhash <> 'Rivelo256haSh+123-2019':
                     return HttpResponseBadRequest('hash not found or invalid')
                 rev = None
                 try:
@@ -1154,7 +1154,7 @@ def result_add(request):
     # """ 
     #===========================================================================
     
-                        res = send_mail('Медовий трейл 2018. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                        res = send_mail('марафон Рівно100 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:
@@ -1177,6 +1177,34 @@ def result_add(request):
                 #else:
                 #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
+
+
+@csrf_exempt
+def rider_regstatus(request):
+#    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+#        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax() or request.method == 'POST':
+        if request.method == 'POST':  
+            POST = request.POST  
+            if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
+                rid = request.POST['rid']
+                chkhash = None
+                if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+                    chkhash = request.POST['chkhash']
+                else:
+                    chkhash = 'Rivelo256haSh+1234567890-2019'
+                if chkhash <> 'Rivelo256haSh+1234567890-2019':
+                    return HttpResponseBadRequest('hash not found or invalid')
+                rev = None
+                try:
+                    rev = RegEvent.objects.get(pk = rid)
+                    #return HttpResponse("Учасник - " + rid + ". Номер  " + rid.start_number + "Pay status = " + rid.status, content_type='text/plain')
+                    json = dict(rider = rid, pay_status = rid.status, status = rid.start_status, start_number = rid.start_number)
+                    return HttpResponse(simplejson.dumps(json), content_type='application/json')
+            
+                except RegEvent.DoesNotExist:
+                    HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')       
 
 
 @csrf_exempt
