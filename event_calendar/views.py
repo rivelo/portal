@@ -29,6 +29,7 @@ from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Sto
 
 import simplejson
 import googlemaps
+import json
 
 from portal.mysql_portal import get_month_event, get_month_events, get_day_events
 
@@ -918,6 +919,22 @@ def event_rider_status(request):
 @csrf_exempt
 def rider_start_status(request):
     if auth_group(request.user, 'admin')==False:
+        if request.body:
+            POST = json.loads(request.body)
+            if (('rid' in POST) and ('chkhash' in POST)):
+                chkhash = POST['chkhash']
+                rid = POST['rid']
+                if chkhash <> 'Rivelo256haSh+1234567890-2019':
+                    return HttpResponseBadRequest('hash not found or invalid')
+                try:
+                    rev = RegEvent.objects.get(pk = rid)
+                    rev.start_status = True
+                    rev.save()
+                    json_data = dict(status = True)
+                    return HttpResponse(simplejson.dumps(json_data), content_type='application/json')
+            
+                except RegEvent.DoesNotExist:
+                    return HttpResponse("Id "+ rid +" is not found", content_type='text/plain')
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
     if request.is_ajax():
         if request.method == 'POST':  
@@ -927,8 +944,8 @@ def rider_start_status(request):
                 rider = RegEvent.objects.get(pk = rid)
                 rider.start_status = not rider.start_status
                 rider.save()
-                json = dict(status = rider.start_status)
-                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                json_data = dict(status = rider.start_status)
+                return HttpResponse(simplejson.dumps(json_data), content_type='application/json')
     
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
@@ -1178,7 +1195,6 @@ def result_add(request):
                 #    r.reg_event = rev    
     return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
 
-import json
 
 @csrf_exempt
 def rider_regstatus(request):
@@ -1463,17 +1479,17 @@ def rider_reg_search(request):
                 if p:
                     res = RegEvent.objects.filter(phone__iregex=r'^'+'\\' + p + '$').values_list('email', 'event__name')
                 if res:
-                    json = list([1, res[0]])
-                    return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                    json_data = list([1, res[0]])
+                    return HttpResponse(simplejson.dumps(json_data), content_type='application/json')
                     #return HttpResponse(res[0])
                 else:
                     message = "Поштової адреси та телефону не знайдено"
-                    json = list([0, message]) 
-                    return HttpResponse(simplejson.dumps(json), content_type='application/json')                    
+                    json_data = list([0, message]) 
+                    return HttpResponse(simplejson.dumps(json_data), content_type='application/json')                    
 #                    return HttpResponse(message, content_type="text/plain;charset=utf-8")
     message = "Щось пішло не так"
-    json = list([0, message]) 
-    return HttpResponse(simplejson.dumps(json), content_type='application/json')    
+    json_data = list([0, message]) 
+    return HttpResponse(simplejson.dumps(json_data), content_type='application/json')    
     #return HttpResponse(message, content_type="text/plain;charset=utf-8")
 
 
