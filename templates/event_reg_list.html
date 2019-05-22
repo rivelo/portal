@@ -124,6 +124,7 @@ $(document).ready(function(){
 	$("#clearcity").hide();
 	$("#clearbiketype").hide();
 	$("#clearteamselect").hide();
+	$("#cleardistance").hide();
 
 	$( "#event_stat" ).click(function() {
 //  		$( "#tabs" ).show()
@@ -217,6 +218,7 @@ $(document).ready(function(){
 	$('#rtable_length_panel').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');	
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Номер</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="9">Дистанція</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Місто</a></div>');	
  	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Рік</a></div>');
@@ -228,14 +230,14 @@ $(document).ready(function(){
 //	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Команда</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="0">Id</a></div>');
 //	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Велосипед</a></div>');	
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Телефон</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Email</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Примітки</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Старт</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="10">Статус</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Оплата</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="14">Телефон</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="17">Email</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="15">Примітки</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="16">Старт</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="11">Статус</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Оплата</a></div>');
 	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="2">Нік</a></div>');
-	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="12">Дія</a></div>');	
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="13">Дія</a></div>');	
 {% endif %}	
 	
 
@@ -488,6 +490,24 @@ $("body").on("click", "#clearteamselect", function(e){
 })
 
 
+$("body").on("click", ".distance", function(e){
+//	console.log("THIS - " + $(this).attr('cityname')) 
+	$("#rtable_filter").find('input').val($(this).attr('distance'))
+	rtable.column( 9 ).search( $(this).attr('distance') ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 400);
+	if (rtable.column( 9 ).search()) {
+		$("#cleardistance").show();
+	}
+})
+
+
+$("body").on("click", "#cleardistance", function(e){
+	rtable.column( 9 ).search( '' ).draw();
+	$("html, body").animate({ scrollTop: $($("#tablepanel")).offset().top }, 500);
+	$("#cleardistance").hide();
+})
+
+
 
 
 $("#table_cat0_wrapper").hide();
@@ -579,6 +599,7 @@ $("#table_cat5_wrapper").hide();
 <th>Рік нар.</th>
 <th>Велосипед</th>
 <th title="Стартовий номер">#</th>
+<th title="Дистанція">Дистанція</th>
 <th>Стать</th>
 <th>Статус оплати</th>
 {% if user.is_authenticated %}
@@ -605,9 +626,9 @@ $("#table_cat5_wrapper").hide();
 
 
 <td>
-{{forloop.counter}}
+{#forloop.counter#}
 {% if user.is_authenticated %}
- [{{rider.pk}}]
+ {{rider.pk}}
 {% endif %}
 </td>
 <td>{{rider.fname}} {{rider.lname}}</td>
@@ -646,6 +667,11 @@ style="background-color: white;"
 <td align="center" class="number_edit" rid="{{rider.id}}">
 {% if rider.start_number %}
 {{rider.start_number}}
+{% endif %}
+</td>
+<td align="center" class="number_edit" rid="{{rider.id}}">
+{% if rider.distance_type %}
+{{rider.distance_type}}
 {% endif %}
 </td>
 <td align="center">{{rider.sex}}</td>
@@ -794,8 +820,9 @@ style="background-color: white;"
   <div id="tabs-7">
 	<p>
     {% for dist in event.riders_distance %}
-	<span class="teams" datename="{{dist.distance_type}}" data-toggle="tooltip" data-placement="right" title="Показати учасників <br><u><b>{{dist.distance_type}}</b></u>" data-html="true"> {{dist.distance_type__name }} ({{dist.distance_type}}) - {{dist.num_distance}} чоловік </span><br>    
-	{% endfor %}	    
+	<span class="distance" datename="{{dist.distance_type}}" data-toggle="tooltip" data-placement="right" title="Показати учасників <br><u><b>{{dist.distance_type__name}}</b></u>" distance="{{dist.distance_type__name}}" data-html="true"> {{dist.distance_type__name }} ({{dist.distance_type}}) - {{dist.num_distance}} чоловік </span><br>    
+	{% endfor %}
+	<span id="cleardistance" class="badge badge-dark" data-toggle="tooltip" data-placement="right" title="Показати учасників всіх дистанцій">Показати всі дистанції</span>	    
     </p>
   </div>
   

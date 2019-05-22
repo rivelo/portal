@@ -256,7 +256,8 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'event-start-list' event.pk %}">Стартовий протокол</a>
 <a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv' event.pk %}">Завантажити CSV файл Стартовий</a>
 <a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'download-csv-numbers' event.pk %}">Завантажити CSV файл з номерками учасників</a>
-
+<br>
+<a type="button" class="btn btn-secondary btn-lg" style="font-size: 14px" href="{% url 'event-send-reg-qr-code' event.pk %}">Відправити листи з QR кодами зареєстрованим учасникам</a>
 {% endif %}
 </h5>
 

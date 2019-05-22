@@ -898,6 +898,24 @@ def register_to_all(request, hash):
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
+def send_reg_qr_code(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    event_id = id
+    riders = RegEvent.objects.filter(event__pk = event_id, status = True)
+    #riders = RegEvent.objects.filter(event__pk = event_id, nickname='ygrik')
+    for rid in riders:
+        qrcode_str = '<a href="'+settings.DEFAULT_DOMAIN+'/rider/'+str(rid.id)+'/regstatus/">Посилання на код</a>'                                            
+        email_text = """Ви отримали лист в якому знаходиться QR-код для швидкого отримання стартового пакету.<br> Ви можете його зберегти, або в будь-який час отримати онлайн, для предявлення на старті. """ + qrcode_str  
+        email_text = email_text + '<br><img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(rid.id)+'&choe=UTF-8&chld=H|0"/>'
+        message = email_text    
+        res = send_mail('Марафон Рівно100 2019 року. QR-code.', message, rid.email, [rid.email], fail_silently=False, html_message=email_text)
+#        if res:
+#            print "Mail was send to email " + rid.email
+    return HttpResponse("Листи відправлено на пошту ", content_type='text/plain;charset=utf-8')
+    #return HttpResponse("Щось пішло не так :(", content_type='text/plain')            
+
+
 @csrf_exempt
 def event_rider_status(request):
     if auth_group(request.user, 'admin')==False:
@@ -910,6 +928,14 @@ def event_rider_status(request):
                 rider = RegEvent.objects.get(pk = rid)
                 rider.status = not rider.status
                 rider.save()
+                if rider.status == True:
+                    #qrcode_str = '<img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(rid)+'&choe=UTF-8&chld=H|0"/>'
+                    qrcode_str = '<a href="'+settings.DEFAULT_DOMAIN+'/rider/'+str(rid)+'/regstatus/">Посилання на код</a>'                                            
+                    email_text = """Ви отримали лист в якому знаходиться QR-код для швидкого отримання стартового пакету.<br> Ви можете його зберегти, або в будь-який час отримати онлайн, для предявлення на старті. """ + qrcode_str  
+                    email_text = email_text + '<br><img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(rid)+'&choe=UTF-8&chld=H|0"/>'
+                    message = email_text    
+                    res = send_mail('Марафон Рівно100 2019 року. QR-code.', message, rider.email, [rider.email], fail_silently=False, html_message=email_text)
+
                 json = dict(status = rider.status)
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
     
@@ -924,7 +950,7 @@ def rider_start_status(request):
             if (('rid' in POST) and ('chkhash' in POST)):
                 chkhash = POST['chkhash']
                 rid = POST['rid']
-                if chkhash <> 'Rivelo256haSh+1234567890-2019':
+                if chkhash <> settings.CHK_APP_HASH: #'Rivelo256haSh+1234567890-2019':
                     return HttpResponseBadRequest('hash not found or invalid')
                 try:
                     rev = RegEvent.objects.get(pk = rid)
@@ -932,7 +958,6 @@ def rider_start_status(request):
                     rev.save()
                     json_data = dict(status = True)
                     return HttpResponse(simplejson.dumps(json_data), content_type='application/json')
-            
                 except RegEvent.DoesNotExist:
                     return HttpResponse("Id "+ rid +" is not found", content_type='text/plain')
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1197,7 +1222,7 @@ def result_add(request):
 
 
 @csrf_exempt
-def rider_regstatus(request):
+def rider_regstatus(request, id=None):
 #    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
 #        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
     if request.is_ajax() or request.method == 'POST':
@@ -1210,8 +1235,8 @@ def rider_regstatus(request):
                     #chkhash = request.POST['chkhash']
                     chkhash = POST['chkhash']
                 else:
-                    chkhash = 'Rivelo256haSh+1234567890-2019'
-                if chkhash <> 'Rivelo256haSh+1234567890-2019':
+                    chkhash = settings.CHK_APP_HASH #'Rivelo256haSh+1234567890-2019'
+                if chkhash <> settings.CHK_APP_HASH: #'Rivelo256haSh+1234567890-2019':
                     return HttpResponseBadRequest('hash not found or invalid')
                 rev = None
                 try:
@@ -1224,7 +1249,9 @@ def rider_regstatus(request):
                 except RegEvent.DoesNotExist:
                     return HttpResponse("Id "+ rid +" is not found", content_type='text/plain')
     else:
-        return HttpResponse("it's not POST request", content_type='text/plain;charset=utf-8')
+        #obj_qr = '<img src="{{1244|qr:"500x500"}}" />'
+        obj_qr = '<img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(id)+'&choe=UTF-8&chld=H|0"/>'
+        return HttpResponse("You QR code for quick registration <br> " + obj_qr, content_type='text/html;charset=utf-8')
 #    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')       
     return HttpResponse("Щось пішло не так", content_type='text/plain;charset=utf-8')
 

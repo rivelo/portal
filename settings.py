@@ -223,6 +223,9 @@ INSTALLED_APPS = (
     'tinymce',	
 )
 
+#Hash for APP
+CHK_APP_HASH = 'Rivelo256haSh+1234567890-2019'
+
 # GOOGLE setting
 RECAPTCHA_SECRET_KEY = "6LeptAUTAAAAAMWpC4bEiwcDvda48vC8IcCzQJNf"
 

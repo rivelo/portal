@@ -179,3 +179,10 @@ def add_attr(field, css):
     return field.as_widget(attrs=attrs)
 
 
+@register.filter
+def qr(value,size="500x500"):
+    """
+        Usage:
+        <img src="{{object.code|qr:"500x500"}}" />
+    """
+    return "http://chart.apis.google.com/chart?chs=%s&cht=qr&chl=%s&choe=UTF-8&chld=H|0" % (size, value)
