@@ -1222,6 +1222,70 @@ def result_add(request):
 
 
 @csrf_exempt
+def result_add_lviv(request):
+#    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+#        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax() or request.method == 'POST':
+        if request.method == 'POST':  
+            POST = request.POST  
+            if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
+                rid = request.POST['rid']
+                val = request.POST['value'].strip()
+                point = request.POST['point']
+                chkhash = None
+                if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+                    chkhash = request.POST['chkhash']
+                else:
+                    chkhash = 'Rivelo256haSh+123-2019'
+                if chkhash <> 'Rivelo256haSh+123-2019':
+                    return HttpResponseBadRequest('hash not found or invalid')
+                rev = None
+                try:
+                    rev = RegEvent.objects.get(start_number = rid)
+                except RegEvent.DoesNotExist:
+                    HttpResponse("Такого номеру "+ rid +" не має в базі", content_type='text/plain')
+                try:
+                    rider = ResultEvent.objects.get(reg_event__pk = rev.pk)
+                    format = '%Y-%m-%d %H:%M:%S'
+                    tp = datetime.datetime.now().strftime("%Y-%m-%d")
+                    if val == '':
+                        val = datetime.datetime.now().strftime("%H:%M:%S")
+                    time_point = "%s %s" % (tp, val)
+                    #rider.kp1 = datetime.strptime(time_kp, format)
+                    if point == 'start':
+                        rider.start = time_point#datetime.datetime.now()
+                        rider.save()
+                    if point == 'kp1':
+                        rider.kp1 = time_point#datetime.datetime.now()
+                        rider.save()
+                    if point == 'kp2':
+                        rider.kp2 = time_point#datetime.datetime.now()
+                        rider.save()
+                    if point == 'finish':
+                        rider.finish = time_point
+                        rider.save()
+                        rider = ResultEvent.objects.get(reg_event__pk = rid)                        
+                        message = rev.event.email_text % (rider.get_time_diff())
+                        res = send_mail('марафон Рівно100 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+
+                    return HttpResponse("Час додано " + val , content_type='text/plain')
+                except ObjectDoesNotExist:
+                    r = ResultEvent()
+                    r.reg_event = rev
+                    if point == 'kp1':
+                        r.kp1 = datetime.datetime.now()
+                    if point == 'kp2':
+                        r.kp1 = datetime.datetime.now()
+                    if point == 'finish':
+                        rider.finish = datetime.datetime.now()                      
+                    r.save()
+                    return HttpResponse("Невірні параметри запиту rid=" + rid + "val=" + val, content_type='text/plain')
+                #else:
+                #    r.reg_event = rev    
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8') 
+
+
+@csrf_exempt
 def rider_regstatus(request, id=None):
 #    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
 #        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1938,7 +2002,6 @@ def csv_view(request, id, start=True):
         writer.writerow([item.start_number+1000, item.lname, item.fname, item.id, item.phone, item.start_number])
 #    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
 #    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
-
     return response
 
 
@@ -1946,7 +2009,8 @@ def csv_reg_list_view(request, id):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse('Error: У вас не має прав для скачування файлу')
     
-    revent = RegEvent.objects.filter(event = id, start_number__gt = 0 ).order_by("date") #all rider list
+#    revent = RegEvent.objects.filter(event = id, start_number__gt = 0 ).order_by("date") #all rider list
+    revent = RegEvent.objects.filter(event = id, status = True ).order_by("date") #all rider list
 
 # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
@@ -1956,9 +2020,16 @@ def csv_reg_list_view(request, id):
 #    writer.writerow(['chip', 'prizv', 'Name', 'rid', 'phone'])
 
     for item in revent:
-        writer.writerow([item.start_number, item.lname, item.fname, item.id, item.nickname])
-#    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
-#    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+        rname = item.lname +" "+ item.fname
+        gender = "M"
+        if item.sex == 1:
+            gender = "M"
+        else:
+            gender = "F" 
+        category = item.category_uat()
+#        print "cat type = " + str(type(category))
+        
+        writer.writerow([item.start_number, rname, gender, item.club, category, item.phone, item.id, item.nickname])
 
     return response
 

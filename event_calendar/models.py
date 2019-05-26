@@ -300,6 +300,54 @@ class RegEvent (models.Model):
         if (birthday <= cat5_b.date()):
             #return 5
             return [5, u'60+ років']
+
+
+    def category_uat(self):
+        event_date = self.event.date
+        birthday = self.birthday
+
+        cat0_b = event_date.replace(year = event_date.year-12)
+        cat0_e = event_date.replace(year = event_date.year-18)
+        if (birthday <= cat0_b.date()) and (birthday >= cat0_e.date()): 
+            return [0, u'1-18']
+        
+        cat1_b = event_date.replace(year = event_date.year-19)
+        cat1_e = event_date.replace(year = event_date.year-29)
+        if (birthday <= cat1_b.date()) and (birthday >= cat1_e.date()):
+            #return 1
+            return [1, u'18-29']
+        
+        cat2_b = event_date.replace(year = event_date.year-30)
+        cat2_e = event_date.replace(year = event_date.year-39)
+        if (birthday <= cat2_b.date()) and (birthday >= cat2_e.date()):
+            #return 2
+            return [2, u'30-39']
+        
+        cat3_b = event_date.replace(year = event_date.year-40)
+        cat3_e = event_date.replace(year = event_date.year-49)
+        if (birthday <= cat3_b.date()) and (birthday >= cat3_e.date()):
+            #return 3
+            return [3, '40-49']
+        
+        cat4_b = event_date.replace(year = event_date.year-50)
+        cat4_e = event_date.replace(year = event_date.year-59)
+        if (birthday <= cat4_b.date()) and (birthday >= cat4_e.date()):
+            #return 4
+            return [4, '50-59']
+
+        cat5_b = event_date.replace(year = event_date.year-60)
+        cat5_e = event_date.replace(year = event_date.year-69)
+        if (birthday <= cat4_b.date()) and (birthday >= cat4_e.date()):
+            #return 4
+            return [5, '60-69']
+
+        cat6_b = event_date.replace(year = event_date.year-70)
+        #revent_cat5 = RegEvent.objects.filter(event = id, birthday__lte = cat5_b).order_by("date") #all rider list
+        if (birthday <= cat6_b.date()):
+            #return 5
+            return [5, u'70+']
+
+
  
     def get_pos(self):
         
