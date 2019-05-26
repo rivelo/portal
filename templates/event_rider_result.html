@@ -619,6 +619,37 @@ $( "#clear_finish_result" ).click(function() {
 });
 
 
+$( "#clear_result" ).click(function() {
+	$( "#dialog_clear" ).dialog({
+		resizable: false,
+	  	modal: true,
+		width: 380,
+		height:"auto",
+  	buttons: {
+    "Очистити": function() {
+			$.ajax({
+            type: "POST",
+            url: "/event/result/clear/",
+            data: {event:  {{ event.pk }}, point: 'result' },
+            success:function(data){
+            	console.log("Записи видалено " + data);
+            },
+            error:function(data){
+                alert("++++ При отправке возникли проблемы" + data);
+            }
+        	});
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
+    },
+    "Відмінити": function() {
+    	$( this ).dialog( "close" );	
+    },
+    }  		
+	});
+});
+
+
+
 $("#table_cat0_wrapper").hide();
 $("#table_cat1_wrapper").hide();    
 $("#table_cat2_wrapper").hide();
@@ -768,10 +799,13 @@ $("#table_cat5_wrapper").hide();
 <div class="row">
   <div class="col-12">
 {% if user|has_group:"admin"%}
+<button type="button" class="btn btn-light" id="clear_result"  style=" background:#e4e7ea;" > Очистити дані</button>
 <button type="button" class="btn btn-light" id="clear_kp1_result"  style=" background:#e4e7ea;" > Очистити дані з КП1</button>
 <button type="button" class="btn btn-light" id="clear_kp2_result"  style=" background:#e4e7ea;" > Очистити дані з КП2</button>
 <button type="button" class="btn btn-light" id="clear_kp3_result"  style=" background:#e4e7ea;" > Очистити дані з КП3</button>
 <button type="button" class="btn btn-light" id="clear_finish_result"  style=" background:#e4e7ea;" > Очистити фінішні дані</button>
+
+
 {% comment %}
 <div id="clear_kp1_result"  style=" background:#e4e7ea; font-size: 100%; float:left;"><<Очистити дані з КП1>></div> 
 <div id="clear_kp2_result" style="background:#cfd0d0; font-size: 100%; float:left;"><<Очистити дані з КП2>></div> 

@@ -1024,7 +1024,10 @@ def event_result(request, id):
     except:
         error = "Параметр reg_email не існує"
     #return render(request, 'index_result.html', vars)
-    return render(request, 'index.html', vars)
+    try:
+        return render(request, 'index.html', vars)
+    except:
+        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
 
 
@@ -1367,6 +1370,8 @@ def result_clear(request):
                         riders.update(kp2=None)
                     if val == 'finish':
                         riders.update(finish=None)
+                    if val == 'result':
+                        riders.delete()
                     return HttpResponse("Час видалено" + val, content_type='text/plain')
                 except ObjectDoesNotExist:
                     return HttpResponse("Час не видалено", content_type='text/plain')
