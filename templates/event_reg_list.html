@@ -534,7 +534,11 @@ $("#table_cat5_wrapper").hide();
 
 <div class="row">
 <div class="col-11">
+{% if start %}
+<h2 class="title"> Стартовий список зареєстрованих учасників <span class="badge badge-info" style="font-size: 20px" title="учасників">{{event.riders_start_count}}</span><span class="badge badge-light btn-lg" style="font-size: 20px" title="учасників">{{event.riders_count}}</span><br> <a href="{% url 'event-show' event.pk %}">{{event.name}}</a> </h2>
+{% else %}
 <h2 class="title"> Список зареєстрованих учасників <span class="badge badge-light btn-lg" style="font-size: 20px" title="учасників">{{event.riders_count}}</span><br> <a href="{% url 'event-show' event.pk %}">{{event.name}}</a> </h2>
+{% endif %}
 <h3 style="color: grey; font-size: 18px">До заходу залишилось {{event.days_left}} днів </h3>
 
 {% if event.days_left > 0 %}

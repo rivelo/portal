@@ -273,6 +273,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {% if event.result_present %} 
 <h5>Результати:  
 <a class="btn btn-info" style="font-size: 18px" href="{% url 'event-result' event.pk %}">Результати</a>
+<a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-uat' event.pk %}">Результати УАТ</a>
 </h5>
 {% endif %}
 

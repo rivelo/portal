@@ -127,67 +127,6 @@ $(document).ready(function(){
 		$("#table_"+cat+"_wrapper").toggle();		
 	})	
 	
-{% comment %}	
-	$( "#event_cat0" ).click(function() {
-  		if ($("#event_cat0").html() == "Категорія до 18 років &lt;&lt;Показати&gt;&gt;") {
-    		$("#event_cat0").html("Категорія до 18 років <<Приховати>>");	
-    	}
-    	else {
-    		$("#event_cat0").html("Категорія до 18 років <<Показати>>");
-    	}
-    	$("#table_cat0_wrapper").toggle();
-	});
-
-	$( "#event_cat1" ).click(function() {
-  		if ($("#event_cat1").html() == "Категорія 18-29 років &lt;&lt;Показати&gt;&gt;") {
-    		$("#event_cat1").html("Категорія 18-29 років <<Приховати>>");
-    	}
-    	else {
-    		$("#event_cat1").html("Категорія 18-29 років <<Показати>>");
-    	}
-    	$("#table_cat1_wrapper").toggle();
-	});
-
-	$( "#event_cat2" ).click(function() {
-  		if ($("#event_cat2").html() == "Категорія 30-39 років &lt;&lt;Показати&gt;&gt;") {
-    		$("#event_cat2").html("Категорія 30-39 років <<Приховати>>");
-    	}
-    	else {
-    		$("#event_cat2").html("Категорія 30-39 років <<Показати>>");
-    	}
-    	$("#table_cat2_wrapper").toggle();
-	});
-
-	$( "#event_cat3" ).click(function() {
-  		if ($("#event_cat3").html() == "Категорія 40-49 років &lt;&lt;Показати&gt;&gt;") {
-    		$("#event_cat3").html("Категорія 40-49 років <<Приховати>>");
-    	}
-    	else {
-    		$("#event_cat3").html("Категорія 40-49 років <<Показати>>");
-    	}
-    	$("#table_cat3_wrapper").toggle();
-	});
-
-	$( "#event_cat4" ).click(function() {
-  		if ($("#event_cat4").html() == "Категорія 50-59 років &lt;&lt;Показати&gt;&gt;") {
-    		$("#event_cat4").html("Категорія 50-59 років <<Приховати>>");
-    	}
-    	else {
-    		$("#event_cat4").html("Категорія 50-59 років <<Показати>>");
-    	}
-    	$("#table_cat4_wrapper").toggle();
-	});
-
-	$( "#event_cat5" ).click(function() {
-  		if ($("#event_cat5").html() == "Категорія 60+ років &lt;&lt;Показати&gt;&gt;") {
-    		$("#event_cat5").html("Категорія 60+ років <<Приховати>>");
-    	}
-    	else {
-    		$("#event_cat5").html("Категорія 60+ років <<Показати>>");
-    	}
-    	$("#table_cat5_wrapper").toggle();
-	});
-{% endcomment %}
 	
 	$('#rtable tfoot th').each( function () {
         var title = $(this).text();
@@ -383,13 +322,22 @@ var tcat1 = $('#table_cat1').DataTable({
 	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
 	    });
 
-	    {% if user.is_authenticated and user|has_group:"moder" %}
+	    var tcat6 = $('#table_cat6').DataTable({
+			"columnDefs": [
+	        	{ "type": "duration", targets: 7 }
+	    	],
+	    	"lengthMenu": [[15, 50, 100, -1], [15, 50, 100, "All"]]
+	    });
+
+	    
+	{% if user.is_authenticated and user|has_group:"moder" %}
 		tcat0.column(8).visible(true);
 		tcat1.column(8).visible(true);
 		tcat2.column(8).visible(true);
 		tcat3.column(8).visible(true);
 		tcat4.column(8).visible(true);
 		tcat5.column(8).visible(true);
+		tcat6.column(8).visible(true);
 	{% else %}
 		tcat0.column(8).visible(false);
 		tcat1.column(8).visible(false);
@@ -397,6 +345,7 @@ var tcat1 = $('#table_cat1').DataTable({
 		tcat3.column(8).visible(false);
 		tcat4.column(8).visible(false);
 		tcat5.column(8).visible(false);
+		tcat6.column(8).visible(false);
 	{% endif %}
 	    
 //		tcat2.column(7).visible(false); // Загальний час	    
@@ -619,6 +568,37 @@ $( "#clear_finish_result" ).click(function() {
 });
 
 
+$("#normalize_date_result").click(function() {
+	$( "#dialog_date_normalize" ).dialog({
+		resizable: false,
+	  	modal: true,
+		width: 380,
+		height:"auto",
+  	buttons: {
+    "Змінити": function() {
+			$.ajax({
+            type: "POST",
+            url: "/event/result/normalize/",
+            data: {event:  {{ event.pk }}, date: '26.05.2019' },
+            success:function(data){
+            	console.log("Записи відредаговано " + data);
+            },
+            error:function(data){
+                alert("++++ При отправке возникли проблемы" + data);
+            }
+        	});
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
+    },
+    "Відмінити": function() {
+    	$( this ).dialog( "close" );	
+    },
+    }  		
+	});
+});
+
+
+
 $( "#clear_result" ).click(function() {
 	$( "#dialog_clear" ).dialog({
 		resizable: false,
@@ -649,6 +629,8 @@ $( "#clear_result" ).click(function() {
 });
 
 
+{% comment %}
+{% endcomment %}
 
 $("#table_cat0_wrapper").hide();
 $("#table_cat1_wrapper").hide();    
@@ -656,6 +638,8 @@ $("#table_cat2_wrapper").hide();
 $("#table_cat3_wrapper").hide();
 $("#table_cat4_wrapper").hide();
 $("#table_cat5_wrapper").hide();
+$("#table_cat6_wrapper").hide();
+
 });
 
 
@@ -776,6 +760,9 @@ $("#table_cat5_wrapper").hide();
 <div id="dialog_clear" title="Очистити результати">
 </div>
 
+<div id="dialog_date_normalize" title="Очистити результати">
+</div>
+
 
 <div class="row">
 {# <div style="width:560px; float:left;"> #}
@@ -804,7 +791,7 @@ $("#table_cat5_wrapper").hide();
 <button type="button" class="btn btn-light" id="clear_kp2_result"  style=" background:#e4e7ea;" > Очистити дані з КП2</button>
 <button type="button" class="btn btn-light" id="clear_kp3_result"  style=" background:#e4e7ea;" > Очистити дані з КП3</button>
 <button type="button" class="btn btn-light" id="clear_finish_result"  style=" background:#e4e7ea;" > Очистити фінішні дані</button>
-
+<button type="button" class="btn btn-dark" id="normalize_date_result" >Змінити дату результатів</button>
 
 {% comment %}
 <div id="clear_kp1_result"  style=" background:#e4e7ea; font-size: 100%; float:left;"><<Очистити дані з КП1>></div> 
@@ -981,8 +968,17 @@ style="background-color: white;"
 {% if kp3 %}
 <td align="center" class="kp1_add" rid="{{rider.reg_event.id}}"> {{rider.kp3|date:'H:i:s'}} </td>
 {% endif %}
+{% if rider.start == rider.finish %}
+	{% if rider.start == None %}
+	<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> DNS </td>
+	{% else %}
+	<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> DNF </td>
+	{% endif %}
+{% else %}
 <td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.finish|date:'H:i:s'}} </td>
-<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.get_time_diff}} </td>
+{% endif %}
+
+<td align="center" class="result" rid="{{rider.reg_event.id}}"> {{rider.get_time_diff}} </td>
 <td align="center">{{rider.reg_event.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.reg_event.status}}</td>
@@ -1075,8 +1071,325 @@ style="background-color: white;"
 
 
 
+{# Категорії учасників #}
+
+{% if uat %}
+
 <br>
-{#<h2 id="event_cat0" class="cat_showhide" >Категорія до 18 років <<Показати>></h2>#}
+<h2>
+<button type="button" style="background-color: yellow; width:100%" id="event_cat1" class="cat_showhide">
+  Категорія 19-29 років <<Показати>> <span class="badge badge-light">{{ cat1.count }} учасників</span>
+</button>
+</h2>
+  
+<table id="table_cat1" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+<th>Загальний час</th>
+<th>Стать</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat1 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+
+{#<h2 id="event_cat2" class="cat_showhide" style="background-color: blue;">Категорія 30-39 років <<Показати>></h2>#}
+<h2>
+<button type="button" style="background-color: blue; width:100%" id="event_cat2" class="cat_showhide">
+  Категорія 30-39 років <<Показати>> <span class="badge badge-light">{{ cat2.count }} учасників</span>
+</button>
+</h2> 
+ 
+<table id="table_cat2" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+<th>Загальний час</th>
+<th>Стать</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat2 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+
+<h2>
+<button type="button" style="background-color: green; width:100%" id="event_cat3" class="cat_showhide">
+  Категорія 40-49 років <<Показати>> <span class="badge badge-light">{{ cat3.count }} учасників</span>
+</button>
+</h2> 
+ 
+<table id="table_cat3" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+<th>Загальний час</th>
+<th>Стать</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat3 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center" data-order="{{rider.reg_event.sex}}">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+
+{#<h2 id="event_cat4" class="cat_showhide" style="background-color: red;">Категорія 50-59 років <<Показати>>#}
+<h2>
+<button type="button" style="background-color: red; width:100%" id="event_cat4" class="cat_showhide">
+  Категорія 50-59 років <<Показати>> <span class="badge badge-light">{{ cat4.count }} учасників</span>
+</button>
+</h2> 
+<table id="table_cat4" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+<th>Загальний час</th>
+<th>Стать</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat4 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+
+<h2>
+<button type="button" style="background-color: red; width:100%" id="event_cat5" class="cat_showhide">
+  Категорія 60-69 років <<Показати>> <span class="badge badge-light">{{ cat5.count }} учасників</span>
+</button>
+</h2> 
+<table id="table_cat5" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+<th>Загальний час</th>
+<th>Стать</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat5 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+
+<h2> {# id="event_cat6" class="cat_showhide">Категорія 70+ років <<Показати>></h2> #}
+<button type="button" id="event_cat6" class="cat_showhide" style="width:100%;">
+  Категорія 70+ років <<Показати>> <span class="badge badge-light">{{ cat6.count }} учасників</span>
+</button>
+</h2>
+ 
+<table id="table_cat6" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th>№</th>
+<th>Імя / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">C</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік народження</th>
+<th>Загальний час</th>
+<th>Стать</th>
+</tr>
+</thead>
+<tbody>
+{% for rider in cat6 %}
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+<td>{{forloop.counter}}</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}}</td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center" data-order="{{rider.reg_event.sex}}">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+<td align="center">{{rider.reg_event.birthday|date:"Y"}}</td>
+<td align="center">{{rider.get_time_diff }}</td>
+<td align="center">{{rider.reg_event.sex}}</td>
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+{% else %}
+
+<br>
 
 <h2>
 <button type="button" style="background-color: white; width:100%" id="event_cat0" class="cat_showhide">
@@ -1390,6 +1703,9 @@ style="background-color: white;"
 {% endfor %}
 </tbody>  
 </table>	
+
+{% endif %}
+
 
 {% endblock %}
 

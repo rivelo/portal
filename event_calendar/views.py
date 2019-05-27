@@ -716,7 +716,7 @@ def event_reg_list(request, id, start=False):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
     evnt_reg = Events.objects.filter(reg_status = True)
-    vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'evnt_reg': evnt_reg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
+    vars = {'weblink': 'event_reg_list.html', 'sel_menu': 'calendar', 'start': start, 'evnt_reg': evnt_reg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
     calendar = embeded_calendar()
     vars.update(calendar)        
 
@@ -1024,11 +1024,63 @@ def event_result(request, id):
     except:
         error = "Параметр reg_email не існує"
     #return render(request, 'index_result.html', vars)
+#    return render(request, 'index.html', vars)
     try:
         return render(request, 'index.html', vars)
     except:
         return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def event_result_uat(request, id):
+    evt = Events.objects.get(pk=id)
+    kp2 = False
+    kp3 = False
+#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    if revent.exclude(kp2 = None):
+        kp2 = True
+    if revent.exclude(kp3 = None):
+        kp3 = True
+    event_date = evt.date
+    
+    revent_road = ResultEvent.objects.filter(reg_event__event = id, reg_event__bike_type__pk__in = [9, 4, 1]).order_by("-finish")    
+    cat1_b = event_date.year-19
+    cat1_e = event_date.year-29
+    revent_cat1 = revent_road.filter(reg_event__event = id, reg_event__birthday__year__lte = cat1_b, reg_event__birthday__year__gte = cat1_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    
+    cat2_b = event_date.year-30
+    cat2_e = event_date.year-39
+    revent_cat2 = revent_road.filter(reg_event__event = id, reg_event__birthday__year__lte = cat2_b, reg_event__birthday__year__gte = cat2_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    
+    cat3_b = event_date.year-40
+    cat3_e = event_date.year-49
+    revent_cat3 = revent_road.filter(reg_event__event = id, reg_event__birthday__year__lte = cat3_b, reg_event__birthday__year__gte = cat3_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    
+    cat4_b = event_date.year-50
+    cat4_e = event_date.year-59
+    revent_cat4 = revent_road.filter(reg_event__event = id, reg_event__birthday__year__lte = cat4_b, reg_event__birthday__year__gte = cat4_e, reg_event__start_status = True).order_by("-finish") #all rider list
+
+    cat5_b = event_date.year-60
+    cat5_e = event_date.year-69
+    revent_cat5 = revent_road.filter(reg_event__event = id, reg_event__birthday__year__lte = cat5_b, reg_event__birthday__year__gte = cat5_e, reg_event__start_status = True).order_by("-finish") #all rider list
+    
+    cat6_b = event_date.replace(year = event_date.year-70)
+    revent_cat6 = revent_road.filter(reg_event__event = id, reg_event__birthday__year__lte = cat6_b.date().year, reg_event__start_status = True).order_by("-finish") #all rider list
+    
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'cat6': revent_cat6, 'kp2': kp2, 'kp3': kp3, 'uat':True}    
+    evnt = {'event': evt}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    try:
+        return render(request, 'index.html', vars)
+    except:
+        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
 
 
 def event_result_simple(request, id, point=None, full=None):
@@ -1174,6 +1226,10 @@ def result_add(request):
                     if val == '':
                         val = datetime.datetime.now().strftime("%H:%M:%S")
                     time_point = "%s %s" % (tp, val)
+                    if val == '0':
+                        time_point = None
+                    if (val == 'DNF') or (val == 'dnf'):
+                        point = 'dnf' 
                     #rider.kp1 = datetime.strptime(time_kp, format)
                     if point == 'start':
                         rider.start = time_point#datetime.datetime.now()
@@ -1189,6 +1245,9 @@ def result_add(request):
                         rider.save()
                         rider = ResultEvent.objects.get(reg_event__pk = rid)                        
                         message = rev.event.email_text % (rider.get_time_diff())
+                    if point == 'dnf':
+                        rider.finish = rider.start
+                        rider.save()
     #===========================================================================
     #                     """Вітаємо вас на фініші марафону Медовий трейл!\n 
     # Ви подолали маршрут за %s .\n\n
@@ -1198,8 +1257,9 @@ def result_add(request):
     # Гарних покатеньок і до зустрічі на старті.
     # """ 
     #===========================================================================
-    
-                        res = send_mail('марафон Рівно100 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+
+# Відправка результатів на пошту    
+#                        res = send_mail('марафон Рівно100 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:
@@ -1210,6 +1270,8 @@ def result_add(request):
                     if point == 'kp1':
                         r.kp1 = datetime.datetime.now()
                     if point == 'kp2':
+                        r.kp1 = datetime.datetime.now()
+                    if point == 'kp3':
                         r.kp1 = datetime.datetime.now()
                     if point == 'finish':
                         rider.finish = datetime.datetime.now()                      
@@ -1235,6 +1297,7 @@ def result_add_lviv(request):
                 rid = request.POST['rid']
                 val = request.POST['value'].strip()
                 point = request.POST['point']
+                evn = request.POST['event']
                 chkhash = None
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
                     chkhash = request.POST['chkhash']
@@ -1244,7 +1307,7 @@ def result_add_lviv(request):
                     return HttpResponseBadRequest('hash not found or invalid')
                 rev = None
                 try:
-                    rev = RegEvent.objects.get(start_number = rid)
+                    rev = RegEvent.objects.get(start_number = rid, event__pk = evn)
                 except RegEvent.DoesNotExist:
                     HttpResponse("Такого номеру "+ rid +" не має в базі", content_type='text/plain')
                 try:
@@ -1352,6 +1415,45 @@ def result_remove(request):
     
 
 @csrf_exempt
+def result_date_normalize(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('date'):
+                val = request.POST['date']
+                try:
+                    ev = request.POST['event']
+                    evt = Events.objects.get(pk = ev)
+                    riders = ResultEvent.objects.filter(reg_event__event = evt, start__date__gt = evt.date.date())
+                    for rider in riders:
+                        rider.start = datetime.datetime.combine(evt.date.date(), rider.start.time())
+#                        rider.kp1 = datetime.datetime.combine(evt.date(), rider.kp1.time())
+#                        rider.kp1 = datetime.datetime.combine(evt.date(), rider.kp2.time())
+#                        rider.kp3 = datetime.datetime.combine(evt.date(), rider.kp3.time())
+#                        rider.finish = datetime.datetime.combine(evt.date(), rider.finish.time())
+                        #rider.start = evt.date
+                        rider.save()
+                    riders = ResultEvent.objects.filter(reg_event__event = evt, finish__date__gt = evt.date.date())
+                    for rider in riders:
+                        rider.finish = datetime.datetime.combine(evt.date.date(), rider.finish.time())
+                        rider.save()
+                         
+                    #===========================================================
+                    # riders.update(kp1 = None)
+                    # riders.update(kp2 = None)
+                    # riders.update(kp3 = None)
+                    # riders.update(finish = None)
+                    # riders.update(start = None)
+                    #===========================================================
+                    return HttpResponse("Час видалено" + val, content_type='text/plain')
+                except ObjectDoesNotExist:
+                    return HttpResponse("Час не видалено", content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
+
+@csrf_exempt
 def result_clear(request):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1376,6 +1478,7 @@ def result_clear(request):
                 except ObjectDoesNotExist:
                     return HttpResponse("Час не видалено", content_type='text/plain')
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
 
 @csrf_exempt
 def event_start(request):
