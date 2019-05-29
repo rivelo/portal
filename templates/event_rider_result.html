@@ -176,9 +176,10 @@ $(document).ready(function(){
 //  rtable.column(12).visible(false); // Загальний час
 	rtable.column(0).visible(false);
     rtable.column(8).visible(false);
+//    rtable.column(8).visible(true);
 	rtable.column(11).visible(false); //час до кп1
 	rtable.column(-1).visible(false);
-	rtable.column(-2).visible(false);
+//	rtable.column(-2).visible(false);
 	
 {% if user.is_authenticated %}
 	rtable.column(-4).visible(false);
@@ -261,7 +262,13 @@ var tcat1 = $('#table_cat1').DataTable({
 		tcat1.columns( 8 ).search( '1' ).draw();
 		tcat2.columns( 8 ).search( '1' ).draw();
 		tcat3.columns( 8 ).search( '1' ).draw();
+		tcat4.columns( 8 ).search( '1' ).draw();
+		tcat5.columns( 8 ).search( '1' ).draw();
+{% if user.is_authenticated and user|has_group:"moder" %}	
 		rtable.columns( -7 ).search( '1' ).draw();
+{% else %}
+		rtable.column(-2).search( '1' ).draw();
+{% endif %}
 // 		rtable.draw();
  		console.log('status = ' + status);
 	}
@@ -270,11 +277,17 @@ var tcat1 = $('#table_cat1').DataTable({
 		$('#rwom').show();
 		$('#rman').hide()
 		$.fn.dataTableExt.afnFiltering.pop();
+{% if user.is_authenticated and user|has_group:"moder" %}		
 		rtable.columns( -7 ).search( '0' ).draw();
+{% else %}		
+		rtable.column(-2).search( '0' ).draw();
+{% endif %}		
  		tcat1.columns( 8 ).search( '0' ).draw();
  		tcat0.columns( 8 ).search( '0' ).draw();
 		tcat2.columns( 8 ).search( '0' ).draw();
 		tcat3.columns( 8 ).search( '0' ).draw();
+		tcat4.columns( 8 ).search( '0' ).draw();
+		tcat5.columns( 8 ).search( '0' ).draw();
  		console.log('status = ' + status)
 // 		tcat1.columns( 8 ).search(0).draw();
 	}
@@ -282,13 +295,19 @@ var tcat1 = $('#table_cat1').DataTable({
 		$('#sex_rider').attr('val', 2);
 		$('#rwom').show();
 		$('#rman').show();
+{% if user.is_authenticated and user|has_group:"moder" %}		
 		rtable.columns( -7 ).search( '' ).draw();
+{% else %}		
+		rtable.column(-2).search( '' ).draw();
+{% endif %}		
 		$.fn.dataTableExt.afnFiltering.pop();				
  		console.log('status = ' + status)
  		tcat0.columns( 8 ).search( '' ).draw();
  		tcat1.columns( 8 ).search( '' ).draw();
 		tcat2.columns( 8 ).search( '' ).draw();
 		tcat3.columns( 8 ).search( '' ).draw();
+		tcat4.columns( 8 ).search( '' ).draw();
+		tcat5.columns( 8 ).search( '' ).draw();
 	}
 	
  });    
