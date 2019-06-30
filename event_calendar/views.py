@@ -60,11 +60,11 @@ def admin_sendmail(request, id):
         return render(request, 'index.html', vars)
         
     dleft = revent.event.days_left()
-    
+
+#    - на картку приватбанку (4323 3552 0025 8937 - Панчук Ігор) \n    
     message = """Нагадуємо що до заходу залишилось %s днів. \n 
     На даний момент реєстрація коштує %s гривень. Не затягуйте з оплатою адже чим ближче до заходу тим реєстраційний внесок більший.\n
     Оплату марафону можна здійснити: \n
-    - на картку приватбанку (4323 3552 0025 8937 - Панчук Ігор) \n
     - оплатити в магазині Рівело (місто Рівне, вул.Кавказька 6) [http://www.rivelo.com.ua/about/] \n
     Внесіть будь-ласка дані про онлайн оплату за наступним посиланням http://rivelo.com.ua/event/rider/%s/pay/%s/ \n
     Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/%s/show/ \n
@@ -909,7 +909,7 @@ def send_reg_qr_code(request, id):
         email_text = """Ви отримали лист в якому знаходиться QR-код для швидкого отримання стартового пакету.<br> Ви можете його зберегти, або в будь-який час отримати онлайн, для предявлення на старті. """ + qrcode_str  
         email_text = email_text + '<br><img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(rid.id)+'&choe=UTF-8&chld=H|0"/>'
         message = email_text    
-        res = send_mail('Марафон Рівно100 2019 року. QR-code.', message, rid.email, [rid.email], fail_silently=False, html_message=email_text)
+        res = send_mail('Марафон 100 миль 2019 року. QR-code.', message, rid.email, [rid.email], fail_silently=False, html_message=email_text)
 #        if res:
 #            print "Mail was send to email " + rid.email
     return HttpResponse("Листи відправлено на пошту ", content_type='text/plain;charset=utf-8')
@@ -934,7 +934,7 @@ def event_rider_status(request):
                     email_text = """Ви отримали лист в якому знаходиться QR-код для швидкого отримання стартового пакету.<br> Ви можете його зберегти, або в будь-який час отримати онлайн, для предявлення на старті. """ + qrcode_str  
                     email_text = email_text + '<br><img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(rid)+'&choe=UTF-8&chld=H|0"/>'
                     message = email_text    
-                    res = send_mail('Марафон Рівно100 2019 року. QR-code.', message, rider.email, [rider.email], fail_silently=False, html_message=email_text)
+                    res = send_mail('Марафон 100 миль 2019 року. QR-code.', message, rider.email, [rider.email], fail_silently=False, html_message=email_text)
 
                 json = dict(status = rider.status)
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
@@ -1037,7 +1037,7 @@ def event_result_uat(request, id):
     kp2 = False
     kp3 = False
 #    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
-    revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__bike_type__pk__in = [9, 4, 1]).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
     if revent.exclude(kp2 = None):
         kp2 = True
     if revent.exclude(kp3 = None):
@@ -2138,6 +2138,31 @@ def csv_reg_list_view(request, id):
 #        print "cat type = " + str(type(category))
         
         writer.writerow([item.start_number, rname, gender, item.club, category, item.phone, item.id, item.nickname])
+
+    return response
+
+
+def csv_result_list_uat(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для скачування файлу')
+    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__bike_type__pk__in = [9, 4, 1]).order_by("finish") 
+#    revent = RegEvent.objects.filter(event = id, status = True ).order_by("date") #all rider list
+
+# Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="result_list_uat.csv"'
+
+    writer = csv.writer(response)
+
+    for item in revent:
+        rname = item.reg_event.lname +" "+ item.reg_event.fname
+        gender = "M"
+        if item.reg_event.sex == 1:
+            gender = "M"
+        else:
+            gender = "F" 
+        category = item.reg_event.category_uat()
+        writer.writerow([item.reg_event.start_number, rname, gender, item.reg_event.club, category, item.reg_event.nickname, item.reg_event.bike_type.name, item.start, item.finish, item.get_time_diff()])
 
     return response
 
