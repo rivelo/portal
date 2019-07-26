@@ -1386,33 +1386,43 @@ def result_checkpoint_add(request):
                     HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
                 try:
                     num = point.split('kp')[1]
-                    chkPevt = CheckPointEvent.objects.get(result_event__reg_event__pk = rid, number = num)
-                    
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
                     shash = rider.reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
-                    if secret == shash :
-                        chkPevt.check_time = datetime.datetime.now()
-                        chkPevt.save()
-                    
                     format = '%Y-%m-%d %H:%M:%S'
-                    tp = datetime.datetime.now().strftime("%Y-%m-%d")
-                    if val == '':
-                        val = datetime.datetime.now().strftime("%H:%M:%S")
-                    time_point = "%s %s" % (tp, val)
-                    if val == '0':
-                        time_point = None
-                    if (val == 'DNF') or (val == 'dnf'):
-                        point = 'dnf' 
+                    if secret == shash :
+                        res = None
+                        if len(val) == 5:
+                            res = datetime.datetime.strptime(val,'%H:%M')
+                            tp = datetime.datetime.now().strftime("%d.%m.%Y")
+                            time_point = "%s %s" % (tp, val)
+                            print "time = " + time_point                            
+                            val = time_point
 
-                    if point == 'finish':
-                        rider.finish = time_point
-                        rider.save()
-                        rider = ResultEvent.objects.get(reg_event__pk = rid)                        
-                        message = rev.event.email_text % (rider.get_time_diff())
-                    if point == 'dnf':
-                        rider.finish = rider.start
-                        rider.save()
-                    return HttpResponse("Час додано " + val , content_type='text/plain')
+                        if len(val) == 8:
+                            res = datetime.datetime.strptime(val,'%H:%M:%S')
+                            tp = datetime.datetime.now().strftime("%d.%m.%Y")
+                            time_point = "%s %s" % (tp, val)
+                            val = time_point
+
+                        if len(val) == 16:
+                            res = datetime.datetime.strptime(val,'%d.%m.%Y %H:%M')
+                            
+                        if len(val) == 19:
+                            res = datetime.datetime.strptime(val,'%d.%m.%Y %H:%M:%S')
+                        
+                        if val == '':
+                            res = datetime.datetime.now()
+
+                        chkPevt = CheckPointEvent.objects.get(result_event__reg_event__pk = rid, number = num)        
+                        chkPevt.check_time = res 
+                        chkPevt.save()
+                        
+                        if val == '0':
+                            chkPevt.delete()
+                            return HttpResponse("Дані по " + point + " видалено" , content_type='text/plain')
+
+
+                    return HttpResponse("Час додано " + res.strftime("%H:%M:%S") , content_type='text/plain')
                 except ObjectDoesNotExist:
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
                     shash = rider.reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
@@ -1420,13 +1430,12 @@ def result_checkpoint_add(request):
                         r = CheckPointEvent()
                         r.result_event = ResultEvent.objects.get(reg_event__pk = rid)
                         r.number = point.split('kp')[1]
-                        r.check_time = datetime.datetime.now()
-                        #r.check_time = check_time                    
+                        r.check_time = res #datetime.datetime.now()
                         r.save()
 #                json = dict(status = rider.start_status)
 #                return HttpResponse(simplejson.dumps(json), content_type='application/json')
                     #return HttpResponse("Невірні параметри запиту rid=" + rid + "val=" + val, content_type='text/plain')
-                    return HttpResponse("Відмітку КП" + r.number + " додано!", content_type='text/plain')
+                    return HttpResponse("Відмітку КП" + r.number + " додано! \n " + res.strftime("%H:%M:%S"), content_type='text/plain')
     return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
 
 

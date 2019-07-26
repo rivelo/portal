@@ -104,9 +104,6 @@ $(document).ready(function(){
 		//initMap();
 	})
 
-	$("#div_show_doc").click(function(){
-    	$("#main_doc").toggle();
-    })
 	
 });
 
@@ -142,14 +139,15 @@ $(document).ready(function(){
 </h2>
 </div>
 
-</div>
+</div> {# end row #}
+
 
 <div class="row" >
 <div class="col-12">
 
 {% if event.photo %}
-        <div class="row align-items-center poster" ids="{{event.pk}}" img="/media/{{event.photo}}">
-            <div class="col-xs-10" ><h5>Показати афішу</h5></div>
+        <div class="row align-items-center poster mt-3 mb-3" ids="{{event.pk}}" img="/media/{{event.photo}}">
+            <div class="col-xs-10 " ><h5>Показати афішу</h5></div>
             <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/poster-icon.png" class="img-responsive" alt="Афіша" width="48px"></div>            
             <div class="col-xs-12 poster_content"></div>
         </div>
@@ -161,27 +159,14 @@ $(document).ready(function(){
 </div>
 </div>
 
-{% if user.is_authenticated and user|has_group:"moder" and event.cup %}
-<h5>
-<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'rivno100' %}">Список товарів "Рівно100"</a>
-<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'med' %}">Список товарів "Медовий трейл"</a>
-<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' '100mile' %}">Список товарів "100 миль"</a>
-</h5>
-{% endif %}
 
-<div class="row " >
-{# <div class="col-12"> #} 
-
-
+<div class="row" >
 {% if event.forum_url %}
 <h5>Посилання на форум/facebook:
 <small> <a href="{{event.forum_url}}">{{event.forum_url}}</a> </small>
 </h5>
 {% endif %}
-
-{#</div>#}
 </div>
-
 
 
 {# [start-custom format='Ymd\\THi00\\Z']/[end-custom format='Ymd\\THi00\\Z'] #}
@@ -202,32 +187,117 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </h5>
 </div>
 
+</div> {# end container #}
+
+
+<div class="row">
 {% if event.description %}
-<div class="row" id="div_show_doc">
-<h2>
-<span class="badge badge-info" >Положення</span>
-</h2>
-<div class="col-xs-12 doc_content" id="main_doc">
-{{ event.description|safe }}
+<div class="col-xs-12 col-md-4">
+<p>
+  	<button class="btn btn-info btn-block " type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+    	<h4>Положення</h4>
+	</button>
+</p>
+</div>
+<div class="col-12">
+<div class="collapse" id="collapseExample">
+  <div class="card card-body">
+    {{ event.description|safe }}
+  </div>
 </div>
 </div>
 {% endif %}
+</div>
 
 {% if event.gps_track %}
 <div class="row align-items-center gps" ids="{{event.pk}}">
-<div class="col-xs-10" ><h5>Показати маршрут</h5></div>
+<div class="col-xs-auto ml-3" ><h5>Показати маршрут</h5></div>
 <div class="col-xs-2 my-auto" style="padding-right: 10px; padding-left: 15px"><img src="/media/images/gps128.png" alt="" title="Показати маршрут" width="48px" style="vertical-align:middle;" ></img></div>
 <br>
-<div class="col-xs-12 gps_content"></div>
+<div class="col-xs-12 col-md-12 gps_content"></div>
 </div>
 {% endif %}
 
-<div class="row" >
+<div class="row mt-3 mb-3" >
+<div class="col">
 <h5> Дата та час: {{event.date|date:"d-m-Yр. H:i"}} <small class="text-danger"> (До заходу залишилось {{event.days_left}} днів)</small></h5>
 </div>
+</div>
 
-</div> {# end container #}
 
+
+
+<div class="row">
+
+<div class="col-auto">
+<h5> Дистанції: </h5>
+</div>
+
+<p>
+{% for dist in event.eventdistance_set.all %}
+<div class="col">
+  <a class="btn btn-primary btn-block" data-toggle="collapse" href="#dist{{forloop.counter}}" role="button" aria-expanded="false" aria-controls="dist{{forloop.counter}}"> {{dist.name}} </a> 
+</div>
+{% endfor %} 
+</p>
+
+</div>
+
+<div class="row">
+{% for dist in event.eventdistance_set.all %}
+  <div class="col-12">
+    <div class="collapse multi-collapse" id="dist{{forloop.counter}}">
+      <div class="card card-body">
+       <h5>Дистанція {{dist.name}}</h5>
+       <p> Протяжність <b>{{dist.distance}} кілометрів</b> 
+       <br>
+       {% if dist.kp_count > 0 %}
+       Кількість КП - <b>{{dist.kp_count}} штук</b>
+       </p>
+       {% for point in dist.eventdistcheckpoint_set.all %}
+    <span type="button" class="btn btn-primary mt-2">
+		  <a href="{{point.photo}}" ><i class="material-icons" style="vertical-align: middle !important;">photo</i>  Фото {{point.name}}</a> <span class="badge badge-light ml-2"><h7>{{point.km}} км</h7></span>
+		  {% if point.lat and  point.lng %}
+		  <a href="https://www.google.com/maps?q=loc:{{point.lat|safe}},{{point.lng|safe}}" class="ml-2"><i class="material-icons" style="vertical-align: middle !important;">my_location</i> Точка на карті</a>
+		  {% endif %}
+	</span>
+       {% endfor %}
+       
+       {% endif %}
+       
+       Трек  {# <a href="{{dist.gps_track}}">{{dist.gps_track}}</a> #}
+	    	{{dist.gps_track|safe}}		       
+       <p>
+       {{dist.description}}
+       </p>
+       
+      </div>
+    </div>
+  </div>
+{% endfor %}  
+{% comment %}  
+  <div class="col-12">
+    <div class="collapse multi-collapse" id="dist2">
+      <div class="card card-body">
+        50 mile
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="collapse multi-collapse" id="dist3">
+      <div class="card card-body">
+        100 mile
+      </div>
+    </div>
+  </div>
+{% endcomment %}  
+</div>
+
+
+
+
+<div class="row mt-1">
+<div class="col">
 {% if event.reg_status == True %}
 <h5>Реєстрація:  
 {% if event.days_left == 0 %}
@@ -247,6 +317,8 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {% endfor %}
 * можливість вибрати стартовий номер <b>+5грн</b>
 </ul>
+</div>
+</div>
 
 <h5>Учасники:  
 <a href="/event/{{event.pk}}/registration/list/" type="button" class="btn btn-success btn-lg" style="font-size: 14px">
@@ -270,28 +342,52 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {% else %}
 {% endif %}
 
-{% if event.result_present %} 
-<h5>Результати:  
-<a class="btn btn-info" style="font-size: 18px" href="{% url 'event-result' event.pk %}">Результати</a>
+
+{% if event.result_present %}
+<div class="row align-items-center mb-1"> 
+<div class="col-auto">
+<h5>Результати:</h5>
+</div>  
+<div class="col">
+
+<a class="btn btn-info btn-block" style="font-size: 18px" href="{% url 'event-result' event.pk %}">Результати</a>
 {% if event.uat %} 
-<a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-uat' event.pk %}">Результати УАТ</a>
+<a class="btn btn-warning mt-1 btn-block" style="font-size: 18px" href="{% url 'event-result-uat' event.pk %}">Результати УАТ</a>
 {% endif %}
-{% if event.checkpoint %} 
+
+</div>
+</div>
+
+<div class="row">
+{% if event.checkpoint %}
+{% comment %}
+<div class="col-12"> 
 <a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-checkpoint' event.pk %}">Результати по КП</a>
+</div>
+{% endcomment %}
 {% for dist in event.distances %}
-<a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-checkpoint-distance' event.pk dist.pk %}">Результати по КП на дистанції {{dist.name}}</a>
+<div class="col-lg-auto col-md-12 col-sm-12 mt-1 ">
+<a class="btn btn-warning btn-block" style="font-size: 18px" href="{% url 'event-result-checkpoint-distance' event.pk dist.pk %}">Результати по КП на дистанції {{dist.name}}</a>
+</div>
 {% endfor %}
+{% endif %}
+</div>
+
 
 {% endif %}
-</h5>
-{% endif %}
 
+<div class="row mt-1">
+<div class="col">
 {% if user.is_authenticated and user|has_group:"moder" and event.cup %}
-<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  
-<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  
-<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='kp3' %}"><<Проста версія КП3>></a>  
-<a type="button" class="btn btn-warning" href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br><br>
+<h5>Суддівство:
+<a type="button" class="btn btn-danger btn-block" href="{% url 'event-result-light-admin' id=event.pk  point='kp1' %}"><<Проста версія КП1>></a>  
+<a type="button" class="btn btn-danger btn-block" href="{% url 'event-result-light-admin' id=event.pk point='kp2' %}"><<Проста версія КП2>></a>  
+<a type="button" class="btn btn-danger btn-block" href="{% url 'event-result-light-admin' id=event.pk point='kp3' %}"><<Проста версія КП3>></a>  
+<a type="button" class="btn btn-danger btn-block" href="{% url 'event-result-light-admin' id=event.pk point='finish' %}"><<Проста версія Finish>></a> <br><br>
+</h5>
 {% endif %} 
+</div>
+</div>
 
 <div class="container-fluid " >
 <div class="row map align-items-center" lat="{{event.lat}}" lng="{{event.lng}}">
@@ -305,7 +401,20 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 
 </div>
 
+<div class="row mt-2">
+{% if user.is_authenticated and user|has_group:"moder" and event.cup %}
+<div class="col">
+<h5>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'rivno100' %}">Список товарів "Рівно100"</a>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'med' %}">Список товарів "Медовий трейл"</a>
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' '100mile' %}">Список товарів "100 миль"</a>
+</h5>
+</div>
+{% endif %}
+</div>
+
 <p class="meta"><em>{ Опубліковано <a href="#"> {{event.user.username}} </a>, {{event.pub_date}} }</em></p>
+
 
 
 

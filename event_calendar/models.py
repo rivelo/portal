@@ -256,8 +256,8 @@ class EventDistCheckPoint(models.Model):
     secret_hash = models.CharField(max_length=255)
     km = models.PositiveSmallIntegerField(default=0, help_text="Кілометр на якому розташоване КП")
     event_distance = models.ForeignKey(EventDistance, blank=True, null=True, on_delete=models.SET_NULL)
-    lat = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
-    lng = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
+    lat = models.DecimalField(max_digits=12, decimal_places=8, blank=True, default=0)
+    lng = models.DecimalField(max_digits=12, decimal_places=8, blank=True, default=0)
     photo = models.CharField(max_length=255)#, blank=True, null=True)
     description = models.TextField(blank=True, help_text="Опис локації")
 

@@ -380,8 +380,8 @@ $( "#add_test_result_package" ).click(function() {
 <div id="dialog_date_normalize" title="змінити дату результатів">
 </div>
 
-<div class="row">
-<div class="col-10">
+<div class="row d-flex">
+<div class="col-8">
 <h1 class="title"><span class="badge badge-success">Результати по КП</span> 
 {% if event.checkpoint %}
 <button type="button" class="btn btn-dark">
@@ -391,14 +391,6 @@ $( "#add_test_result_package" ).click(function() {
 </h1>
 
 <h2 class="title"> <a href="{% url 'event-show' event.pk  %}">{{event.name}}</a></h2>
-</div>
-
-<div class="col-1">
-	{% if event.icon %}
-	<img id="img_start" src="/media/{{event.icon}}" style="max-width: 120px;"/>
-	{% endif %} 
-</div>
-</div>
 
 <div class="row">
   <div class="col-12">
@@ -408,6 +400,19 @@ $( "#add_test_result_package" ).click(function() {
 {% endif %}
   </div>
 </div>
+
+</div>
+
+<div class="col">
+<div class="float-right">
+	{% if event.icon %}
+	<img id="img_start" src="/media/{{event.icon}}" style="max-width: 150px;"/>
+	{% endif %} 
+</div>
+</div>
+
+</div>
+
 
 
 
