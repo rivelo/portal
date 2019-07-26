@@ -273,7 +273,16 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 {% if event.result_present %} 
 <h5>Результати:  
 <a class="btn btn-info" style="font-size: 18px" href="{% url 'event-result' event.pk %}">Результати</a>
+{% if event.uat %} 
 <a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-uat' event.pk %}">Результати УАТ</a>
+{% endif %}
+{% if event.checkpoint %} 
+<a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-checkpoint' event.pk %}">Результати по КП</a>
+{% for dist in event.distances %}
+<a class="btn btn-warning" style="font-size: 18px" href="{% url 'event-result-checkpoint-distance' event.pk dist.pk %}">Результати по КП на дистанції {{dist.name}}</a>
+{% endfor %}
+
+{% endif %}
 </h5>
 {% endif %}
 

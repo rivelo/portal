@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 from django import template
 import MySQLdb
-from portal.event_calendar.models import Events, ResultEvent
+from portal.event_calendar.models import Events, ResultEvent, CheckPointEvent
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 
@@ -38,14 +38,40 @@ def rider_statistic(event, sex):
     a = str(count)
     return a
 
+@register.filter(name='get_kp_data')
+def get_kp_data(resEvent, kp):
+    rEvt = resEvent
+    #revent = ResultEvent.filter(pk = rEvt)
+    chkpoint = rEvt.check_points(kp)
+    return chkpoint
+
+
+@register.filter(name='get_kp_field')
+def get_kp_field(resEvent, field):
+    #revent = ResultEvent.filter(pk = rEvt)
+    print "resEvent = " + str(resEvent.values(field))
+    if resEvent.values(field):
+        return resEvent.values_list(field)#, flat=True)
+    else:
+        return ''
+
+@register.filter(name='kp_test')
+def kp_test(resEvent):
+    #res = CheckPointEvent.objects.filter(result_event = resEvent, number = 1)#.values("number")
+    res = CheckPointEvent.objects.filter(pk = 3)
+    #revt = resEvent
+    #return ResultEvent.get(pk = 1495).checkpointevent_set.filter(number = 1)[0]#.values("check_time", "number", "checksum")
+    #res = revt.checkpointevent_set.all().values_list("check_time", flat=True)#.first()
+    print "REs type = " + str(type(res))
+    return list(res.values("check_time"))
+
 @register.filter(name='res_statistic')
 def res_statistic(event, sex):
     if sex == '1':
         return ResultEvent.male_objects.get_male(event)
     if sex == '0':
         return ResultEvent.female_objects.get_female(event)
-#    count = event_res.get_sex(sex)
-#    return count
+
 
 @register.filter(name='res_stat_city')
 def res_stat_city(event):
@@ -66,7 +92,6 @@ def res_stat_bikes(event):
 def res_stat_bikes_byyear(year):
     #return ResultEvent.group_city.get_citys(event)
     return ResultEvent.group_bikes.get_bikes_byyear(year)
-
 
 def format_timedelta(td):
     hours, remainder = divmod(td.total_seconds(), 3600)
@@ -146,3 +171,8 @@ def subtract(value, arg):
 @register.simple_tag
 def get_filename_icontype(obj, param):
     return obj.get_icon_name(param)
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+

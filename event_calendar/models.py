@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+from django.template.defaultfilters import default
 
 from pyexpat import model
 
@@ -100,6 +101,11 @@ class Events(models.Model):
     rules = models.ManyToManyField(Rules, blank=True) #реєстраційні внески
     email_text = models.TextField(blank=True)
     cup = models.BooleanField(default=False)
+    uat = models.BooleanField(default=False)
+    video_url = models.TextField(blank=True)
+    photo_url = models.TextField(blank=True)
+    checkpoint = models.BooleanField(default=False) # вмикнути / вимкнути відмітки
+    chkhash = models.CharField(max_length=255, blank = True)
 
     def days_left(self):
         today = datetime.datetime.today()
@@ -186,6 +192,9 @@ class Events(models.Model):
         r = self.regevent_set.exclude(club = '').values('club').annotate(num_club=Count('club')).order_by('-num_club')
         return r
 
+    def distances(self):
+        r = self.eventdistance_set.values('kp_count', 'name', 'pk').annotate(num_distance=Count('pk'))
+        return r
 
     def cur_reg_sum(self, today=datetime.date.today):
         #today = datetime.date.today()
@@ -231,6 +240,8 @@ class EventDistance(models.Model):
     name = models.CharField(max_length=255)
     distance = models.PositiveSmallIntegerField(default=0, help_text="Довжина маршруту, кілометри")
     event = models.ForeignKey(Events, blank=True, null=True, on_delete=models.SET_NULL)
+    gps_track = models.CharField(max_length=255, blank=True) # url to gps
+    kp_count = models.IntegerField(help_text="Кількість КП", default=0) # кількість КП
     description = models.TextField(blank=True, help_text="Опис дистанції")
 
     def __unicode__(self):
@@ -238,6 +249,23 @@ class EventDistance(models.Model):
 
     class Meta:
         ordering = ["event", "distance", "name"]    
+
+
+class EventDistCheckPoint(models.Model):
+    name = models.CharField(max_length=255)
+    secret_hash = models.CharField(max_length=255)
+    km = models.PositiveSmallIntegerField(default=0, help_text="Кілометр на якому розташоване КП")
+    event_distance = models.ForeignKey(EventDistance, blank=True, null=True, on_delete=models.SET_NULL)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
+    lng = models.DecimalField(max_digits=9, decimal_places=6, blank=True, default=0)
+    photo = models.CharField(max_length=255)#, blank=True, null=True)
+    description = models.TextField(blank=True, help_text="Опис локації")
+
+    def __unicode__(self):
+        return '%s - %s км' % (self.name, self.secret_hash)
+
+    class Meta:
+        ordering = ["name"]    
 
 
 class RegEvent (models.Model):
@@ -429,6 +457,15 @@ class BikesManager(models.Manager):
         return super(BikesManager, self).get_queryset().filter(reg_event__event__date__year = year).exclude(finish__isnull=True).values('reg_event__bike_type__name').annotate(num_bike=Count('reg_event__bike_type')).order_by('-num_bike')
 
 
+class CheckPointManager(models.Manager):
+    def get_point(self):#, resEvent):
+        return super(CheckPointManager, self).get_queryset().checkpointevent_set.filter(result_event__pk = 1495, number = 1).values('number').order_by('number')
+
+#    def get_citys_byyear(self, year):
+#        return super(CityManager, self).get_queryset().filter(reg_event__event__date__year = year).values('reg_event__city').annotate(num_city=Count('reg_event__city')).order_by('-num_city')
+
+
+
 class CustomQuerySetManager(models.Manager):
     """A re-usable Manager to access a custom QuerySet"""
     def __getattr__(self, attr, *args):
@@ -473,6 +510,8 @@ class ResultEvent (models.Model):
     finish = models.DateTimeField(blank = True, null = True)
     description = models.TextField(blank=True)
     dnf = models.BooleanField(default=False)
+    checkpoint = models.PositiveIntegerField(default = 0)
+    penalty = models.TimeField(blank = True, null = True)
 #    objects = filterManager()
     #objects = CustomQuerySetManager()
     objects = models.Manager() # The default manager.
@@ -481,6 +520,7 @@ class ResultEvent (models.Model):
     group_city = CityManager()
 #    people = CustomManager()
     group_bikes = BikesManager()
+    check_points = CheckPointManager()
     #p_groups = GroupQuerySet.as_manager()
 
     def get_time_diff(self):
@@ -509,7 +549,19 @@ class ResultEvent (models.Model):
         res = self.kp2 - self.kp1
         return str(res)   # Assuming dt2 is the more recent time
 
-   
+    def check_points(self, kp):
+        res = self.checkpointevent_set.filter(number = kp).values("check_time", "number", "checksum")
+        print "POINTS = " + str(res.values("check_time"))
+        return res 
+
+    def check_point(self):
+        chk_point = self.checkpointevent_set.filter().values("check_time", "number", "checksum") 
+        print "POINT* = " + str(self.checkpointevent_set.filter().values("check_time", "number", "checksum"))
+        return chk_point 
+
+    def test_point(self):
+        res = CheckPointEvent.objects.filter(pk = 3)
+        return res
 #    def riders_city(self):
 #        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
 #        return r
@@ -543,6 +595,20 @@ class ResultEvent (models.Model):
     class Meta:
         ordering = ["reg_event", "finish"]    
      
+
+class CheckPointEvent(models.Model):
+    result_event = models.ForeignKey(ResultEvent, blank=True, null=True, on_delete=models.SET_NULL)    
+    check_time = models.DateTimeField(blank = True, null = True)
+    hash = models.CharField(blank=True, max_length = 255)
+    checksum = models.CharField(blank=True, max_length = 255)
+    number = models.PositiveIntegerField()
+    data = models.TextField(blank=True)
+
+    def __unicode__(self):
+        return '%s - %s ' % (self.check_time, self.hash)
+
+    class Meta:
+        ordering = ["result_event", "check_time"]    
 
     
     

@@ -1,0 +1,607 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<meta name="description" content="Відмітки на КП марафону <a href="{% url 'event-show' event.pk  %}">
+<meta name="keywords" content="{{event.name}}, МТБ марафон, Веломарафон, Велосипедний марафон, Вело, Рівело, Rivelo, Рівне, XCM, Marathon MTB, Start list">
+<meta name="author" content="Rivelo">
+
+<title>Відмітки по КП марафону {{event.name}}</title>
+
+<link href="/media/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
+<script src="/media/jquery.dataTables.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+{% load poll_extras %}
+
+<style>
+/* Style The Dropdown Button */
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+/*tfoot {
+    display: table-header-group;
+}
+*/
+tfoot input {
+        width: 100%;
+        padding: 3px;
+        box-sizing: border-box;
+    }
+    
+/*#event_stat:hover {
+background-color: yellow;
+cursor: pointer;
+}*/
+
+
+.hover-content {
+    display:none;
+}
+ 
+.pay_type:hover .hover-content {
+    display:block;
+}
+
+.category:hover .hover-content {
+    display:block;
+} 
+
+</style>
+
+
+<script>
+$(document).ready(function(){
+
+	$('#rtable tfoot th').each( function () {
+        var title = $(this).text();
+        $(this).html( '<input type="text" placeholder="Пошук '+title+'" />' );
+    } );
+
+
+    jQuery.fn.dataTableExt.oSort["duration-desc"] = function (x, y) {
+        function getMins(str){
+        	if (str == "DNF") {str = "999:00:00"}
+        	if (str == "DNS") {str = "9999:00:00"}
+        	if (str == "") {str = "9999:00:00"}
+            var arr = str.split(':');
+            return 60*60 * parseInt(arr[0], 10)+ 60 * parseInt(arr[1], 10)+ parseInt(arr[2], 10);
+        };
+        return getMins(x) - getMins(y);
+    };
+    
+    jQuery.fn.dataTableExt.oSort["duration-asc"] = function (x, y) {
+        return jQuery.fn.dataTableExt.oSort["duration-desc"](y, x);
+    }
+	
+	// all rider list
+    var rtable = $('#rtable').DataTable({
+    	"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+		"columnDefs": [
+//        	{ "type": "uk_time", targets: 12 }
+        	{ "type": "duration", targets: 14 },
+        	{ "type": "duration", targets: 10 },
+    	],
+    	
+    });
+	
+    rtable.columns().every( function () {
+        var that = this;
+ 
+        $( 'input', this.footer() ).on( 'keyup change', function () {
+            if ( that.search() !== this.value ) {
+                that
+                    .search( this.value )
+                    .draw();
+            }
+        } );
+    } );
+    
+//  rtable.column(12).visible(false); // Загальний час
+	rtable.column(0).visible(false);
+    rtable.column(8).visible(false);
+    rtable.column(6).visible(false);
+	rtable.column(-1).visible(false);
+	rtable.column(-3).visible(false);
+	rtable.column(-2).visible(false)
+	rtable.column(-4).visible(false);;
+	rtable.column(9).visible(false);
+	
+{% if user.is_authenticated %}
+	// rtable.column(-6).visible(false);
+	//rtable.column(-7).visible(true); //Стать
+{% endif %}
+	
+{% comment %}		
+{% endcomment %}
+
+	$('#rtable_length_panel').append('<div class="cdiv" style="float:right; padding-left:10px;"><span id="sex_rider" val="2"><img id="rman" src="/media/images/male-icon_35.png" height="20" alt="Чоловіки" title="Чоловіки"></img><img id="rwom" src="/media/images/female-icon_35.png" height="20" alt="Жінки" title="Жінки"></span></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="6">Команда</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="5">Місто</a></div>');	
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="7">Рік</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="3">Нік</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="8">Велосипед</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-1">Фініш</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="9">Старт</a></div>');
+	
+	
+{% if user.is_authenticated and user|has_group:"moder" %}
+	{#	rtable.column(-8).visible(false); #}
+	rtable.column(5).visible(false); 
+
+	
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-3">Примітки</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-4">Телефон</a></div>');
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="4">Стать</a></div>');
+	{#	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="-2">Стать</a></div>'); #}
+	$('#rtable_length_panel').append('<div class="cdiv btn btn-outline-dark" style="float:right; padding-left:10px;"><a class="toggle-vis" data-column="0">Id</a></div>');
+{% endif %}	
+	
+	
+
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+         // Get the column API object
+        var column = rtable.column( $(this).attr('data-column') );
+         // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
+
+    
+ $("body").on('click', '#sex_rider', function() {
+	var status = $('#sex_rider').attr('val')
+	if ( status == 2) {
+		$('#sex_rider').attr('val', 1);
+		$('#rwom').hide()
+		$('#rman').show();
+{% if user.is_authenticated and user|has_group:"moder" %}	
+		rtable.columns( -2 ).search( '1' ).draw();
+{% else %}
+		rtable.column(-2).search( '1' ).draw();
+{% endif %}
+// 		rtable.draw();
+ 		console.log('status = ' + status);
+	}
+	if ( status == 1) {
+		$('#sex_rider').attr('val', 0);
+		$('#rwom').show();
+		$('#rman').hide()
+		$.fn.dataTableExt.afnFiltering.pop();
+{% if user.is_authenticated and user|has_group:"moder" %}		
+		rtable.columns( -2 ).search( '0' ).draw();
+{% else %}		
+		rtable.column(-2).search( '0' ).draw();
+{% endif %}		
+ 		console.log('status = ' + status)
+// 		tcat1.columns( 8 ).search(0).draw();
+	}
+	if ( status == 0) {
+		$('#sex_rider').attr('val', 2);
+		$('#rwom').show();
+		$('#rman').show();
+{% if user.is_authenticated and user|has_group:"moder" %}		
+		rtable.columns( -2 ).search( '' ).draw();
+{% else %}		
+		rtable.column(-2).search( '' ).draw();
+{% endif %}		
+		$.fn.dataTableExt.afnFiltering.pop();				
+ 		console.log('status = ' + status)
+	}
+	
+ });    
+
+	    
+$("body").on("click",".finish_add",function(e){ 	
+    $(this).editable('/rider/result/add/', {
+    	id: 'point', 
+    	loadtype: 'POST',
+         submit : 'OK',
+         tooltip   : 'Click to add time',
+         style   : 'inherit',
+         event : "click",
+         submitdata : function() {
+          	return {rid : $(this).attr('rid'), point: 'finish'};
+          	//return { rid: $.trim($(this).attr('rid')),  point: 'finish' };
+         },
+        }).trigger("focus"); 
+});   
+    
+ 
+$("body").on("click",".kp_add",function(e){ 	
+	$(this).editable('/rider/checkpoint/result/add/', { 
+	 id: 'point',
+	 check_hash: '',
+	 
+	 loadtype: 'POST',
+     submit : 'OK',
+     tooltip   : 'Click to add time',
+     style   : 'inherit',
+     event : "click",
+     submitdata : function() {
+      	return {rid : $(this).attr('rid'), point: 'kp'+$(this).attr('kp'), chkhash: 'Rivelo256haSh+123-2019', secret: '', chk_time: ''};
+   	 },
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click",".start_edit",function(e){ 	
+	$(this).editable('/rider/result/add/', { 
+	 id: 'point',
+	 
+	 loadtype: 'POST',
+     submit : 'OK',
+     tooltip   : 'Click to add time',
+     style   : 'inherit',
+     event : "click",
+     submitdata : function() {
+      	return {rid : $(this).attr('rid'), point: 'start'};
+    	 },
+    }).trigger("focus"); 
+});   
+
+
+$("body").on("click", ".number_edit", function(e){
+    $(this).editable('/event/{{event.id}}/registration/edit/number/', {
+ 		id   : 'rid',
+        name : 'number',
+        event : 'dblclick',
+        submitdata : function() {
+     	 	return {rid : $(this).attr('rid'),
+     	 			};
+   	 	},
+        indicator : 'Saving...',
+        tooltip   : 'Click to edit...',
+        select : true,
+        style  : "inherit",
+        callback : function(value, settings) {
+        $(this).html(value);
+    	}
+    });
+ });
+
+
+$( "#clear_kp_result" ).click(function() {
+	$( "#dialog_clear" ).dialog({
+		resizable: false,
+	  	modal: true,
+		width: 380,
+		height:"auto",
+  	buttons: {
+    "Очистити": function() {
+			$.ajax({
+            type: "POST",
+            url: "/event/checkpoint/result/clear/",
+            data: {event:  {{ event.pk }}, point: 'kp_all', distance: {{evt_dist.pk}} },
+            success:function(data){
+            	console.log("Дані по КП очищено " + data);
+            },
+            error:function(data){
+                alert("++++ При отправке возникли проблемы" + data);
+            }
+        	});
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
+    },
+    "Відмінити": function() {
+    	$( this ).dialog( "close" );	
+    },
+    }  		
+	});
+});
+   
+$( "#add_test_result_package" ).click(function() {
+	$( "#dialog_clear" ).dialog({
+		resizable: false,
+	  	modal: true,
+		width: 380,
+		height:"auto",
+  	buttons: {
+    "Очистити": function() {
+			$.ajax({
+            type: "POST",
+            url: "/rider/checkpoint/result/add/package/",
+//            data: {event:  {{ event.pk }}, point: 'kp_all', distance: {{evt_dist.pk}} }
+			data: {rid : '1495', point: 'package', chkhash: 'Rivelo256haSh+123-2019', secret: '', chk_time: '', data: 'test;ajax', checksum: ''},
+//			data: {rid : $(this).attr('rid'), point: 'package', chkhash: 'Rivelo256haSh+123-2019', secret: '', chk_time: '', data: 'test;ajax', checksum: ''},
+            success:function(data){
+            	console.log("Дані по КП очищено " + data);
+            },
+            error:function(data){
+                alert("++++ При отправке возникли проблемы" + data);
+            }
+        	});
+        console.log("Натиснуто ОК" + $("#msg_text").val());
+        $( this ).dialog( "close" );
+    },
+    "Відмінити": function() {
+    	$( this ).dialog( "close" );	
+    },
+    }  		
+	});
+});
+   
+
+
+
+});
+
+
+</script>
+
+
+
+{% block content %}
+
+	
+<div id="dialog_clear" title="Очистити результати">
+</div>
+
+<div id="dialog_date_normalize" title="змінити дату результатів">
+</div>
+
+<div class="row">
+<div class="col-10">
+<h1 class="title"><span class="badge badge-success">Результати по КП</span> 
+{% if event.checkpoint %}
+<button type="button" class="btn btn-dark">
+<h4> Дистанція {{evt_dist.name}} <span class="badge badge-light">{{evt_dist.kp_count}}</span> </h4>
+</button>
+{% endif %}
+</h1>
+
+<h2 class="title"> <a href="{% url 'event-show' event.pk  %}">{{event.name}}</a></h2>
+</div>
+
+<div class="col-1">
+	{% if event.icon %}
+	<img id="img_start" src="/media/{{event.icon}}" style="max-width: 120px;"/>
+	{% endif %} 
+</div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+{% if user|has_group:"admin"%}
+<button type="button" class="btn btn-light" id="add_test_result_package"  style=" background:#e4e7ea;" >Відправити дані з КП (пакетно)</button>
+<button type="button" class="btn btn-light" id="clear_kp_result"  style=" background:#e4e7ea;" > Очистити дані з КП</button>
+{% endif %}
+  </div>
+</div>
+
+
+
+
+
+<div class="row">
+{# <div style="width:560px; float:left;"> #}
+
+
+
+<div class="col-12" id="rtable_length_panel">
+
+</div>
+
+<div class="col-12">
+<table id="rtable" class="display" cellspacing="0" width="100%">
+<thead>
+<tr>
+<th title="Id учасника">id</th>
+<th title="Стартовий номер">№</th>
+<th>Ім'я / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">С</th>
+<th>Місто</th>
+<th>Команда</th>
+<th title="Вікова категорія">Вік</th>
+<th>Велосипед</th>
+<th title="Старт">Старт</th>
+
+{% for i in kp_count %}
+<th title="КП{{i}}">КП{{i}}</th>
+{% endfor %}
+
+{% if user.is_authenticated %}
+<th>Телефон</th>
+<th>Примітки</th>
+{% endif %}
+
+<th>Стать</th>
+<th title="Фініш">Фініш</th>
+</tr>
+</thead>
+	<tfoot>
+            <tr>
+<th title="Id учасника">id</th>            
+<th title="Стартовий номер">№</th>
+<th>Ім'я / Прізвище</th>
+<th>Нік</th>
+<th title="Стать">С</th>
+<th>Місто</th>
+<th>Команда</th>
+<th>Рік нар.</th>
+<th>Велосипед</th>
+<th title="Старт">Старт</th>
+
+{% for i in kp_count %}
+<th title="КП{{i}}">КП{{i}}</th>
+{% endfor %}
+
+{% if user.is_authenticated %}
+<th>Телефон</th>
+<th>Примітки</th>
+
+{% endif %}
+
+<th>Стать</th>
+<th title="Фінішний час">Фініш</th>
+            
+            </tr>
+        </tfoot>
+        
+<tbody>
+{% for rider in list %}
+
+{% if user.is_authenticated %}
+  
+{% if rider.reg_event.status == True and rider.reg_event.pay > 0 %}
+<tr style="color: green; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay > 0 %}
+<tr style="color: black; font-weight:bold;">
+{% endif %}
+{% if rider.reg_event.status == False and rider.reg_event.pay == 0 %}
+<tr style="color: grey">
+{% endif %}
+
+{% endif %}
+
+<td>
+{{rider.reg_event.id}}
+</td>
+<td>
+{{rider.reg_event.start_number}}
+</td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}} </td>
+<td>{{rider.reg_event.nickname}}</td>
+<td align="center" data-order="{{rider.reg_event.sex}}">
+{% if rider.reg_event.sex == 1 %}
+	<img src="/media/images/male-icon_35.png" height="20" alt="Чоловік" title="Чоловік"></img>
+{% else %}
+	<img src="/media/images/female-icon_35.png" height="20" alt="Жінка" title="Жінка"></img>
+{% endif %}
+</td>
+<td>{{rider.reg_event.city}}</td>
+<td>{{rider.reg_event.club}}</td>
+
+<td align="center" class="category"
+{% if rider.reg_event.category.0 == 1 %} 
+{% if rider.reg_event.sex == 1 %}
+	style="background-color: yellow;"
+{% else %}
+	style="background-color: pink;"
+{% endif %}
+{% endif %}
+{% if rider.reg_event.category.0 == 2 %} 
+{% if rider.reg_event.sex == 1 %}
+style="background-color: blue;"
+{% else %}
+	style="background-color: purple;"
+{% endif %}
+{% endif %}
+{% if rider.reg_event.category.0 == 3 %} 
+style="background-color: green;"
+{% endif %}
+{% if rider.reg_event.category.0 == 4 %} 
+style="background-color: red;"
+{% endif %}
+{% if rider.reg_event.category.0 == 5 %} 
+style="background-color: white;"
+{% endif %}
+
+>
+<!-- {{rider.reg_event.birthday|date:"Y"}}  --> 
+{{rider.reg_event.category.0}} <div class="hover-content">{{rider.reg_event.category.1}}</div> </td>
+
+
+<td align="center">{{rider.reg_event.bike_type.name}}</td>
+<td align="center" class="start_edit" rid="{{rider.reg_event.id}}"> {{rider.start|date:'H:i:s'}}
+{{rider.check_points.all}}
+{{rider.check_points.get_point.first}}
+
+{# rider.checkpointevent_set.all.first #}
+ 
+{% comment %}
+{% for itm in rider.check_point %}
+{{itm.check_time}} <br>
+{% endfor %}
+{% endcomment %}
+</td>
+
+<!-- ****************************** KP ************************************* -->
+{% for i in kp_count %}
+<td align="center" class="kp_add" rid="{{rider.reg_event.id}}" kp="{{i}}">
+	{{ rider|get_kp_data:i|get_kp_field:"number" }} 
+</td>
+{% endfor %}
+
+
+{% if user.is_authenticated %}
+	<td>
+	{{rider.reg_event.phone}}
+	</td>
+	<td>
+	{{rider.reg_event.description}}
+	</td>
+{% endif %}
+
+
+	<td align="center" >
+	{{rider.reg_event.sex}}
+	</td>
+
+
+{% if rider.start == rider.finish %}
+	{% if rider.start == None %}
+	<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> DNS </td>
+	{% else %}
+	<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> DNF </td>
+	{% endif %}
+{% else %}
+<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.finish|date:'H:i:s'}} </td>
+{% endif %}
+
+
+</tr>
+{% endfor %}
+</tbody>  
+</table>	
+
+</div>
+</div>
+
+
+
+{% endblock %}
+
+	

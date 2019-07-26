@@ -18,7 +18,7 @@ from django.template.loader import render_to_string, get_template
 from django.core.mail import EmailMessage
 from django.core.exceptions import ObjectDoesNotExist
 
-from models import Events, RegEvent, ResultEvent, EventDistance
+from models import Events, RegEvent, ResultEvent, EventDistance, CheckPointEvent
 from forms import EventsForm, RegEventsForm, PayRegEventsForm
 
 from portal.gallery.models import Album, Photo
@@ -65,6 +65,9 @@ def admin_sendmail(request, id):
     message = """Нагадуємо що до заходу залишилось %s днів. \n 
     На даний момент реєстрація коштує %s гривень. Не затягуйте з оплатою адже чим ближче до заходу тим реєстраційний внесок більший.\n
     Оплату марафону можна здійснити: \n
+    на картку Monoбанку \n 
+    - за номером (5375 4141 0424 4396 - Панчук Ігор) \n
+    - за посиланням https://send.monobank.com.ua/9AzoShj3 оплата з будь-яких карт Українських банків через онлайн сервіс Monobank-у \n
     - оплатити в магазині Рівело (місто Рівне, вул.Кавказька 6) [http://www.rivelo.com.ua/about/] \n
     Внесіть будь-ласка дані про онлайн оплату за наступним посиланням http://rivelo.com.ua/event/rider/%s/pay/%s/ \n
     Інформацію по заходу можна знайти за посиланням  http://www.rivelo.com.ua/event/%s/show/ \n
@@ -80,6 +83,7 @@ def admin_sendmail(request, id):
         #return render_to_response("index.html", {'success_data': "Лист відправлено на пошту " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
         return render(request, 'index.html', vars)
     #return render_to_response("index.html", {'success_data': "Щось пішло не так. Пошта " + revent.email}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
     vars = {'success_data': "Щось пішло не так. Пошта " + revent.email}
     return render(request, 'index.html', vars)
 
@@ -1028,8 +1032,74 @@ def event_result(request, id):
     try:
         return render(request, 'index.html', vars)
     except:
-        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
+        vars = {'sel_menu': 'calendar', 'error_data': 'Результатів ще не має'}
+        return render(request, 'index.html', vars)
+#        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
     #return render_to_response('index_result.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))        
+
+
+def checkpoint_result(request, id):
+    evt = Events.objects.get(pk=id)
+    if evt.checkpoint == False or evt.checkpoint == None: 
+#        return HttpResponse("Результатів по КП не має", content_type='text/plain;charset=utf-8')
+        vars = {'sel_menu': 'calendar', 'error_data': 'Результатів по КП не має'}
+        return render(request, 'index.html', vars)
+
+    kp2 = False
+    kp3 = False
+#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    if revent.exclude(kp2 = None):
+        kp2 = True
+    if revent.exclude(kp3 = None):
+        kp3 = True
+    
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+#    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
+    vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'kp2': kp2, 'kp3': kp3}    
+#    calendar = embeded_calendar()
+#    vars.update(calendar)        
+    evnt = {'event': evt}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    try:
+        return render(request, 'index.html', vars)
+    except:
+        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
+
+
+
+def checkpoint_result_by_distance(request, id, dist_id):
+    evt = Events.objects.get(pk = id)
+    ed = EventDistance.objects.get(event = id, pk = dist_id)
+    #print "EVENT distance: " + str(ed)
+    
+#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    #revent = ResultEvent.objects.filter(reg_event__event = id, ).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__distance_type__pk = dist_id).order_by("-finish")    
+
+#    photo1 = Photo.objects.random()
+#    photo2 = Photo.objects.random()
+    vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'evt_dist': ed, 'kp_count': range(1, ed.kp_count+1) }    
+    #vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn()}
+#    calendar = embeded_calendar()
+#    vars.update(calendar)        
+    evnt = {'event': evt}
+    vars.update(evnt)
+    try:
+        del request.session['reg_email']
+    except:
+        error = "Параметр reg_email не існує"
+    try:
+        return render(request, 'index.html', vars)
+    except:
+        vars = {'sel_menu': 'calendar', 'error_data': 'Результатів по дистанції ' + ed.name+ ' ще не має'}
+        return render(request, 'index.html', vars)
+        #return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
 
 
 def event_result_uat(request, id):
@@ -1287,6 +1357,133 @@ def result_add(request):
 
 
 @csrf_exempt
+def result_checkpoint_add(request):
+    if request.is_ajax() or request.method == 'POST':
+        if request.method == 'POST':  
+            POST = request.POST  
+            if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
+                rid = request.POST['rid']
+                val = request.POST['value'].strip()
+                point = request.POST['point']
+                try:
+                    secret = ResultEvent.objects.get(reg_event__pk = rid).reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
+                except:
+                    #print "KP dont have code " + secret
+                    return HttpResponse("В даного КП не має секрету", content_type='text/plain')
+                check_time = request.POST['chk_time']
+                chkhash = None
+                if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
+                    chkhash = request.POST['chkhash']
+                    secret = request.POST['secret']
+                else:
+                    chkhash = 'Rivelo256haSh+123-2019'
+                if chkhash <> 'Rivelo256haSh+123-2019':
+                    return HttpResponseBadRequest('hash not found or invalid')
+                rev = None
+                try:
+                    rev = RegEvent.objects.get(pk = rid)
+                except RegEvent.DoesNotExist:
+                    HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
+                try:
+                    num = point.split('kp')[1]
+                    chkPevt = CheckPointEvent.objects.get(result_event__reg_event__pk = rid, number = num)
+                    
+                    rider = ResultEvent.objects.get(reg_event__pk = rid)
+                    shash = rider.reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
+                    if secret == shash :
+                        chkPevt.check_time = datetime.datetime.now()
+                        chkPevt.save()
+                    
+                    format = '%Y-%m-%d %H:%M:%S'
+                    tp = datetime.datetime.now().strftime("%Y-%m-%d")
+                    if val == '':
+                        val = datetime.datetime.now().strftime("%H:%M:%S")
+                    time_point = "%s %s" % (tp, val)
+                    if val == '0':
+                        time_point = None
+                    if (val == 'DNF') or (val == 'dnf'):
+                        point = 'dnf' 
+
+                    if point == 'finish':
+                        rider.finish = time_point
+                        rider.save()
+                        rider = ResultEvent.objects.get(reg_event__pk = rid)                        
+                        message = rev.event.email_text % (rider.get_time_diff())
+                    if point == 'dnf':
+                        rider.finish = rider.start
+                        rider.save()
+                    return HttpResponse("Час додано " + val , content_type='text/plain')
+                except ObjectDoesNotExist:
+                    rider = ResultEvent.objects.get(reg_event__pk = rid)
+                    shash = rider.reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
+                    if secret == shash :
+                        r = CheckPointEvent()
+                        r.result_event = ResultEvent.objects.get(reg_event__pk = rid)
+                        r.number = point.split('kp')[1]
+                        r.check_time = datetime.datetime.now()
+                        #r.check_time = check_time                    
+                        r.save()
+#                json = dict(status = rider.start_status)
+#                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                    #return HttpResponse("Невірні параметри запиту rid=" + rid + "val=" + val, content_type='text/plain')
+                    return HttpResponse("Відмітку КП" + r.number + " додано!", content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
+
+
+@csrf_exempt
+def result_checkpoint_add_package(request):
+    if request.is_ajax() or request.method == 'POST':
+        if request.method == 'POST':  
+            POST = request.POST  
+            if (POST.has_key('rid') and POST.has_key('chkhash')): # or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
+                rid = request.POST['rid']
+                chkhash = request.POST['chkhash']
+                if chkhash <> 'Rivelo256haSh+123-2019':
+                    return HttpResponseBadRequest('hash not found or invalid')
+                #val = request.POST['value'].strip() # clear whitespaces before and after
+                point = request.POST['point']
+                data = request.POST['data']
+                check_time = request.POST['chk_time']
+                
+                secret = request.POST['secret']
+                checksum = request.POST['checksum']
+                rev = None
+                val = ''
+                try:
+                    rev = RegEvent.objects.get(pk = rid)
+                except RegEvent.DoesNotExist:
+                    HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
+                try:
+                    rider = ResultEvent.objects.get(reg_event__pk = rid)
+                    obj, created = rider.checkpointevent_set.get_or_create(number = 0)
+                    obj.check_time = datetime.datetime.now()
+                    obj.checksum = checksum
+                    obj.nuber = 0
+                    obj.data = data
+                    obj.save()
+                                        
+                    #if point == 'package':
+#                        chkPevt = CheckPointEvent.objects.get(result_event__reg_event__pk = rid, number = num)
+                    
+                    format = '%Y-%m-%d %H:%M:%S'
+                    tp = datetime.datetime.now().strftime("%Y-%m-%d")
+                    if val == '':
+                        val = datetime.datetime.now().strftime("%H:%M:%S")
+                    time_point = "%s %s" % (tp, val)
+
+                except ObjectDoesNotExist:
+                    r = CheckPointEvent()
+                    r.result_event = ResultEvent.objects.get(reg_event__pk = rid)
+                    r.number = point.split('kp')[1]
+                    r.save()
+#                json = dict(status = rider.start_status)
+#                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                    #return HttpResponse("Невірні параметри запиту rid=" + rid + "val=" + val, content_type='text/plain')
+                return HttpResponse("пакет з КП учасника " + str(rider.pk) + " додано!", content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
+
+
+@csrf_exempt
 def result_add_lviv(request):
 #    if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
 #        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
@@ -1477,6 +1674,32 @@ def result_clear(request):
                     return HttpResponse("Час видалено" + val, content_type='text/plain')
                 except ObjectDoesNotExist:
                     return HttpResponse("Час не видалено", content_type='text/plain')
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
+
+
+@csrf_exempt
+def result_checkpoint_clear(request):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('point'):
+                point = request.POST['point']
+                dist = request.POST['distance']
+                try:
+                    ev = request.POST['event']
+                    evt = Events.objects.get(pk = ev)
+                    eDist = EventDistance.objects.filter(pk = dist).first()
+                    #riders = ResultEvent.objects.filter(reg_event__event=evt)
+                    if point == 'kp_all':
+                        chk_points_res = CheckPointEvent.objects.filter(result_event__reg_event__event = evt, result_event__reg_event__distance_type = eDist)
+                    if point == 'kp1':
+                        chk_points_res = CheckPointEvent.objects.filter(result_event__reg_event__event = evt, result_event__reg_event__distance_type = eDist)
+                    chk_points_res.delete()
+                    return HttpResponse("Результати по КП видалено", content_type='text/plain')
+                except ObjectDoesNotExist:
+                    return HttpResponse("Час на КП не видалено", content_type='text/plain')
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
 
