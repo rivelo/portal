@@ -379,6 +379,9 @@ class RegEvent (models.Model):
             #return 5
             return [5, u'70+']
 
+    def mile100plus(self):
+        res = RegEvent.objects.filter(event__name__icontains = ' миль', phone = self.phone)
+        return xrange(res.count()-1)
  
     def get_pos(self):
         return None 

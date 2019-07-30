@@ -350,7 +350,11 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </div>  
 <div class="col">
 
+
 <a class="btn btn-info btn-block" style="font-size: 18px" href="{% url 'event-result' event.pk %}">Результати</a>
+{% for dist in event.eventdistance_set.all %}
+<a class="btn btn-info btn-block" style="font-size: 18px" href="{% url 'event-result-by-distance' event.pk  dist.pk %}">Результати на дистанції {{dist}}</a>
+{% endfor %}
 {% if event.uat %} 
 <a class="btn btn-warning mt-1 btn-block" style="font-size: 18px" href="{% url 'event-result-uat' event.pk %}">Результати УАТ</a>
 {% endif %}

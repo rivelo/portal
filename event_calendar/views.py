@@ -979,12 +979,77 @@ def rider_start_status(request):
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
 
 
-def event_result(request, id):
+def rider_start_add(request, id):
+    res = None
+    vars = html_content_right()
+    if request.method <> 'POST':
+        try:
+            rev = RegEvent.objects.get(pk = id)
+            eid = rev.event.pk
+        except RegEvent.DoesNotExist:
+            HttpResponse("Такого Id "+ id +" не має в базі", content_type='text/plain')
+        try:
+            rider = ResultEvent.objects.get(reg_event__pk = id)
+            message = "Ви вже у стартовому списку на даний захід"
+            vars.update({'success_data': message, 'reglist': reverse('event-rider-list' , kwargs={'id':eid})})
+            return render(request, 'index.html', vars)
+        except:
+            rider = ResultEvent(reg_event = rev)
+            rider.save()
+            eid = rev.event.pk
+            message = "Вас додано до стартового списку"
+            vars.update({'success_data': message, 'reglist': reverse('event-rider-list' , kwargs={'id':eid})})
+            return render(request, 'index.html', vars)
+    
+#===============================================================================
+#     if request.method == 'POST':
+#         POST = request.POST
+#         if POST.has_key('email') or POST.has_key('phone'):
+#             mail = request.POST.get('email')
+#             p = request.POST.get('phone')
+#             
+#             if res:
+#                 clone = res[0]  
+#                 clone.pk = None
+#                 clone.save()
+#                 clone.event = Events.objects.get(pk = id)
+#                 clone.date = datetime.datetime.now()
+#                 clone.start_number = 0
+#                 clone.description = ""
+#                 reg_code = hashlib.sha256(str(clone.pk)).hexdigest()
+#                 clone.reg_code = reg_code
+#                 clone.pay_type = null
+#                 clone.pay = 0
+#                 clone.pay_date = None
+#                 clone.status = False
+#                 clone.start_status = False
+#                 clone.save()
+# 
+#             else:
+#                 message = "Поштової адреси та телефону не знайдено"
+#                 return HttpResponse(message)
+#===============================================================================
+
+    message = 'Сталась помилка під час виконання вашого запиту' # + res[0].event.name
+    vars.update({'success_data': message, 'reglist': reverse('event-rider-list' , kwargs={'id':eid})})
+    return render(request, 'index.html', vars)
+
+
+def event_result(request, id, dist_id = None):
     evt = Events.objects.get(pk=id)
     kp2 = False
     kp3 = False
+    revent = None
+    dist_name = None
+    #stat_city = None
+    if dist_id == None:
+        revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+        #stat_city = ResultEvent.group_city.filter(reg_event__event = id)
 #    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
-    revent = ResultEvent.objects.filter(reg_event__event = id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+    else:
+        revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__distance_type__pk = dist_id).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
+        dist_name = EventDistance.objects.get(pk = dist_id)
+        #stat_city = ResultEvent.group_city.filter(reg_event__event = id, reg_event__distance_type__pk = dist_id)
     if revent.exclude(kp2 = None):
         kp2 = True
     if revent.exclude(kp3 = None):
@@ -1018,7 +1083,7 @@ def event_result(request, id):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
-    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3}    
+    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5, 'kp2': kp2, 'kp3': kp3, 'dist_name': dist_name}    
 #    calendar = embeded_calendar()
 #    vars.update(calendar)        
     evnt = {'event': evt}
@@ -1388,7 +1453,7 @@ def result_checkpoint_add(request):
                     num = point.split('kp')[1]
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
                     shash = rider.reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
-                    format = '%Y-%m-%d %H:%M:%S'
+                    #format = '%Y-%m-%d %H:%M:%S'
                     if secret == shash :
                         res = None
                         if len(val) == 5:
@@ -1414,7 +1479,8 @@ def result_checkpoint_add(request):
                             res = datetime.datetime.now()
 
                         chkPevt = CheckPointEvent.objects.get(result_event__reg_event__pk = rid, number = num)        
-                        chkPevt.check_time = res 
+                        chkPevt.check_time = res
+                        chkPevt.hash = secret 
                         chkPevt.save()
                         
                         if val == '0':
@@ -1431,6 +1497,7 @@ def result_checkpoint_add(request):
                         r.result_event = ResultEvent.objects.get(reg_event__pk = rid)
                         r.number = point.split('kp')[1]
                         r.check_time = res #datetime.datetime.now()
+                        r.hash = secret
                         r.save()
 #                json = dict(status = rider.start_status)
 #                return HttpResponse(simplejson.dumps(json), content_type='application/json')
@@ -1762,7 +1829,30 @@ def event_start(request):
                     return HttpResponse("Час не додано", content_type='text/plain')
                 
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
-    
+
+
+@csrf_exempt
+def reg_event_distance_update(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse("У вас не достатньо повноважень для даної функції", content_type="text/plain")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('dist_id'):
+                distId = request.POST['dist_id']
+                try:
+                    evt = Events.objects.get(pk = id)
+                    dt = EventDistance.objects.get(pk = distId)
+                    regs = RegEvent.objects.filter(event = evt, distance_type = None).update(distance_type = dt)
+                    
+                    #regs.save()                            
+                    return HttpResponse("Записи змінено - " + str(regs), content_type='text/plain')
+                
+                except ObjectDoesNotExist:
+                    return HttpResponse("Час не додано", content_type='text/plain')
+                
+    return HttpResponse("Щось пішло не так :(", content_type='text/plain')          
+
 
 def show_client(request, user_name='rivno100'):
     if auth_group(request.user, 'admin')==False:
