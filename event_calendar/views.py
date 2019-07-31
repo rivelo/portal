@@ -1430,14 +1430,19 @@ def result_checkpoint_add(request):
             POST = request.POST  
             if (POST.has_key('rid') and POST.has_key('chkhash')) or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
                 rid = request.POST['rid']
-                val = request.POST['value'].strip()
+                val = ''
+                if POST.has_key('value'):
+                    val = request.POST['value'].strip()
+                if POST.has_key('chk_time'):                    
+                    check_time = request.POST['chk_time']
+                    val = check_time
                 point = request.POST['point']
                 try:
                     secret = ResultEvent.objects.get(reg_event__pk = rid).reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
                 except:
                     #print "KP dont have code " + secret
                     return HttpResponse("В даного КП не має секрету", content_type='text/plain')
-                check_time = request.POST['chk_time']
+                
                 chkhash = None
                 checksum = None
                 if POST.has_key('checksum'):
