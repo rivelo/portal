@@ -1441,7 +1441,7 @@ def result_checkpoint_add(request):
                     secret = ResultEvent.objects.get(reg_event__pk = rid).reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
                 except:
                     #print "KP dont have code " + secret
-                    return HttpResponse("В даного КП не має секрету", content_type='text/plain')
+                    return HttpResponse("В даного КП не має секрету.", content_type='text/plain')
                 
                 chkhash = None
                 checksum = None
