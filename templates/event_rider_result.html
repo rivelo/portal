@@ -96,12 +96,19 @@ cursor: pointer;
     display:block;
 } 
 
+.kp_done {
+background-color: #98F0D5;
+color: maroon;
+font-weight: bold; 
+}
+
 </style>
 
 
 <script>
 $(document).ready(function(){
-	$("#dialog_start").hide();	
+	$("#dialog_start").hide();
+	$('[data-toggle="tooltip"]').tooltip();
 
 	$( "#tabs" ).tabs();
 	$( "#tabs" ).hide()
@@ -1004,10 +1011,19 @@ style="background-color: white;"
 	<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> DNF </td>
 	{% endif %}
 {% else %}
-<td align="center" class="finish_add" rid="{{rider.reg_event.id}}"> {{rider.finish|date:'H:i:s'}} </td>
+<td align="center" class="finish_add" rid="{{rider.reg_event.id}}">
+<div style="width: 50%; background-color: #e1f7cb" > 
+ {{rider.finish|date:'H:i:s'}}
+</div>  
+</td>
 {% endif %}
 
-<td align="center" class="result" rid="{{rider.reg_event.id}}"> {{rider.get_time_diff}} </td>
+{% if rider.check_kp_count %}
+<td align="center" class="result kp_done" rid="{{rider.reg_event.id}}" data-toggle="tooltip" data-placement="right" title="Учасник проїхав <h5>{{rider.get_kp_count}}</h5> КП" data-html="true"> {{rider.get_time_diff}} </td>
+{% else %}
+<td align="center" class="result" rid="{{rider.reg_event.id}}" data-toggle="tooltip" data-placement="right" title="Учасник проїхав <h5>{{rider.get_kp_count}}</h5> КП" data-html="true"> {{rider.get_time_diff}} </td>
+{% endif %}
+
 <td align="center">{{rider.reg_event.sex}}</td>
 {% if user.is_authenticated %}
 	<td align="center" class="reg_status" rider_id="{{rider.pk}}">{{rider.reg_event.status}}</td>

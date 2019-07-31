@@ -38,32 +38,21 @@ def rider_statistic(event, sex):
     a = str(count)
     return a
 
-@register.filter(name='get_kp_data')
-def get_kp_data(resEvent, kp):
-    rEvt = resEvent
-    #revent = ResultEvent.filter(pk = rEvt)
-    chkpoint = rEvt.check_points(kp)
-    return chkpoint
 
-
-@register.filter(name='get_kp_field')
-def get_kp_field(resEvent, field):
-    #revent = ResultEvent.filter(pk = rEvt)
-    print "resEvent = " + str(resEvent.values(field))
-    if resEvent.values(field):
-        return resEvent.values_list(field)#, flat=True)
+@register.filter(name='get_kp_result')
+def get_kp_result(resEvent, kp):
+    res = CheckPointEvent.objects.filter(result_event__reg_event__pk = resEvent, number = kp)    
+    if res:
+        return res.first()
     else:
         return ''
 
 @register.filter(name='kp_test')
-def kp_test(resEvent):
-    #res = CheckPointEvent.objects.filter(result_event = resEvent, number = 1)#.values("number")
-    res = CheckPointEvent.objects.filter(pk = 3)
-    #revt = resEvent
-    #return ResultEvent.get(pk = 1495).checkpointevent_set.filter(number = 1)[0]#.values("check_time", "number", "checksum")
-    #res = revt.checkpointevent_set.all().values_list("check_time", flat=True)#.first()
-    print "REs type = " + str(type(res))
-    return list(res.values("check_time"))
+def kp_test(kp):
+    res = CheckPointEvent.objects.filter(result_event__reg_event__pk = 1495, number = kp)
+#    print "REs type = " + str(type(res))
+    #print "REs = " + str(res.check_time)
+    return res.first().check_time
 
 @register.filter(name='res_statistic')
 def res_statistic(event, sex):

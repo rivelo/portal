@@ -88,6 +88,12 @@ cursor: pointer;
     display:block;
 } 
 
+.admin_time{
+	border:red solid 1px !important;
+    background-color: #e1f7cb;
+}
+
+
 </style>
 
 
@@ -550,11 +556,8 @@ style="background-color: white;"
 
 
 <td align="center">{{rider.reg_event.bike_type.name}}</td>
-<td align="center" class="start_edit" rid="{{rider.reg_event.id}}"> {{rider.start|date:'H:i:s'}}
-{{rider.check_points.all}}
-{{rider.check_points.get_point.first}}
-
-{# rider.checkpointevent_set.all.first #}
+<td align="center" class="start_edit" rid="{{rider.reg_event.id}}"> 
+{{rider.start|date:'H:i:s'}}
  
 {% comment %}
 {% for itm in rider.check_point %}
@@ -565,9 +568,17 @@ style="background-color: white;"
 
 <!-- ****************************** KP ************************************* -->
 {% for i in kp_count %}
-<td align="center" class="kp_add" rid="{{rider.reg_event.id}}" kp="{{i}}">
-	{{ rider|get_kp_data:i|get_kp_field:"number" }} 
+{% with the_kp=rider.reg_event.pk|get_kp_result:i %}
+{% if the_kp.checksum == 'add_by_admin' and user|has_group:"admin" %}
+	<td align="center" class="kp_add admin_time" rid="{{rider.reg_event.id}}" kp="{{i}}">
+{% else %}
+	<td align="center" class="kp_add" rid="{{rider.reg_event.id}}" kp="{{i}}">
+{% endif %}	
+	{{ the_kp.check_time|date:'H:i:s' }}
+	
+	{# rider.reg_event.pk|get_kp_result:i|date:'H:i:s' #} 
 </td>
+{% endwith %}
 {% endfor %}
 
 
@@ -604,7 +615,6 @@ style="background-color: white;"
 
 </div>
 </div>
-
 
 
 {% endblock %}

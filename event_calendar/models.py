@@ -551,23 +551,17 @@ class ResultEvent (models.Model):
             return ""
         res = self.kp2 - self.kp1
         return str(res)   # Assuming dt2 is the more recent time
+    
+    def get_kp_count(self):
+        res = self.checkpointevent_set.all()
+        return res.count()
 
-    def check_points(self, kp):
-        res = self.checkpointevent_set.filter(number = kp).values("check_time", "number", "checksum")
-        print "POINTS = " + str(res.values("check_time"))
-        return res 
-
-    def check_point(self):
-        chk_point = self.checkpointevent_set.filter().values("check_time", "number", "checksum") 
-        print "POINT* = " + str(self.checkpointevent_set.filter().values("check_time", "number", "checksum"))
-        return chk_point 
-
-    def test_point(self):
-        res = CheckPointEvent.objects.filter(pk = 3)
-        return res
-#    def riders_city(self):
-#        r = self.regevent_set.values('city').annotate(num_city=Count('city')).order_by('-num_city')
-#        return r
+    def check_kp_count(self):
+        kp_count = self.reg_event.distance_type.kp_count
+        if self.get_kp_count() == kp_count:
+            return True
+        else:
+            return False
  
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:

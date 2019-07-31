@@ -1122,7 +1122,7 @@ def checkpoint_result(request, id):
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
-    vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'gcity': ResultEvent.group_city.filter(reg_event__event = id), 'kp2': kp2, 'kp3': kp3}    
+    vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'kp2': kp2, 'kp3': kp3}    
 #    calendar = embeded_calendar()
 #    vars.update(calendar)        
     evnt = {'event': evt}
@@ -1134,8 +1134,9 @@ def checkpoint_result(request, id):
     try:
         return render(request, 'index.html', vars)
     except:
-        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
-
+        vars = {'sel_menu': 'calendar', 'error_data': 'Результатів по КП ще не має'}
+        return render(request, 'index.html', vars)
+#        return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
 
 
 def checkpoint_result_by_distance(request, id, dist_id):
@@ -1160,6 +1161,7 @@ def checkpoint_result_by_distance(request, id, dist_id):
     except:
         error = "Параметр reg_email не існує"
     try:
+        print "VAR = " + str(vars)
         return render(request, 'index.html', vars)
     except:
         vars = {'sel_menu': 'calendar', 'error_data': 'Результатів по дистанції ' + ed.name+ ' ще не має'}
@@ -1437,11 +1439,13 @@ def result_checkpoint_add(request):
                     return HttpResponse("В даного КП не має секрету", content_type='text/plain')
                 check_time = request.POST['chk_time']
                 chkhash = None
+                checksum = None
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
                     chkhash = request.POST['chkhash']
                     secret = request.POST['secret']
                 else:
                     chkhash = 'Rivelo256haSh+123-2019'
+                    checksum = 'add_by_admin'
                 if chkhash <> 'Rivelo256haSh+123-2019':
                     return HttpResponseBadRequest('hash not found or invalid')
                 rev = None
@@ -1480,13 +1484,13 @@ def result_checkpoint_add(request):
 
                         chkPevt = CheckPointEvent.objects.get(result_event__reg_event__pk = rid, number = num)        
                         chkPevt.check_time = res
-                        chkPevt.hash = secret 
+                        chkPevt.hash = secret
+                        chkPevt.checksum = checksum 
                         chkPevt.save()
                         
                         if val == '0':
                             chkPevt.delete()
                             return HttpResponse("Дані по " + point + " видалено" , content_type='text/plain')
-
 
                     return HttpResponse("Час додано " + res.strftime("%H:%M:%S") , content_type='text/plain')
                 except ObjectDoesNotExist:
@@ -1498,6 +1502,7 @@ def result_checkpoint_add(request):
                         r.number = point.split('kp')[1]
                         r.check_time = res #datetime.datetime.now()
                         r.hash = secret
+                        r.checksum = checksum
                         r.save()
 #                json = dict(status = rider.start_status)
 #                return HttpResponse(simplejson.dumps(json), content_type='application/json')
