@@ -11,6 +11,15 @@ register = template.Library()
 import re
 
 
+@register.filter
+def qr(value,size="120x120"):
+    """
+        Usage:
+        <img src="{{object.code|qr:"120x130"}}" />
+    """
+    return "http://chart.apis.google.com/chart?chs=%s&cht=qr&chl=%s&choe=UTF-8&chld=H|0" % (size, value)
+
+
 @register.filter(name='inday')
 def inday(value, arg):
     if arg in value:

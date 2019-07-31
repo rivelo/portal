@@ -1161,7 +1161,7 @@ def checkpoint_result_by_distance(request, id, dist_id):
     except:
         error = "Параметр reg_email не існує"
     try:
-        print "VAR = " + str(vars)
+#        print "VAR = " + str(vars)
         return render(request, 'index.html', vars)
     except:
         vars = {'sel_menu': 'calendar', 'error_data': 'Результатів по дистанції ' + ed.name+ ' ще не має'}
@@ -1440,6 +1440,8 @@ def result_checkpoint_add(request):
                 check_time = request.POST['chk_time']
                 chkhash = None
                 checksum = None
+                if POST.has_key('checksum'):
+                        checksum = request.POST['checksum']
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
                     chkhash = request.POST['chkhash']
                     secret = request.POST['secret']
