@@ -513,7 +513,13 @@ $( "#add_test_result_package" ).click(function() {
 <td>
 {{rider.reg_event.start_number}}
 </td>
-<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}} </td>
+<td>{{rider.reg_event.fname}} {{rider.reg_event.lname}} 
+{% if user.is_authenticated %}
+{% url 'event-show' 27  %}
+<a href="{% url 'rider-get-app-qrcode' rider.reg_event.pk %}"><img src="/media/images/qr-code.ico" width = "16px"  alt="QRcode" title="Генерувати QRcode"></img></a>
+
+{% endif %}	
+</td>
 <td>{{rider.reg_event.nickname}}</td>
 <td align="center" data-order="{{rider.reg_event.sex}}">
 {% if rider.reg_event.sex == 1 %}

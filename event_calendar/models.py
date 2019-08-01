@@ -385,6 +385,9 @@ class RegEvent (models.Model):
  
     def get_pos(self):
         return None 
+    
+    def get_qr_text(self):
+        return "rivelles" + str(self.pk) 
 
     def save(self, *args, **kwargs):
 #        if self.reg_status == True:

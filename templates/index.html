@@ -28,6 +28,8 @@
 <link rel="stylesheet" href="/media/css/calendar.css">
 -->
 
+{% load poll_extras %}
+
 <script src="/media/jquery.min.js"></script>
 {#<script src="/media/jquery-1.12.4.min.js"></script>#}
 
@@ -315,7 +317,16 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 	<br>	<div class="info"><a href="{{ reglist }}">Список зареєстрованих</a></div>
 {% endif %}
 {% endif %}
+
+{% if qrcode_data %}
+	#{{reg_data.start_number}} - {{reg_data.fname}} 	{{reg_data.lname}} 
+	<img src='{{qrcode_data|qr:"300x300"}}' class="mt-2"/>
+{% endif %} 
+
 </div>
+
+
+
 
 <div class="col-xs-12 col-md-4 col-lg-3 col-xl-2" style="padding-left: 0 !important;">
 <div id="sidebar">

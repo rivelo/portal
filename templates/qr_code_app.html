@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Цінники</title>
+
+
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
+
+<script language="JavaScript">
+function qrcode(){
+$("#qr_tr1").qrcode({
+	render: 'image',
+	width: 60,
+	height: 60,
+	size: 80,
+	fill: '#3a3',
+	ecLevel: 'H',
+	text: '/catalog/edit/{{ type.id }}'
+	});
+};
+</script>
+
+<style type="text/css">
+     
+</style>
+
+{% load poll_extras %}
+
+
+
+{% comment %}
+
+<div class="row d-flex">
+{% for rider in reg_list %}
+
+<div class="col-1">
+<img src="{{rider.get_qr_text|qr:"150x150"}}" />
+<p>#{{rider.start_number}} - {{rider.fname}} 	{{rider.lname}}</p>
+</div>
+
+
+{% if forloop.counter|divisibleby:"4"  %}
+</div><div class="row">
+{% endif %}
+
+{% if forloop.counter|divisibleby:"24"  %}
+<p style="page-break-after: always"></p>
+{% endif %}
+ 
+{% endfor %}   
+
+</div>
+
+{% endcomment %}
+
+
+
+
+
+
+<table id="iTable">
+<tr>
+{% for rider in reg_list %}
+
+<td class="nameTD">
+
+<table class="table">
+<tr>
+<td  class="nameTD" style="border-bottom: 1px solid black;">
+
+<img src="{{rider.get_qr_text|qr:"150x150"}}" />
+<p>#{{rider.start_number}} - {{rider.fname}} 	{{rider.lname}}</p>
+
+</td>
+</tr>
+</table>
+</td>
+
+
+
+
+{% if forloop.counter|divisibleby:"4"  %}
+</tr><tr>
+{% endif %}
+
+{% if forloop.counter|divisibleby:"24"  %}
+</table>
+<p style="page-break-after: always"></p>
+<table> 
+{% endif %}
+ 
+{% endfor %}   
+

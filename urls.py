@@ -85,6 +85,8 @@ urlpatterns = [ #patterns('',
     url(r'^rider/(?P<id>\d+)/registration/copy/(?P<evnt>\d+)/to/$', event_calendar_views.event_rider_copy, name='rider-reg-copy-to'),
     url(r'^rider/startstatus/$', event_calendar_views.rider_start_status),
     url(r'^rider/regstatus/$', event_calendar_views.rider_regstatus), # registration data
+    url(r'^rider/(?P<id>\d+)/qrcode/app/$', event_calendar_views.rider_get_qr_app, name="rider-get-app-qrcode"), # get qr for insert data to app
+    url(r'^event/(?P<id>\d+)/qrcode/app/$', event_calendar_views.event_qr_code_list, name="rider-list-get-app-qrcode"), # get qr for insert data to app
     url(r'^rider/(?P<id>\d+)/regstatus/$', event_calendar_views.rider_regstatus),
     url(r'^rider/(?P<id>\d+)/send/reminder/mail/$', event_calendar_views.admin_sendmail, name='rider-reminder-mail'),
     url(r'^rider/(?P<id>\d+)/send/invite/mail/$', event_calendar_views.admin_invite_mail, name='rider-invite-mail'),

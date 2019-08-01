@@ -197,6 +197,7 @@ target="_blank" rel="nofollow">Add to Calendar</a>
   	<button class="btn btn-info btn-block " type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
     	<h4>Положення</h4>
 	</button>
+
 </p>
 </div>
 <div class="col-12">
@@ -225,7 +226,13 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 </div>
 
 
-
+<div class="row mb-2">
+<div class="col">
+	<a href="/media/download/app/100miles.apk" class="btn btn-dark btn-block">
+    	<h4> <i class="material-icons">cloud_download</i> Завантажити сканер КП для Android <i class="material-icons">cloud_download</i></h4>
+	</a>
+</div>
+</div>
 
 <div class="row">
 
@@ -413,6 +420,9 @@ target="_blank" rel="nofollow">Add to Calendar</a>
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' 'med' %}">Список товарів "Медовий трейл"</a>
 <a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'events_sale' '100mile' %}">Список товарів "100 миль"</a>
 </h5>
+</div>
+<div class="col-12">
+<a type="button" class="btn btn-info btn-lg" style="font-size: 14px" href="{% url 'rider-list-get-app-qrcode' event.pk %}">Генерувати QR коди для учасників</a>
 </div>
 {% endif %}
 </div>

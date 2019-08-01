@@ -759,6 +759,14 @@ def event_reg_edit(request, id):
     
     return HttpResponse("Щось пішло не так :(", content_type='text/plain')        
     
+
+def event_qr_code_list(request, id):
+    evt = Events.objects.get(pk=id)
+    revent = None
+    revent = RegEvent.objects.filter(event = id, status = True).order_by("date") #all rider who pay registration
+    vars = {'reg_list': revent}
+    return render(request, 'qr_code_app.html', vars)
+        
    
 def get_event_rider(request, id):
     if request.session.test_cookie_worked():
@@ -1142,14 +1150,7 @@ def checkpoint_result(request, id):
 def checkpoint_result_by_distance(request, id, dist_id):
     evt = Events.objects.get(pk = id)
     ed = EventDistance.objects.get(event = id, pk = dist_id)
-    #print "EVENT distance: " + str(ed)
-    
-#    revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__start_status = True).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
-    #revent = ResultEvent.objects.filter(reg_event__event = id, ).order_by("-finish") #.values("fname", "lname", "sex", "nickname", "start_number", "status",  "resultevent__kp1", "resultevent__finish", "resultevent__start",  "pk", 'id', 'email', 'phone', 'city', 'birthday', 'club', 'bike_type', 'pay', 'description').order_by("date") #all rider list
     revent = ResultEvent.objects.filter(reg_event__event = id, reg_event__distance_type__pk = dist_id).order_by("-finish")    
-
-#    photo1 = Photo.objects.random()
-#    photo2 = Photo.objects.random()
     vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn(), 'evt_dist': ed, 'kp_count': range(1, ed.kp_count+1) }    
     #vars = {'weblink': 'event_checkpoint_result.html', 'sel_menu': 'calendar', 'list': revent, 'entry': get_funn()}
 #    calendar = embeded_calendar()
@@ -1161,12 +1162,10 @@ def checkpoint_result_by_distance(request, id, dist_id):
     except:
         error = "Параметр reg_email не існує"
     try:
-#        print "VAR = " + str(vars)
         return render(request, 'index.html', vars)
     except:
         vars = {'sel_menu': 'calendar', 'error_data': 'Результатів по дистанції ' + ed.name+ ' ще не має'}
         return render(request, 'index.html', vars)
-        #return HttpResponse("Результатів ще не має", content_type='text/plain;charset=utf-8')
 
 
 def event_result_uat(request, id):
@@ -1471,7 +1470,6 @@ def result_checkpoint_add(request):
                             res = datetime.datetime.strptime(val,'%H:%M')
                             tp = datetime.datetime.now().strftime("%d.%m.%Y")
                             time_point = "%s %s" % (tp, val)
-                            print "time = " + time_point                            
                             val = time_point
 
                         if len(val) == 8:
@@ -2420,6 +2418,13 @@ def video_list(request):
     return render(request, 'index.html', vars)        
     
         
+def rider_get_qr_app(request, id):
+    revent = RegEvent.objects.get(pk = id)
+    simg = "rivelles" + str(id)
+    vars = {'sel_menu': 'calendar', 'qrcode_data': simg, 'entry': get_funn(), 'reg_data': revent }
+    return render(request, 'index.html', vars)
+    
+
 
 import csv
 from django.template import loader, Context
