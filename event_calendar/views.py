@@ -1395,7 +1395,7 @@ def result_add(request):
     #===========================================================================
 
 # Відправка результатів на пошту    
-#                        res = send_mail('марафон Рівно100 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                    res = send_mail('марафон 100 миль 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:

@@ -1012,9 +1012,14 @@ style="background-color: white;"
 	{% endif %}
 {% else %}
 <td align="center" class="finish_add" rid="{{rider.reg_event.id}}">
-<div style="width: 50%; background-color: #e1f7cb" > 
  {{rider.finish|date:'H:i:s'}}
+{% comment %}
+{% if rider.check_kp_count %}
+<div style="width: 50%; background-color: #e1f7cb" > 
+
 </div>  
+{% endif %}
+{% endcomment %}
 </td>
 {% endif %}
 

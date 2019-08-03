@@ -785,6 +785,9 @@ style="background-color: white;"
 	</td>
 	<td>
 	{{rider.description}}
+	{% if user.is_authenticated %}
+	<a href="{% url 'rider-get-app-qrcode' rider.pk %}"><img src="/media/images/qr-code.ico" width = "16px"  alt="QRcode" title="Генерувати QRcode"></img></a>
+	{% endif %}
 	</td>
 	<td class="start_status" rider_id="{{rider.pk}}">
 	{{rider.start_status}}
