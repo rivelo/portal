@@ -109,7 +109,7 @@ class Events(models.Model):
 
     def days_left(self):
         today = datetime.datetime.today()
-        ldays = (self.date - today).days + 1
+        ldays = (self.date - today).days
         if ldays > 0:
             return ldays
         else:
@@ -206,7 +206,8 @@ class Events(models.Model):
                 rule = self.rules.get(date_in__lte = today, date_out__gte = today)
             except:
                 rule = "Час реєстрації вичерпався, тому відправляти лист або реєструватись вже не доречно"
-                return ("error", rule) 
+                #return ("error", rule)
+                return rule 
             #rule = 0
         #    return 0
 #        if (today >= self.date_in) and (today <= self.date_out):

@@ -1070,26 +1070,48 @@ def event_result(request, id, dist_id = None):
     cat0_b = event_date.replace(year = event_date.year-12)
     cat0_e = event_date.replace(year = event_date.year-18)
     #revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b, reg_event__birthday__gte = cat0_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
-    revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b.date(), reg_event__birthday__gte = cat0_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list    
+        
     cat1_b = event_date.replace(year = event_date.year-18)
     cat1_e = event_date.replace(year = event_date.year-30)
     #revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b, reg_event__birthday__gte = cat1_e.date, reg_event__start_status = True).order_by("-finish") #all rider list
-    revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b.date(), reg_event__birthday__gte = cat1_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+    
     cat2_b = event_date.replace(year = event_date.year-30)
     cat2_e = event_date.replace(year = event_date.year-40)
     #revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b, reg_event__birthday__gte = cat2_e, reg_event__start_status = True).order_by("-finish") #all rider list
-    revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b.date(), reg_event__birthday__gte = cat2_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+    
     cat3_b = event_date.replace(year = event_date.year-40)
     cat3_e = event_date.replace(year = event_date.year-50)
     #revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b, reg_event__birthday__gte = cat3_e, reg_event__start_status = True).order_by("-finish") #all rider list
-    revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b.date(), reg_event__birthday__gte = cat3_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+    
     cat4_b = event_date.replace(year = event_date.year-50)
     cat4_e = event_date.replace(year = event_date.year-60)
-    revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b.date(), reg_event__birthday__gte = cat4_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+
     #revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b, reg_event__birthday__gte = cat4_e, reg_event__start_status = True).order_by("-finish") #all rider list
     cat5_b = event_date.replace(year = event_date.year-60)
     #revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b, reg_event__start_status = True).order_by("-finish") #all rider list
-    revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+
+    revent_cat0 = None
+    revent_cat1 = None
+    revent_cat2 = None
+    revent_cat3 = None
+    revent_cat4 = None
+    revent_cat5 = None
+    
+    if dist_id == None:
+        revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b.date(), reg_event__birthday__gte = cat0_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+        revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b.date(), reg_event__birthday__gte = cat1_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+        revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b.date(), reg_event__birthday__gte = cat2_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+        revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b.date(), reg_event__birthday__gte = cat3_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+        revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b.date(), reg_event__birthday__gte = cat4_e.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+        revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b.date(), reg_event__start_status = True).order_by("-finish") #all rider list
+    else:
+        revent_cat0 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat0_b.date(), reg_event__birthday__gte = cat0_e.date(), reg_event__start_status = True, reg_event__distance_type__pk = dist_id).order_by("-finish") #all rider list
+        revent_cat1 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat1_b.date(), reg_event__birthday__gte = cat1_e.date(), reg_event__start_status = True, reg_event__distance_type__pk = dist_id).order_by("-finish") #all rider list
+        revent_cat2 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat2_b.date(), reg_event__birthday__gte = cat2_e.date(), reg_event__start_status = True, reg_event__distance_type__pk = dist_id).order_by("-finish") #all rider list
+        revent_cat3 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat3_b.date(), reg_event__birthday__gte = cat3_e.date(), reg_event__start_status = True, reg_event__distance_type__pk = dist_id).order_by("-finish") #all rider list
+        revent_cat4 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat4_b.date(), reg_event__birthday__gte = cat4_e.date(), reg_event__start_status = True, reg_event__distance_type__pk = dist_id).order_by("-finish") #all rider list
+        revent_cat5 = ResultEvent.objects.filter(reg_event__event = id, reg_event__birthday__lte = cat5_b.date(), reg_event__start_status = True, reg_event__distance_type__pk = dist_id).order_by("-finish") #all rider list
+    
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
 #    vars = {'weblink': 'event_rider_result.html', 'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'list': revent, 'cat0': revent_cat0, 'cat1': revent_cat1, 'cat2': revent_cat2, 'cat3': revent_cat3, 'cat4': revent_cat4, 'cat5': revent_cat5}
@@ -1397,7 +1419,7 @@ def result_add(request):
     #===========================================================================
 
 # Відправка результатів на пошту    
-                    res = send_mail('марафон 100 миль 2019 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                    res = send_mail('марафон 100 миль 2020 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:
@@ -1439,7 +1461,9 @@ def result_checkpoint_add(request):
                     val = check_time
                 point = request.POST['point']
                 try:
+                    
                     secret = ResultEvent.objects.get(reg_event__pk = rid).reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
+#                print "RESULT CHK = " + str(ResultEvent.objects.get(reg_event__pk = rid).reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash)
                 except:
                     #print "KP dont have code " + secret
                     #return HttpResponse("В даного КП не має секрету.", content_type='text/plain')
