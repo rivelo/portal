@@ -1405,6 +1405,7 @@ def result_add(request):
                         rider.save()
                         rider = ResultEvent.objects.get(reg_event__pk = rid)                        
                         message = rev.event.email_text % (rider.get_time_diff())
+                        res = send_mail('марафон 100 миль 2020 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
                     if point == 'dnf':
                         rider.finish = rider.start
                         rider.save()
@@ -1419,7 +1420,7 @@ def result_add(request):
     #===========================================================================
 
 # Відправка результатів на пошту    
-                    res = send_mail('марафон 100 миль 2020 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
+                    #res = send_mail('марафон 100 миль 2020 року. Результат', message, rider.reg_event.email, [rider.reg_event.email], fail_silently=False)
 
                     return HttpResponse("Час додано " + val , content_type='text/plain')
                 except ObjectDoesNotExist:
