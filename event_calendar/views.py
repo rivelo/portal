@@ -548,7 +548,9 @@ def add_reg(request, id):
     if request.method == 'POST':
         #form = RegEventsForm(request.POST, dist, instance=r, event_id = a.pk)
         form = RegEventsForm(request.POST, instance=r, event_id = a.pk)
-        gr = grecaptcha_verify(request)
+        #gr = grecaptcha_verify(request)
+        gr = {}
+        gr['status'] = True
         if gr['status'] == False:
             vars = {'sel_menu': 'calendar', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'error_data': 'Пройдіть підтвердження що ви не робот'}
             vars.update(calendar)        
@@ -946,7 +948,7 @@ def event_rider_status(request):
                     email_text = """Ви отримали лист в якому знаходиться QR-код для швидкого отримання стартового пакету.<br> Ви можете його зберегти, або в будь-який час отримати онлайн, для предявлення на старті. """ + qrcode_str  
                     email_text = email_text + '<br><img src="http://chart.apis.google.com/chart?chs=500x500&cht=qr&chl='+str(rid)+'&choe=UTF-8&chld=H|0"/>'
                     message = email_text    
-                    res = send_mail('Марафон 100 миль 2019 року. QR-code.', message, rider.email, [rider.email], fail_silently=False, html_message=email_text)
+                    res = send_mail('Марафон 100 миль 2020 року. QR-code.', message, rider.email, [rider.email], fail_silently=False, html_message=email_text)
 
                 json = dict(status = rider.status)
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
@@ -1440,7 +1442,8 @@ def result_checkpoint_add(request):
                     secret = ResultEvent.objects.get(reg_event__pk = rid).reg_event.distance_type.eventdistcheckpoint_set.get(name = point).secret_hash
                 except:
                     #print "KP dont have code " + secret
-                    return HttpResponse("В даного КП не має секрету.", content_type='text/plain')
+                    #return HttpResponse("В даного КП не має секрету.", content_type='text/plain')
+                    return HttpResponseBadRequest("В даного КП не має секрету.")
                 
                 chkhash = None
                 checksum = None
@@ -1458,7 +1461,8 @@ def result_checkpoint_add(request):
                 try:
                     rev = RegEvent.objects.get(pk = rid)
                 except RegEvent.DoesNotExist:
-                    HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
+                    #HttpResponse("Такого Id "+ rid +" не має в базі", content_type='text/plain')
+                    HttpResponseBadRequest("Такого Id "+ rid +" не має в базі")
                 try:
                     num = point.split('kp')[1]
                     rider = ResultEvent.objects.get(reg_event__pk = rid)
@@ -1513,7 +1517,8 @@ def result_checkpoint_add(request):
 #                return HttpResponse(simplejson.dumps(json), content_type='application/json')
                     #return HttpResponse("Невірні параметри запиту rid=" + rid + "val=" + val, content_type='text/plain')
                     return HttpResponse("Відмітку КП" + r.number + " додано! \n " + res.strftime("%H:%M:%S"), content_type='text/plain')
-    return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')        
+    #return HttpResponse("Щось пішло не так :(", content_type='text/plain;charset=utf-8')
+    return HttpResponseBadRequest("Щось пішло не так :(")        
 
 
 @csrf_exempt
