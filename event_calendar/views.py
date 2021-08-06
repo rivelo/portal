@@ -1371,8 +1371,8 @@ def result_add(request):
                 if (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')) == False:
                     chkhash = request.POST['chkhash']
                 else:
-                    chkhash = 'Rivelo256haSh+123-2019'
-                if chkhash <> 'Rivelo256haSh+123-2019':
+                    chkhash = 'Rivelo256haSh+123-2021-100mile+'
+                if chkhash <> 'Rivelo256haSh+123-2021-100mile+':
                     return HttpResponseBadRequest('hash not found or invalid')
                 rev = None
                 try:
