@@ -1478,9 +1478,9 @@ def result_checkpoint_add(request):
                     chkhash = request.POST['chkhash']
                     secret = request.POST['secret']
                 else:
-                    chkhash = 'Rivelo256haSh+123-2019'
+                    chkhash = 'Rivelo256haSh+123-2021-100mile+'
                     checksum = 'add_by_admin'
-                if chkhash <> 'Rivelo256haSh+123-2019':
+                if chkhash <> 'Rivelo256haSh+123-2021-100mile+':
                     return HttpResponseBadRequest('hash not found or invalid')
                 rev = None
                 try:
@@ -1554,7 +1554,7 @@ def result_checkpoint_add_package(request):
             if (POST.has_key('rid') and POST.has_key('chkhash')): # or (auth_group(request.user, 'admin') or auth_group(request.user, 'volunteer')):
                 rid = request.POST['rid']
                 chkhash = request.POST['chkhash']
-                if chkhash <> 'Rivelo256haSh+123-2019':
+                if chkhash <> 'Rivelo256haSh+123-2021-100mile+':
                     return HttpResponseBadRequest('hash not found or invalid')
                 #val = request.POST['value'].strip() # clear whitespaces before and after
                 point = request.POST['point']
