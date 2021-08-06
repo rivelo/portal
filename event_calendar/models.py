@@ -109,7 +109,7 @@ class Events(models.Model):
 
     def days_left(self):
         today = datetime.datetime.today()
-        ldays = (self.date - today).days
+        ldays = (self.date - today).days + 1
         if ldays > 0:
             return ldays
         else:
