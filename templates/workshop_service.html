@@ -136,7 +136,7 @@ $(document).ready(function() {
 </div>
 
 <ul class="list-group">
-  <li class="list-group-item list-group-item-success font-weight-bold " style="font-size: 14px">Список робіт що входить до сезонного обслуговування:</li>
+  <li class="list-group-item list-group-item-success font-weight-bold " style="font-size: 14px">Список робіт що входить до сезонного обслуговування (Класичне):</li>
 {% for work in serv_work.dependence_work.all %}  
   <li class="list-group-item d-flex justify-content-between align-items-center">{{work.name}} <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5></li>
 {% endfor %}  
@@ -151,6 +151,43 @@ $(document).ready(function() {
 {#  <p>Ви заощаджуєте {{serv_work.price|floatformat:"0"}} {{serv_work.price|subtract:get_sale_price|floatformat:"0"}} грн.</p> #}
   </li>
 </ul>
+
+<br>
+
+<ul class="list-group">
+  <li class="list-group-item list-group-item-success font-weight-bold " style="font-size: 14px">Список робіт що входить до сезонного обслуговування (Експрес):</li>
+{% for work in serv_work1.dependence_work.all %}  
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{work.name}} <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5></li>
+{% endfor %}  
+  <li class="list-group-item list-group-item-info font-weight-bold d-flex justify-content-between align-items-center" style="font-size: 14px">Сума: 
+  {% if serv_work1.sale > 0 %} 
+   
+  <h5><s>{{serv_work1.sum_depend_work.depend_sum|floatformat:"0"}} грн</s> <span class="badge badge-warning ">{{serv_work1.get_sale_price}} грн.</span> 
+  <p>Ви заощаджуєте {{serv_work1.price|subtract:serv_work1.get_sale_price|floatformat:"0"}} грн.</p></h5>
+  {% else %}
+  <h5><span class="badge badge-warning ">{{serv_work1.sum_depend_work.depend_sum|floatformat:"0"}} грн.</span></h5>
+  {% endif %}
+  </li>
+</ul>
+
+<br>
+
+<ul class="list-group">
+  <li class="list-group-item list-group-item-success font-weight-bold " style="font-size: 14px">Список робіт що входить до сезонного обслуговування (Максимальне):</li>
+{% for work in serv_work1.dependence_work.all %}  
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{work.name}} <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5></li>
+{% endfor %}  
+  <li class="list-group-item list-group-item-info font-weight-bold d-flex justify-content-between align-items-center" style="font-size: 14px">Сума: 
+  {% if serv_work2.sale > 0 %} 
+   
+  <h5><s>{{serv_work2.sum_depend_work.depend_sum|floatformat:"0"}} грн</s> <span class="badge badge-warning ">{{serv_work2.get_sale_price}} грн.</span> 
+  <p>Ви заощаджуєте {{serv_work2.price|subtract:serv_work2.get_sale_price|floatformat:"0"}} грн.</p></h5>
+  {% else %}
+  <h5><span class="badge badge-warning ">{{serv_work2.sum_depend_work.depend_sum|floatformat:"0"}} грн.</span></h5>
+  {% endif %}
+  </li>
+</ul>
+
 
 <div class="row pt-2">
 	<div class="col-auto">
@@ -177,12 +214,14 @@ $(document).ready(function() {
 	<div class="card card-body">
 <ul class="list-group">
 {% for work in wgroup.worktype_set.all %}
+ {% if work.disable %}
   <li class="list-group-item d-flex justify-content-between align-items-center">{{work}}
   {% if  work.price == 0 %}
   <h5><span class="badge badge-info ">ціна договірна</span></h5>
   {% else %}
   <h5><span class="badge badge-info ">{{work.price|floatformat:"0"}}{% if work.plus %}+{% endif %} грн.</span></h5>
   {% endif %}
+ {% endif %} 
   </li>
 {% endfor %}
 

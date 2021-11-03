@@ -6,7 +6,55 @@
         height: 500px !important;  /* The height is 400 pixels */
         width: 100%;  /* The width is the width of the web page */
       }
+
+#carouselExampleIndicators .carousel-item {
+    height: 1100px;
+//    height: auto;
+//    background-color: #E4EFE0;
+}
+
+.carousel-control-next,
+.carousel-control-prev, .carousel-indicators {
+    filter: invert(100%);
+}
+
+
+.carousel-indicators {
+  top: 10px;
+/*  justify-content:flex-start; */
+  margin:0;
+/*  padding-left:15px;
+  padding-right:15px; */
+}
+
+/*.carousel-indicators li {
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+}*/
+
+.carousel-indicators li:not(:last-child) {
+   margin-right: 20px; 
+}
+
+ 
+#phone_li  li{
+margin-bottom: 2px;
+line-height: 1.5;
+} 
+      
 </style>
+
+<script>
+$(document).ready(function() {
+//	$(".photo-container").find('img').wrap('<div class="wrap-img"></div>');
+
+$('.carousel').carousel({
+  interval: 4000
+})
+
+});
+</script>
 
 {% block content %}
 
@@ -26,9 +74,76 @@
 	
 	<p align="justify" style="font-size: 120%">
 	Якщо ви володієте цікавою інформацією чи новинами на велотематику, можете поділитись з нами і зробити наповнення цього сайту ще цікавішим.
-	<br /><br />
 	</p>
+	
+	</div>
+</div>
 
+	
+	
+
+<div id="carouselExampleIndicators" class="carousel carousel-dark slide" data-ride="carousel">
+  <ol class="carousel-indicators">
+    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+  </ol>
+  <div class="carousel-inner">
+
+    <div class="carousel-item active">
+      <img class="d-block w-100" src="..." alt="Магазин Кавказька 6">
+
+<p >	
+<h3>	<span class="badge badge-light">Контакт з нами:</span> </h3>
+	Електронна адреса: <a href="mailto:rivelo@ymail.com">rivelo@ymail.com</a>
+	<br /> 
+<h5>	<b>	Адреса магазину-майстерні:</b> м.Рівне, вул.Кавказька 6 </h5> 
+<h5 id="phone_li"> 
+	<li><b> Телефони: </b></li>  
+	<li> 
+	<a href="tel:+380503393325">+38(050)339-33-25</a>
+	</li> 
+	<li>
+	<a href="tel:+380968139440">+38(096)813-94-40</a>
+	</li>
+	<li> 
+	<a href="tel:+380632244809">+38(063)224-48-09</a> 
+	</li>
+</h5>	
+	<img src="https://lh4.googleusercontent.com/-Scf3lN1lIXE/UzYNLF1QG_I/AAAAAAAACP0/eak6f7OnnSQ/w762-h496-no/map.jpg" width="550px">	
+</p>      
+<div id="map" ></div>      
+    </div>
+    
+
+    <div class="carousel-item">
+      <img class="d-block w-100" src="..." alt="Магазин Міцкевича 7">
+<h3>	<span class="badge badge-light">Контакт з нами:</span> </h3>
+	Електронна адреса: <a href="mailto:rivelo@ymail.com">rivelo@ymail.com</a>
+<p> 
+
+<h5>	<b> Адреса магазину-майстерні: </b>  м.Рівне, вул.Міцкевича 7 </h5>
+<h5> 
+	<b> Телефони: </b>
+	<a href="tel:+380678163615">+38(067)816-36-15</a>  
+</h5>
+<img src="https://lh3.googleusercontent.com/gVYy86pD9LwMOTAHurfG2b-MAC2DIv-IqecuXDOcC2aNSt5mTk8qVTJBFaaLuHKR7QhLNOsy8gHOLICbyrFAEtqqD2mcUpoaHTApro3cctrA4tf8yuZRtvKpp_z9VTao4255Taxqgg=w2400" 	width=100%>
+</p>      
+      
+    </div>
+
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+
+
+{% comment %}
 	<p style="font-size: 100%">	
 	<b>
 	Контакт з нами:
@@ -40,17 +155,14 @@
 	<b> Телефони: </b>  
 	<li> (050)339-33-25 </li> 
 	<li> (096)813-94-40 </li>
-	<li> (0362)26-27-47 </li>
-	<li> (093)545-42-59
+	<li> (063)224-48-09
 	</p>
 	
 	<img src="https://lh4.googleusercontent.com/-Scf3lN1lIXE/UzYNLF1QG_I/AAAAAAAACP0/eak6f7OnnSQ/w762-h496-no/map.jpg" width="550px">
 
-	</div>
-</div>
+{% endcomment %}
 
-
-    <div id="map" ></div>
+    
 
 
     
