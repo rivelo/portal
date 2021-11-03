@@ -2409,9 +2409,11 @@ def workshop_main(request):
 def workshop_service(request):
     wg = WorkGroup.objects.all().order_by('tabindex')
     service_work = WorkType.objects.get(pk = 649)
+    service_work1 = WorkType.objects.get(pk = 789)
+    service_work2 = WorkType.objects.get(pk = 788)
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'workshop_service.html', 'sel_menu': 'workshop', 'serv_work': service_work, 'workgroup': wg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'workshop_service.html', 'sel_menu': 'workshop', 'serv_work': service_work, 'serv_work1': service_work1, 'serv_work2': service_work2, 'workgroup': wg, 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
