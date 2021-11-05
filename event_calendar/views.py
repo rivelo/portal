@@ -25,7 +25,7 @@ from portal.gallery.models import Album, Photo
 from portal.funnies.views import get_funn
 from portal.news.models import Route
 
-from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer, Bicycle_Type, YouTube
+from portal.accounting.models import ClientInvoice, Client, Catalog, Bicycle_Store, WorkType, WorkGroup, Discount, Type, Manufacturer, Bicycle_Type, YouTube, DealerInvoice, InvoiceComponentList
 
 import simplejson
 import googlemaps
@@ -2363,6 +2363,25 @@ def shop_components_sale(request):
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
+
+
+def shop_new_item(request):
+    date=datetime.date.today()
+    start_date = datetime.date(date.year, 1, 1)
+    end_date = datetime.date(date.year, 3, 31)    
+    di = DealerInvoice.objects.filter(received = False).values_list("id", flat=True)
+    nday = 21
+    #list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).order_by("invoice__id")    
+    list_id = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).values_list("catalog_id", flat=True)
+#    return render_to_response('index.html', {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))  
+    scs = Catalog.objects.filter(count__gt = 0, id__in = list_id).order_by('-manufacturer')    
+    photo1 = Photo.objects.random()
+    photo2 = Photo.objects.random()
+    vars = {'weblink': 'components_sale_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'title': 1, 'default_domain': settings.DEFAULT_DOMAIN}
+    calendar = embeded_calendar()
+    vars.update(calendar)        
+    return render(request, 'index.html', vars)        
+
     
 
 def shop_main(request):
