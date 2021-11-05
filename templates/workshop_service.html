@@ -214,7 +214,7 @@ $(document).ready(function() {
 	<div class="card card-body">
 <ul class="list-group">
 {% for work in wgroup.worktype_set.all %}
- {% if work.disable %}
+ {% if work.disable == False %}
   <li class="list-group-item d-flex justify-content-between align-items-center">{{work}}
   {% if  work.price == 0 %}
   <h5><span class="badge badge-info ">ціна договірна</span></h5>
