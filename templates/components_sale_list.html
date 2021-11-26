@@ -3,11 +3,66 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <script>
+function hideall() {
+	$("div[ctype]").hide();
+	alert( "Handler for .click() called." );
+}
+
+
 $(function () {
 
 	$('[data-toggle="tooltip"]').tooltip()
-		
+
+//	$(".catalog[ctype='65']").show()
+ $('#menu_company').on('onchange', function()
+    {
+	 	console.log("+++ DropDown menu click +++");
+    }
+ )
+ 
 })
+
+
+$(document).ready(function() {
+	
+    $("#hideall").click(function() 
+    	{
+    		$("div[ctype]").hide() 
+    		$("#cm_filters .badge-success").hide();
+    		$("#cm_filters .badge-info").hide();
+    	});
+
+    //$(".dropdown-menu a").click(function () 
+    $("#menu_company a").click(function ()
+    	{
+        	console.log("DropDown menu click!!!" + $(this).attr("mid") )
+        	$("div[mid='"+$(this).attr("mid")+"']").show();
+        	$("#cm_filters .badge-success[mid="+$(this).attr("mid")+"]").show();
+    	})
+
+    $("#menu_type a").click(function () 
+        {
+           	console.log("DropDown menu click!!!" + $(this).attr("tid") )
+//                		$('#menu-company').find(":selected").text();
+           	$("div[ctype='"+$(this).attr("tid")+"']").show();
+           	$("#cm_filters .badge-info[tid="+$(this).attr("tid")+"]").show();
+        })
+        
+    $("#cm_filters .badge-success").click(function () {
+    	
+    	$("div[mid='"+$(this).attr("mid")+"']").hide();
+    	$(this).hide();
+    })
+
+    $("#cm_filters .badge-info").click(function () {
+    	console.log("Print - "+ $(this).attr("tid"));
+    	$("div[ctype='"+$(this).attr("tid")+"']").hide();
+    	$(this).hide();
+    })
+
+    
+});
+	    
 </script>
 
 
@@ -93,27 +148,72 @@ h5.discount {
 </div>
 {% endif %}
  
+ 
  	{% if title == 1 %} 
-    	<h1><span class="badge badge-secondary">Нові надходження</span></h1>
+    	<h1><span class="badge badge-secondary">Нові надходження</span><span class="badge badge-success ml-1"><span class="material-icons">filter_alt</span></span></h1>
     {% else %}
 	    <h1><span class="badge badge-secondary">Акційні товари</span></h1>
 	{% endif %}
-	
-{% comment %}
-<div>
-    <span class="badge badge-secondary">Badge 1</span>
-</div>
-<div>
-    <span class="badge badge-secondary">Badge 2</span>
-</div>
-{% endcomment %}
 
 </div> 
+
+
+
+{# Filters #}
+<div class="container-fluid">
+<div class="row">
+<div class="col">
+
+<div class="dropdown show">
+<div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+<button type="button" class="btn btn-danger" id="hideall" data-toggle="tooltip" data-placement="top" title="Приховати всі товари">Сховати всі</button>
+</div>
+
+  <a class="btn btn-success dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Виберіть виробника для показу товарів">
+    Виробники
+  </a>
+
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink" id="menu_company">
+{% for company in companys %}  
+    <a class="dropdown-item" href="#" mid="{{company.manufacturer__id}}">{{company.manufacturer__name}} <span class="badge badge-light">{{company.brand_c}}</span></a>
+{% endfor %}
+  </div>
+
+
+<div class="btn-group dropright">
+  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Виберіть категорію для відображення товарів в ній">
+    Категорії
+  </button>
+  <div class="dropdown-menu" id="menu_type">
+{% for type in types %} 
+    <a class="dropdown-item" href="#" tid="{{type.type__id}}">{{type.type__name}} <span class="badge badge-light">{{type.type_c}}</span></a>
+{% endfor %}
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="#" id="filter_off">Скинути фільтри</a>
+  </div>
+</div>  
+  
+</div>
+</div> 
+ 
+<div class="col" id="cm_filters" data-toggle="tooltip" data-placement="top" title="Натисніть на категорію чи виробника щоб приховати товар">
+{% for company in companys %}  
+    <span class="badge badge-success" mid="{{company.manufacturer__id}}">{{company.manufacturer__name}} <span class="badge badge-light">{{company.brand_c}}</span> </span>
+{% endfor %}
+{% for type in types %} 
+    <span class="badge badge-info" tid="{{type.type__id}}">{{type.type__name}} <span class="badge badge-light">{{type.type_c}}</span> </span>
+{% endfor %}
+</div>
+  
+</div>  
+</div>
+
+{# MAIN card #}
 
 <div class="post">
  
 {% for component in components_sale %}
-	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
+	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;" class="catalog" ctype="{{component.type.id}}" mid="{{component.manufacturer.id}}">
 <div class="image-component">
 	<div style="background-color: white; height:200px;">
 	<img src="
