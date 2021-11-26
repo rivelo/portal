@@ -2302,10 +2302,11 @@ def shop_type_list(request):
 
 def shop_components_brand(request, id):
     scb = Catalog.objects.filter(count__gte = 1, manufacturer__id = id).order_by('type') #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    sct = scb.values('type__id', 'type__ico_status', 'type__name').distinct().annotate(type_c = Count('type__id')).order_by('type__name')    
     #scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__id') #annotate(brand_c = Count('manufacturer__id'))
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': scb, 'status_brand': True, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': scb, 'types': sct, 'status_brand': True, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -2314,9 +2315,10 @@ def shop_components_brand(request, id):
 
 def shop_components_brand_sale(request, id):
     scb = Catalog.objects.filter(count__gte = 1, manufacturer__id = id, sale__gt = 0).order_by('type') #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    sct = scb.values('type__id', 'type__ico_status', 'type__name').distinct().annotate(type_c = Count('type__id')).order_by('type__name')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': scb, 'status_brand': True, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': scb, 'types': sct, 'status_brand': True, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
@@ -2324,10 +2326,11 @@ def shop_components_brand_sale(request, id):
 
 def shop_components_type(request, id):
     sct = Catalog.objects.filter(count__gte = 1, type__id = id) #.values('manufacturer__logo', 'name', 'manufacturer__name', 'manufacturer__id', 'type')
+    scc = sct.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__name')
     #scc = scc.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name', 'manufacturer__id').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__id') #annotate(brand_c = Count('manufacturer__id'))
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': sct, 'status_type': True,  'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': sct, 'companys': scc, 'status_type': True,  'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     #return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -2336,9 +2339,10 @@ def shop_components_type(request, id):
 
 def shop_components_type_sale(request, id):
     sct = Catalog.objects.filter(count__gte = 1, type__id = id, sale__gt = 0) 
+    scc = sct.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__name')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': sct, 'status_type': True,  'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_list': sct, 'companys': scc, 'status_type': True,  'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
@@ -2356,10 +2360,12 @@ def shop_component(request, id):
 
 
 def shop_components_sale(request):
-    scs = Catalog.objects.filter(count__gt = 0, sale__gt = 0).order_by('-sale')    
+    scs = Catalog.objects.filter(count__gt = 0, sale__gt = 0).order_by('-sale')
+    scc = scs.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__name')
+    sct = scs.values('type__id', 'type__ico_status', 'type__name').distinct().annotate(type_c = Count('type__id')).order_by('type__name')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_sale_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_sale_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'types': sct, 'companys': scc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
@@ -2370,14 +2376,16 @@ def shop_new_item(request):
     start_date = datetime.date(date.year, 1, 1)
     end_date = datetime.date(date.year, 3, 31)    
     di = DealerInvoice.objects.filter(received = False).values_list("id", flat=True)
-    nday = 21
+    nday = 30
     #list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).order_by("invoice__id")    
     list_id = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).values_list("catalog_id", flat=True)
 #    return render_to_response('index.html', {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))  
-    scs = Catalog.objects.filter(count__gt = 0, id__in = list_id).order_by('-manufacturer')    
+    scs = Catalog.objects.filter(count__gt = 0, id__in = list_id).order_by('-manufacturer')
+    scc = scs.values('manufacturer__id', 'manufacturer__logo', 'manufacturer__name').distinct().annotate(brand_c = Count('manufacturer__id')).order_by('manufacturer__name')
+    sct = scs.values('type__id', 'type__ico_status', 'type__name').distinct().annotate(type_c = Count('type__id')).order_by('type__name')
     photo1 = Photo.objects.random()
     photo2 = Photo.objects.random()
-    vars = {'weblink': 'components_sale_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'title': 1, 'default_domain': settings.DEFAULT_DOMAIN}
+    vars = {'weblink': 'components_sale_list.html', 'sel_menu': 'shop', 'photo1': photo1, 'photo2': photo2, 'entry': get_funn(), 'components_sale': scs, 'title': 1, 'types': sct, 'companys': scc, 'default_domain': settings.DEFAULT_DOMAIN}
     calendar = embeded_calendar()
     vars.update(calendar)        
     return render(request, 'index.html', vars)        
