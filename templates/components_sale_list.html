@@ -24,6 +24,7 @@ $(function () {
 
 
 $(document).ready(function() {
+	$("#filters").hide();
 	
     $("#hideall").click(function() 
     	{
@@ -60,13 +61,22 @@ $(document).ready(function() {
     	$(this).hide();
     })
 
-    
+    $("#filter_show" ).click(function() {
+    	$("#filters").toggle();
+    	});    
 });
 	    
 </script>
 
 
 <style>
+
+#filter_show:hover { 
+ cursor: pointer;
+ cursor: hand; 
+ }
+
+
 .image-component {
 	position	: relative;
 	width		: 100%; /* for IE 6 */
@@ -122,8 +132,54 @@ h5.discount {
   background-color: black;
   color: white;
 }
+
 .badge-myinfo:hover {
   background-color: red;
+}
+
+@media (max-width: 368px) {        
+.catalog {        
+	width: 100%;
+	height: 330px; 
+	padding: 5px 5px 5px 5px; 
+	margin: 10px 10px 0px 0px;
+	background: #ddf2c6;
+}
+}
+        
+@media (min-width:368px) {
+	.catalog {
+		background:#ddf2c6; 
+		width: 100%; 
+		height: 330px; 
+		padding: 5px 5px 5px 5px; 
+		margin: 10px 10px 0px 0px;
+    }
+  }
+
+  @media (min-width:568px) {
+      .catalog {
+		background: #ddf2c6;
+		width: 200px;
+		float:left;      
+      }
+      
+  }
+
+ 
+@media (max-width: 680px) {
+  .catalog {
+/*    display: flex;
+    flex-direction: column;
+    */
+float:left;
+background:#ddf2c6;
+//width:300px;
+height:330px; 
+margin: 10px 10px 0px 0px; 
+padding: 5px 5px 5px 5px;"    
+  }
+  
 }
         
     </style>
@@ -132,7 +188,7 @@ h5.discount {
 
 {% block content %}
 
-<div class= "row" style="height:64px">
+{% comment %}
 {% if status_brand %}
 <img class="ml-3" src="/media/{{components_sale.0.manufacturer.logo}}" style="height:64px">
 <div class="col-auto my-auto">
@@ -147,20 +203,26 @@ h5.discount {
 </h1>
 </div>
 {% endif %}
- 
- 
- 	{% if title == 1 %} 
-    	<h1><span class="badge badge-secondary">Нові надходження</span><span class="badge badge-success ml-1"><span class="material-icons">filter_alt</span></span></h1>
-    {% else %}
-	    <h1><span class="badge badge-secondary">Акційні товари</span></h1>
-	{% endif %}
+{% endcomment %} 
 
+<div> 
+ 	{% if title == 1 %} 
+    	<h1><span class="badge badge-secondary">Нові надходження</span>
+    	<span class="badge badge-success ml-1" data-toggle="tooltip" data-placement="top" title="Фільтри (показати/приховати)" id="filter_show" ><span class="material-icons">filter_alt</span></span>
+    	</h1>
+    {% else %}
+	    <h1><span class="badge badge-secondary">Акційні товари</span>
+	    <span class="badge badge-success ml-1" data-toggle="tooltip" data-placement="top" title="Фільтри (показати/приховати)" id="filter_show"><span class="material-icons">filter_alt</span>
+	    </span>
+	    
+	    </h1>
+	{% endif %}
 </div> 
 
 
 
 {# Filters #}
-<div class="container-fluid">
+<div class="container-fluid" id="filters">
 <div class="row">
 <div class="col">
 
@@ -213,7 +275,7 @@ h5.discount {
 <div class="post">
  
 {% for component in components_sale %}
-	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;" class="catalog" ctype="{{component.type.id}}" mid="{{component.manufacturer.id}}">
+	<div class="catalog" ctype="{{component.type.id}}" mid="{{component.manufacturer.id}}">
 <div class="image-component">
 	<div style="background-color: white; height:200px;">
 	<img src="
@@ -248,29 +310,6 @@ h5.discount {
 	</div>
 {#	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} <img src="/media/{{component.photo}}"/> </a> #}
 {% endfor %}	
-
-
-
-
-
-
-{% comment %}
-
-{# Акційні позиції #}
-{% if components_sale %}
-{% for component in components_sale %}
-	<div style="float:left;background:#ddf2c6; width:200px; height:330px; margin: 10px 10px 0px 0px; padding: 5px 5px 5px 5px;">
-	<img src="/media/{{component.photo}}" width="200px" style="background-color: white; height:200px;"/>
-	<p align="justify" style="font-size: 100%"> 
-	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} ({{component.get_realshop_count}})</a><br> Ціна {{component.price}} грн.  Знижка {{component.sale}}%
-	<a href="{% url 'components-list-bytype'  component.type.id %}"> {{component.type}} </a>
-	</p> 
-	</div>
-{#	<a href="{% url 'component-show' component.id %}"> [{{component.ids}}] {{component.name}} <img src="/media/{{component.photo}}"/> </a> #}
-{% endfor %}	
-{% endif %}
-
-{% endcomment %}
 
 
 

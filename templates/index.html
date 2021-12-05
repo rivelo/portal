@@ -19,6 +19,7 @@
 <link type="text/css" rel="stylesheet" href="/media/css/paginator.css">
 <link rel="stylesheet" href="/media/css/bootstrap.min.css">
 <link href="/media/css/bootstrap-4-navbar.css" rel="stylesheet">
+
 <link href="/media/css/style.css" rel="stylesheet" type="text/css" media="screen" /> 
 
 
@@ -81,12 +82,12 @@ $( "#d_photo" ).dialog({
 
 $(".photo_url" ).click(function($this) {
 	$("#d_img").attr('src', $(this).attr('src'));
-	$("#d_img").attr('width', '500px');
+	$("#d_img").attr('width', '100%');
 	$("#d_url").attr("href", $(this).children().attr('url'));
 	$("#d_url").html("Перейти до альбому " + $(this).children().attr('title'));
 
 	$("#d_photo").dialog("open");
-    $("#d_photo").dialog('option', "width", 530);
+    $("#d_photo").dialog('option', "width", 'auto');
     $("#d_photo").dialog('option', "title", $(this).children().attr("title"));
     $("#d_img").attr('title', $(this).children().attr("title"));
 });
@@ -122,6 +123,18 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 
 });
 </script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-214014476-1">
+</script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-214014476-1');
+</script>
+<!--end Global site tag (gtag.js) - Google Analytics -->
  
 </head>
 
@@ -129,7 +142,8 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 
 
 <!-- ************ BEGIN NAVBAR *************** -->
-<div class="d-flex">
+{# <div class="d-flex"> #}
+{# <div class="container-fluid"> #}
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top d-sm-flex" style="background-color: #256C13;">
   	<!-- Navbar content -->
 	<!-- #menu -->
@@ -176,12 +190,13 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 			</form>
 		</div>
 </nav>
-</div>
+{# </div> #}
 <!-- ************ END NAVBAR *************** -->
 
 
 
-<div class="container-fluid">
+<div class="container-fluid"> 
+
 {% load i18n %}
 {% load mytags %}
 
@@ -245,40 +260,6 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
   </div>
 </div>
 
-{% comment %}		
-<div id="d_login" title="Login form">
-{% if user.is_authenticated %}
-  <form method="post" action="/accounts/logout/">
-        {% csrf_token %}
-        <label>User name: {{user.username|upper}}</label>
-        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
-        <input type="hidden" name="next_page" value="{{ next|escape }}" />
-    </form>
-{% else %}
-  <form action="/accounts/login/" method="post" id="login_form">
-  	{% csrf_token %}
-    <label for="username">User name:</label>
-    <input type="text" name="username" value="" id="username">
-    <label for="password">Password:</label>
-    <input type="password" name="password" value="" id="password">
-
-    <input type="submit" value="login" />
-    <input type="hidden" name="next" value="{{ next|escape }}" />
-  </form>
-
-  
-  <form method="post" action="/accounts/logout/" style="display:none;" id="logout_form">
-        {% csrf_token %}
-        <label id="user_label">User name: {{user.username|upper}}</label>
-        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
-        <input type="hidden" name="next_page" value="{{ next|escape }}" />
-    </form>
-
-  
-{% endif %}
-		
-</div>
-{% endcomment %}
 <!-- end LOGIN Dialog -->
 		
 		<!-- end #search -->
@@ -287,10 +268,10 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 <!-- </div>
  end #header-wrapper -->
 
-<div class="container-fluid">
-<div class="row">
+<div class="container-fluid justify-content-center mt-10">
+<div class="row justify-content-between">
 
-<div class="col-xs-12 col-md-8 col-lg-9 col-xl-10" style="padding-left: 0 !important;" id="main">
+<div class="col-xs-12 col-sm-7 col-md-8 col-lg-9 col-xl-9" style="padding-left: 0 !important;" id="main">
 <div id="logo">
 <img src="{{'/media/images/'|season }}" alt="" title=""> </img>
 </div>
@@ -326,31 +307,26 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 </div>
 
 
+{% comment %}
+	Right side			
+{% endcomment %}			
 
+<div class="col-sm-5 col-md-4 col-lg-3 col-xl-2 " style="padding-left: 0 !important; max-width: 255px;">
+<div id="sidebar" >
 
-<div class="col-xs-12 col-md-4 col-lg-3 col-xl-2" style="padding-left: 0 !important;">
-<div id="sidebar">
-<div class="row">
+<div class="row ">
 <div class="col-12 d-none d-sm-block">
 			{% include "funnies.html" %}
 			
 </div>		
 </div>
-<div class="row">
+<div class="row d-none d-sm-block">
 <div class="col-12">
 			{% include "calendar_embeded.html" %}			
 </div>
 </div>
+
 		
-{% comment %}			
-<div id="d_photo" title="Photo form" >
-<img id="d_img" src="{{photo1.url}}" alt="photo" title="{{photo1.album}}"/>
-<a id="d_url" href="/photo/album/{{photo1.album.album_id}}/">Перейти до альбому {{photo1.album}}</a>
-</div>
-{% endcomment %}
-
-
-
 <div class="row pt-4"> 
 <div class="col-12">
 <h2 class=""><a href="/components/type/list/">Компоненти:</a></h2>
@@ -380,11 +356,15 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 </div>
 
 {% if photo1 %}
-<div class="col-xs-12 col-md-6 pr-0">
-<span class="photo_url1" src="{{photo1.get_full_image}}" data-toggle="modal" data-target="#exampleModalCenter1"><img src="{{photo1.image}}" alt="{{photo1.album.title}}" class="img-thumbnail" title="{{photo1.album}}" url="/photo/album/{{photo1.album.album_id}}/"/></span>
+<div class="col-xs-12 col-md-6 ">
+<span class="photo_sidebar" src="{{photo1.get_full_image}}" data-toggle="modal" data-target="#exampleModalCenter1">
+<img src="{{photo1.image}}" alt="{{photo1.album.title}}" title="{{photo1.album}}" url="/photo/album/{{photo1.album.album_id}}/"/>
+</span>
 </div>
 <div class="col-xs-12 col-md-6">
-<span class="photo_url1" src="{{photo2.get_full_image}}" data-toggle="modal" data-target="#exampleModalCenter2"><img src="{{photo2.image}}" alt="{{photo2.album.title}}" class="img-thumbnail" title="{{photo2.album}}" url="/photo/album/{{photo2.album.album_id}}/"/></span>
+<span class="photo_sidebar" src="{{photo2.get_full_image}}" data-toggle="modal" data-target="#exampleModalCenter2">
+<img src="{{photo2.image}}" alt="{{photo2.album.title}}" title="{{photo2.album}}" url="/photo/album/{{photo2.album.album_id}}/"/>
+</span>
 </div>
 {% endif %}
 
@@ -399,8 +379,7 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 
 
 <div class="col-12">
-<br>
-<p><a href="/photo/" class="btn btn-outline-success">Більше фото ...</a></p>
+<p><a href="/photo/" class="btn btn-outline-success w-100 mt-1">Більше фото ...</a></p>
 </div>
 
 </div> 
@@ -414,8 +393,8 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
 
 
 <!-- Modal -->
-<div class="modal fade" id="exampleModalCenter1" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width : 90% ; max-height : 90% ;">
+<div class="modal fade h-100" id="exampleModalCenter1" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" >
+  <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
 <a id="d_url" href="/photo/album/{{photo1.album.album_id}}/">        <h5 class="modal-title" id="exampleModalLongTitle">{{photo1.album}}</h5> </a>
@@ -433,8 +412,8 @@ $( '.dropdown-menu a.dropdown-toggle' ).on( 'click', function ( e ) {
   </div>
 </div>
 
-<div class="modal fade" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width : 90% ; max-height : 90% ;">
+<div class="modal fade h-100 w-auto" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle1" aria-hidden="true" >
+  <div class="modal-dialog modal-dialog-centered " role="document" >
     <div class="modal-content">
       <div class="modal-header">
 <a id="d_url" href="/photo/album/{{photo2.album.album_id}}/">        <h5 class="modal-title" id="exampleModalLongTitle">{{photo2.album}}</h5> </a>

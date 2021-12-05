@@ -12,6 +12,9 @@ $(function () {
 </script>
 
 <style>
+
+{% comment %}
+
 .image-component {
 	position	: relative;
 	width		: 100%; /* for IE 6 */
@@ -30,7 +33,6 @@ h5.sale {
 }
 
 
-
 .card img {
     height: auto; 
     width: auto; 
@@ -44,12 +46,27 @@ h5.sale {
 
 .card {
 {#  background-color: lightgrey; #}
-/*  width: 30%; */
-  margin: 0px;
+
 /*  flex: 1; */
   border: 1px solid lightgrey;
 /*  display: flex;           /* new */
   flex-direction: column;  /* new */
+/*
+  @include media-breakpoint-only(xs) {
+    width: 100%;
+  }
+
+  @include media-breakpoint-only(sm) {
+    width: 100%;
+  }
+  
+  @include media-breakpoint-only(lg) {
+  width: 128px;
+  margin: 0px;
+  }  
+*/
+
+   
 }
 
 .card-block {
@@ -70,7 +87,7 @@ h5.sale {
   background-color: lightgrey;
 }
 
-.card-columns {
+/*
   @include media-breakpoint-only(xs) {
     column-count: 5;
   }
@@ -101,13 +118,205 @@ h5.sale {
   @include media-breakpoint-only(xl) {
     column-count: 10;
   }  
+*/
+
+@media (max-width: 459px) {
+  .card {
+    width: 128px; 
+  }
 }
+
+@media only screen and (max-width: 520px)
+{
+  .card {
+    width: 128px; 
+  }
+}
+{% endcomment %}
+
+
+
+.page {
+  padding: 1em;
+  background: #cecece;
+  max-width: 100%;//1600px;
+}
+
+.archive {
+  display: grid;
+  align-content: center;
+  align-self:center;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 1em;
+}
+
+.article {
+  //vertical-align: middle;
+  height: 280px;
+  padding: 1em;
+  background: #fff;
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.1),
+    0 20px 20px rgba(0, 0, 0, 0.05);
+}
+
+.article_type{
+  //vertical-align: middle;
+  text-align: center;
+//  align-items: center;
+//  justify-content: center;
+  
+  min-height: 280px;
+  padding: 1em;
+  background: #fff;
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.1),
+    0 20px 20px rgba(0, 0, 0, 0.05);
+}
+
+.card-img-top{
+	width: 100%;
+	}
+
+.img_brand{
+	width: 100%;
+//	vertical-align: middle;
+	display: block;
+  	margin-left: auto;
+  	margin-right: auto;
+}
+
+.center_div_type {
+  height: 100%;
+  justify-content: center;
+//  align-self:center;
+  align-items: center;
+//  border: 3px solid green;
+	bottom: 5px;
+}
+
+.center_div {
+  display: flex;
+  justify-content: center;
+//  align-self:center;
+  align-items: center;
+  height: 70%;
+//  border: 3px solid green;
+}
+
+@media (max-width: 680px) {
+  .archive {
+    display: flex;
+    flex-direction: column;
+  }
+  .article {
+    margin-bottom: 1em;
+  }
+}
+
+
+/* Grid for unsuported browser */
+
+.wrapper1 ul {
+    margin: 0 -10px;
+    padding: 0;
+    list-style: none;
+}
+
+.wrapper1 li {
+    display: inline-block;
+    vertical-align: top;
+    align-content: center;
+    height: 200px;
+    min-width: 150px; 
+    //width: 33%;
+    //width: calc(33.333333% - 20px);
+    margin: 0px 10px 20px 10px;
+	border: 1px solid rgba(223,215,202,0.75);
+	border-radius: 0.28rem;
+}
+
+@supports (display: grid) {
+    .wrapper1 ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 170px);// minmax(100px, 1fr)); //(3, 1fr);
+        gap: 20px;
+        margin: 0;
+    }
+    .wrapper1 li {
+        max-width: 150px;
+        margin: 0;
+    }
+   
+#grid {
+  display: grid;
+  grid-template-columns:
+    /* 1 */ auto
+    /* 2 */ 1fr;
+  grid-template-rows:
+    /* 3 */ auto
+    /* 4 */ 1fr
+    /* 5 */ auto;
+}
+   
+}
+      
+/**
+ * Define the space for each grid item by declaring the grid
+ * on the grid container.
+ */
+#grid {
+  /**
+   * Two columns:
+   *  1. the first sized to content,
+   *  2. the second receives the remaining space
+   *     (but is never smaller than the minimum size of the board
+   *     or the game controls, which occupy this column [Figure 4])
+   *
+   * Three rows:
+   *  3. the first sized to content,
+   *  4. the middle row receives the remaining space
+   *     (but is never smaller than the minimum height
+   *      of the board or stats areas)
+   *  5. the last sized to content.
+   */
+  display: grid;
+  grid-template-columns:
+    /* 1 */ auto
+    /* 2 */ 1fr;
+  grid-template-rows:
+    /* 3 */ auto
+    /* 4 */ 1fr
+    /* 5 */ auto;
+  background-color: grey;
+  color: white;
+  //height: 200px;
+}
+
+
+/* Specify the position of each grid item using coordinates on
+ * the 'grid-row' and 'grid-column' properties of each grid item. */
+#title    { grid-column: 1; grid-row: 1; }
+#score    { grid-column: 1; grid-row: 3; }
+#stats    { grid-column: 1; grid-row: 2; align-self: start; }
+#board    { grid-column: 2; grid-row: 1 / span 2; }
+#controls { grid-column: 2; grid-row: 3; justify-self: center; }
         
 </style>
 
 {% load poll_extras %}
 
 {% block content %}
+
+{% comment %}
+<div id="grid">
+  <div id="title">Game Title</div>
+  <div id="score">Score</div>
+  <div id="stats">Stats</div>
+  <div id="board">Board</div>
+  <div id="controls">Controls</div>
+</div>
+{% endcomment %}
 
 <div class="post">
 	{% if components_bybrand %}
@@ -126,11 +335,31 @@ h5.sale {
 	<a href="{% url 'components-company' %}"><h2 class="title">Виробники компонентів</h2></a>
 	{% endif %}
 	{% if components_list_bytype %}
-	<h2 class="title"><a href="{% url 'components-type-list' %}">Категорії </a> </h2></a>
+	<h2 class="title"><a href="{% url 'components-type-list' %}">Категорії</a> </h2></a>
 	{% endif %}
-           
-<div class="entry">
 
+</div>
+
+{% comment %}
+<div class="wrapper1">
+    <ul>
+{% for component in components_company %}    
+        <li class="card1">
+            <h2>{{component.manufacturer__name}}</h2>
+{#            <p>We can use CSS Grid to overwrite older methods.</p> #}
+            <a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> 
+    <img class="card-img-top ilogo" src="/media/{{component.manufacturer__logo}}" alt="{{component.name}}/{{component.name_ukr}}">
+    </a>
+            
+        </li>
+{% endfor %}        
+    </ul>
+</div>
+{% endcomment %}
+
+
+{% comment %}           
+<div class="entry container-fluid">
 
 {# Список компаній #}
 {% if components_company %}
@@ -154,7 +383,7 @@ h5.sale {
 {# Список категорій #} 
 <div class="d-flex align-content-around flex-wrap">
 {% for component in components_list_bytype %}
-  <div class="card mr-auto mb-1" style="width:128px">
+  <div class="card mr-auto mb-1 typeshoplist">
   	<a href="{% url 'components-list-bytype' component.id %}"> 
     <img class="card-img-top ilogo p-1" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" style="width:128px" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
     </a>
@@ -166,34 +395,63 @@ h5.sale {
 </div>
 
 
-{% comment %}
-{# Список категорій #} 
-{% if components_list_bytype %}
-<div class="card-columns card-columns_type">
+</div>
+{% endcomment %}
+
+
+{# Список категорій #}
+{% if components_list_bytype %} 
+<div class="page">
+<div class="archive">
 {% for component in components_list_bytype %}
-  <div class="card" style="width:128px">
+    <article class="article_type">
+    	<h5 class="card-title">{{component}}</h5>
+    	<div class="center_div_type">
+    <a href="{% url 'components-list-bytype' component.id %}"> 
+    <img class="card-img-top ilogo p-1" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    </a>
+    	</div>
+{#    	<p class="1card-text"><small class="1text-muted">Кількість - {{component.brand_c}}</small></p> #}
+    </article>
+    
+{% comment %}
+  <div class="card mr-auto mb-1 typeshoplist">
   	<a href="{% url 'components-list-bytype' component.id %}"> 
-    <img class="card-img-top ilogo" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" style="width:128px" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
+    <img class="card-img-top ilogo p-1" src="{{component.get_icon_name}}" alt="{{component.name_ukr}}" style="width:128px" title="{{ component.name_ukr }}" data-toggle="tooltip" data-placement="top">
     </a>
     <div class="card-body">
-{#      <h5 class="card-title">{{component.name}}</h5> #}
-{#      <p class="card-text"><small class="text-muted">Кількість - {{component.get_discount}}</small></p> #}
       <p class="card-text"><small class="text-muted">{{component}}</small></p> 
     </div>
   </div>
-
-{#    <p class="mb-1">{{component.type__description_ukr}} </p> #}
+{% endcomment %}
 
 {% endfor %}
 </div>
-{% endif %}		
-{% endcomment %}
-
 </div>
-</div>
+{% endif %}
 
+
+{% if components_company %}
+<div class="page">
+<div class="archive">
+{% for component in components_company %}
+    <article class="article">
+    	<h5 class="card-title">{{component.manufacturer__name}}</h5>
+    	<div class="center_div">
+    	<a href="{% url 'components-list-bybrand' component.manufacturer__id %}"> 
+    	<img class="img_brand" src="/media/{{component.manufacturer__logo}}" alt="{{component.name}}/{{component.name_ukr}}">
+    	</a>
+    	
+    	</div>
+    	<p class="1card-text"><small class="1text-muted">Кількість - {{component.brand_c}}</small></p>
+    </article>
+{% endfor %}
+  </div>
+</div>
+{% endif %}
 
 {% endblock %}
 
 
-
+{% comment %}
+{% endcomment %}
