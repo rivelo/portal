@@ -11,32 +11,64 @@ body.main-Page {
 	padding-left: 0px;
 }
 
-
-@media (min-width: 544px) {
+  @media (min-width: 300px) {
   .card-columns {
     -moz-column-count: 3;
     column-count: 3;
     -moz-column-gap: 1.25rem;
     column-gap: 1.25rem;
   }
-}
-/*
-  @media (min-width:576px) {
+  .card {
+  	width: 100%;
+  }
+  }
+
+  @media (max-width: 300px) {
+  .card-columns {
+    -moz-column-count: 3;
+    column-count: 3;
+    -moz-column-gap: 1.25rem;
+    column-gap: 1.25rem;
+  }
+  .card {
+  	width: 100%;
+  }
+  }
+
+  @media (min-width:368px) {
+  	.card-columns {
+    	column-count: 2;
+    }
+  	.card {
+  		width: 128px;
+  	}      
+  }
+
+  @media (min-width:568px) {
       .card-columns {
         column-count: 2;
       }
+  .card {
+  	width: 128px;
+  }      
   }
-*/  
-    @media (min-width:768px) {
+
+  
+  @media (min-width:768px) {
       .card-columns {
         column-count: 3;
       }
+  .card {
+  	width: 128px;
+  }      
   }
+  
   @media (min-width:992px) {
       .card-columns {
         column-count: 4;
       }
   }
+  
   @media (min-width:1200px) {
       .card-columns {
         column-count: 6;
@@ -49,6 +81,7 @@ body.main-Page {
     padding: 1px;
     box-sizing: border-box;
 }
+
 .clearfix {
     content: "";
     clear: both;
@@ -264,7 +297,7 @@ a.active {
 /* Page */
 
 #page {
-	width: 960px;
+	width: 100%;
 	margin: 0 auto;
 	padding: 0 20px;
 	background: url(/media/images/img01.jpg) repeat-x left top;
@@ -317,7 +350,7 @@ a.active {
 
 #content {
 	float: left;
-	width: 660px;
+	width: 100%; /*660px;*/
 }
 
 /* Post */
@@ -524,4 +557,17 @@ background-image: url('/media/images/cancel.png');
   display: block;
   height: auto;
   max-width: 100%;
+}
+
+.photo_sidebar {
+	margin: 0px 0px;
+	padding: 5px 0px 5px 5px;
+}
+
+.photo_sidebar img
+{
+	border: 1px solid rgba(223,215,202,0.75);
+	border-radius: 0.28rem;
+	padding: 5px; 
+	width: 100%;
 }
